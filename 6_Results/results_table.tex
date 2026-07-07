@@ -1,0 +1,187 @@
+\begin{table}
+\caption{Performance Metrics Across Experiments}
+\label{tab:results}
+\begin{tabular}{lllllrrrr}
+\toprule
+ &  &  &  &  & Accuracy & Precision & Recall & F1\_score \\
+Exp. & Desc. & Dataset & Sampling & Model &  &  &  &  \\
+\midrule
+\multirow[t]{10}{*}{Experiment 1} & \multirow[t]{10}{*}{Default parameter performance using ML on original dataset (Baseline Performance)} & \multirow[t]{5}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{NaN} & SVM & 0.740 & 0.559 & 0.633 & 0.594 \\
+ &  &  &  & KNN & 0.680 & 0.475 & 0.633 & 0.543 \\
+ &  &  &  & XGB & 0.755 & 0.622 & 0.467 & 0.533 \\
+ &  &  &  & LOGISTIC & 0.745 & 0.565 & 0.650 & 0.605 \\
+ &  &  &  & RANDOM\_FOREST & 0.750 & 0.609 & 0.467 & 0.528 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{5}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{NaN} & SVM & 0.811 & 0.595 & 0.454 & 0.515 \\
+ &  &  &  & KNN & 0.749 & 0.437 & 0.475 & 0.455 \\
+ &  &  &  & XGB & 0.813 & 0.634 & 0.370 & 0.468 \\
+ &  &  &  & LOGISTIC & 0.678 & 0.369 & 0.638 & 0.467 \\
+ &  &  &  & RANDOM\_FOREST & 0.812 & 0.618 & 0.398 & 0.484 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{10}{*}{Experiment 2} & \multirow[t]{10}{*}{Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance} & \multirow[t]{5}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{NaN} & SVM & 0.730 & 0.554 & 0.517 & 0.534 \\
+ &  &  &  & KNN & 0.710 & 0.517 & 0.500 & 0.508 \\
+ &  &  &  & XGB & 0.735 & 0.566 & 0.500 & 0.531 \\
+ &  &  &  & LOGISTIC & 0.710 & 0.514 & 0.633 & 0.567 \\
+ &  &  &  & RANDOM\_FOREST & 0.750 & 0.593 & 0.533 & 0.561 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{5}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{NaN} & SVM & 0.809 & 0.589 & 0.455 & 0.513 \\
+ &  &  &  & KNN & 0.750 & 0.430 & 0.403 & 0.416 \\
+ &  &  &  & XGB & 0.816 & 0.646 & 0.372 & 0.472 \\
+ &  &  &  & LOGISTIC & 0.678 & 0.369 & 0.638 & 0.467 \\
+ &  &  &  & RANDOM\_FOREST & 0.813 & 0.622 & 0.394 & 0.483 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{20}{*}{Experiment 3} & \multirow[t]{20}{*}{Default parameter performance using ML on generated barcode statistics} & \multirow[t]{10}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{L30} & SVM & 0.740 & 0.697 & 0.850 & 0.766 \\
+ &  &  &  & KNN & 0.685 & 0.646 & 0.820 & 0.722 \\
+ &  &  &  & XGB & 0.745 & 0.713 & 0.820 & 0.763 \\
+ &  &  &  & LOGISTIC & 0.725 & 0.706 & 0.770 & 0.737 \\
+ &  &  &  & RANDOM\_FOREST & 0.710 & 0.691 & 0.760 & 0.724 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L60} & SVM & 0.825 & 0.793 & 0.880 & 0.834 \\
+ &  &  &  & KNN & 0.775 & 0.743 & 0.840 & 0.789 \\
+ &  &  &  & XGB & 0.850 & 0.837 & 0.870 & 0.853 \\
+ &  &  &  & LOGISTIC & 0.805 & 0.770 & 0.870 & 0.817 \\
+ &  &  &  & RANDOM\_FOREST & 0.810 & 0.798 & 0.830 & 0.814 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & KNN & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  &  & XGB & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  &  & LOGISTIC & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & RANDOM\_FOREST & 0.985 & 1.000 & 0.970 & 0.985 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{20}{*}{Experiment 4} & \multirow[t]{20}{*}{Tuned parameter performance using ML on generated barcode statistics for improved performance} & \multirow[t]{10}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{L30} & SVM & 0.710 & 0.664 & 0.850 & 0.746 \\
+ &  &  &  & KNN & 0.735 & 0.697 & 0.830 & 0.758 \\
+ &  &  &  & XGB & 0.730 & 0.698 & 0.810 & 0.750 \\
+ &  &  &  & LOGISTIC & 0.720 & 0.696 & 0.780 & 0.736 \\
+ &  &  &  & RANDOM\_FOREST & 0.735 & 0.708 & 0.800 & 0.751 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L60} & SVM & 0.825 & 0.793 & 0.880 & 0.834 \\
+ &  &  &  & KNN & 0.815 & 0.794 & 0.850 & 0.821 \\
+ &  &  &  & XGB & 0.840 & 0.804 & 0.900 & 0.849 \\
+ &  &  &  & LOGISTIC & 0.785 & 0.761 & 0.830 & 0.794 \\
+ &  &  &  & RANDOM\_FOREST & 0.805 & 0.796 & 0.820 & 0.808 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & XGB & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  &  & LOGISTIC & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  &  & RANDOM\_FOREST & 0.990 & 1.000 & 0.980 & 0.990 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{20}{*}{Experiment 5} & \multirow[t]{20}{*}{Effect of H0 barcodes only from barcode statistics on model performance} & \multirow[t]{10}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{L30} & SVM & 0.690 & 0.644 & 0.850 & 0.733 \\
+ &  &  &  & KNN & 0.640 & 0.632 & 0.670 & 0.650 \\
+ &  &  &  & XGB & 0.700 & 0.682 & 0.750 & 0.714 \\
+ &  &  &  & LOGISTIC & 0.670 & 0.649 & 0.740 & 0.692 \\
+ &  &  &  & RANDOM\_FOREST & 0.715 & 0.678 & 0.820 & 0.742 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L60} & SVM & 0.735 & 0.701 & 0.820 & 0.756 \\
+ &  &  &  & KNN & 0.775 & 0.739 & 0.850 & 0.791 \\
+ &  &  &  & XGB & 0.860 & 0.827 & 0.910 & 0.867 \\
+ &  &  &  & LOGISTIC & 0.720 & 0.700 & 0.770 & 0.733 \\
+ &  &  &  & RANDOM\_FOREST & 0.795 & 0.766 & 0.850 & 0.806 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 0.975 & 0.990 & 0.960 & 0.975 \\
+ &  &  &  & KNN & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  &  & XGB & 0.980 & 1.000 & 0.960 & 0.980 \\
+ &  &  &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  &  & RANDOM\_FOREST & 0.980 & 0.990 & 0.970 & 0.980 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{20}{*}{Experiment 6} & \multirow[t]{20}{*}{Dropping correlated barcode statistics columns before evaluating model performance} & \multirow[t]{10}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{L30} & SVM & 0.725 & 0.680 & 0.850 & 0.756 \\
+ &  &  &  & KNN & 0.650 & 0.625 & 0.750 & 0.682 \\
+ &  &  &  & XGB & 0.735 & 0.697 & 0.830 & 0.758 \\
+ &  &  &  & LOGISTIC & 0.750 & 0.723 & 0.810 & 0.764 \\
+ &  &  &  & RANDOM\_FOREST & 0.730 & 0.702 & 0.800 & 0.748 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L60} & SVM & 0.835 & 0.819 & 0.860 & 0.839 \\
+ &  &  &  & KNN & 0.795 & 0.761 & 0.860 & 0.808 \\
+ &  &  &  & XGB & 0.820 & 0.808 & 0.840 & 0.824 \\
+ &  &  &  & LOGISTIC & 0.800 & 0.768 & 0.860 & 0.811 \\
+ &  &  &  & RANDOM\_FOREST & 0.805 & 0.802 & 0.810 & 0.806 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & XGB & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & LOGISTIC & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  &  & RANDOM\_FOREST & 0.985 & 1.000 & 0.970 & 0.985 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L15} & SVM & 0.995 & 1.000 & 0.990 & 0.995 \\
+ &  &  &  & KNN & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{10}{*}{Experiment 7} & \multirow[t]{10}{*}{Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.} & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L1.36} & SVM & 0.855 & 0.845 & 0.870 & 0.857 \\
+ &  &  &  & KNN & 0.860 & 0.867 & 0.850 & 0.859 \\
+ &  &  &  & XGB & 0.855 & 0.845 & 0.870 & 0.857 \\
+ &  &  &  & LOGISTIC & 0.860 & 0.860 & 0.860 & 0.860 \\
+ &  &  &  & RANDOM\_FOREST & 0.865 & 0.861 & 0.870 & 0.866 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L2.71} & SVM & 0.950 & 0.969 & 0.930 & 0.949 \\
+ &  &  &  & KNN & 0.955 & 0.969 & 0.940 & 0.954 \\
+ &  &  &  & XGB & 0.940 & 0.958 & 0.920 & 0.939 \\
+ &  &  &  & LOGISTIC & 0.950 & 0.969 & 0.930 & 0.949 \\
+ &  &  &  & RANDOM\_FOREST & 0.945 & 0.968 & 0.920 & 0.944 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{10}{*}{Experiment 8} & \multirow[t]{10}{*}{Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89\%)} & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & XGB & 0.995 & 1.000 & 0.990 & 0.995 \\
+ &  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & RANDOM\_FOREST & 0.995 & 1.000 & 0.990 & 0.995 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{20}{*}{Experiment 9} & \multirow[t]{20}{*}{Training with mixed classes on imbalanced data - How do models perform under class imbalance} & \multirow[t]{10}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{L30} & SVM & 0.810 & 0.600 & 0.150 & 0.240 \\
+ &  &  &  & KNN & 0.775 & 0.407 & 0.275 & 0.328 \\
+ &  &  &  & XGB & 0.790 & 0.458 & 0.275 & 0.344 \\
+ &  &  &  & LOGISTIC & 0.820 & 0.643 & 0.225 & 0.333 \\
+ &  &  &  & RANDOM\_FOREST & 0.815 & 0.615 & 0.200 & 0.302 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L60} & SVM & 0.850 & 0.679 & 0.475 & 0.559 \\
+ &  &  &  & KNN & 0.840 & 0.625 & 0.500 & 0.556 \\
+ &  &  &  & XGB & 0.860 & 0.714 & 0.500 & 0.588 \\
+ &  &  &  & LOGISTIC & 0.850 & 0.692 & 0.450 & 0.545 \\
+ &  &  &  & RANDOM\_FOREST & 0.845 & 0.680 & 0.425 & 0.523 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 0.990 & 1.000 & 0.950 & 0.974 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 0.995 & 1.000 & 0.975 & 0.987 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{4-9}
+ &  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\multirow[t]{4}{*}{Experiment 10} & \multirow[t]{4}{*}{Linear regression for binary prediction to understand if a straight line can easily seperate classes} & \multirow[t]{2}{*}{Statlog German Credit Dataset} & L30 & LINEAR & 0.695 & 0.670 & 0.770 & 0.716 \\
+\cline{4-9}
+ &  &  & L60 & LINEAR & 0.745 & 0.706 & 0.840 & 0.767 \\
+\cline{3-9} \cline{4-9}
+ &  & \multirow[t]{2}{*}{Default of Credit Card Client Dataset} & L5 & LINEAR & 0.990 & 1.000 & 0.980 & 0.990 \\
+\cline{4-9}
+ &  &  & L15 & LINEAR & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-9} \cline{2-9} \cline{3-9} \cline{4-9}
+\bottomrule
+\end{tabular}
+\end{table}

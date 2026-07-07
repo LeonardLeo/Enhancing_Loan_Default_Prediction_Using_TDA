@@ -1,0 +1,109 @@
+EXPERIMENT REPORT - MACHINE LEARNING ON GENERATED BARCODE STATISTICS
+(EXPERIMENTS USED IN RESEARCH PAPER)
+Experiment 1
+Description: Default parameter performance using ML on original dataset (Baseline Performance)
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 2
+Description: Tuned parameter performance using ML on original dataset for improved performance (Tuned Parameters Baseline Performance)
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 3
+Description: Default parameter performance using ML on generated barcode statistics
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 4
+Description: Tuned parameter performance using ML on generated barcode statistics for improved performance
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 6
+Description: Effect of H0 barcodes only from barcode statistics on model performance
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 11
+Description: Dropping correlated barcode statistics columns before evaluating model performance
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 12
+Description: Evaluating equivalent sample sizes for datasets (setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60)
+
+Dataset Used:
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 13
+Description: Retaining similar variance via PCA (setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%)
+
+Dataset Used:
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 14
+Description: Training with mixed classes on imbalanced data - how do models perform under class imbalance
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+Experiment 19
+Description: Linear regression for binary prediction to understand if a straight line can easily separate classes
+
+Datasets Used:
+- Statlog German Credit Dataset
+- Default of Credit Card Client Dataset
+
+
+
+
+
+
+
+
+
+
+(EXPERIMENTS NOT USED IN RESEARCH PAPER)
+Experiment 5 - Using the Mapper algorithm on the original dataset
+Experiment 7 - EDA for the barcode statistics
+Experiment 8 - Dimensionality reduction on barcode statistics for visualization and insights
+Experiment 9 - Dimensionality reduction on the original dataset for visualization and insights
+Experiment 10 - Covariance matix and distance analysis using centroids to understand data shape
+Experiment 15 - Working with KNN
+Experiment 16 - Moving various values for the number of PCA components for Default of Credit Card Client Dataset. Training and evaluating model performance, visualizing results if applicable.
+Experiment 17 - Distribution for each class using T-SNE, PCA, UMAP to a maximum of 3 components for 3D plots.
+Experiment 18 - Moving various values for the number of PCA components for Statlog German Credit Dataset. Training and evaluating model performance, visualizing results if applicable.
+Experiment 20 - Deep learning for prediction
+Experiment 21 - Mapper for barcode statistics

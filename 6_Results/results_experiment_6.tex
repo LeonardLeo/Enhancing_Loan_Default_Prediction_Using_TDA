@@ -1,0 +1,35 @@
+\begin{table}
+\caption{Performance Metrics for Experiment 6}
+\label{tab:experiment_6_results}
+\begin{tabular}{lllrrrr}
+\toprule
+ &  &  & Accuracy & Precision & Recall & F1\_score \\
+Dataset & Sampling & Model &  &  &  &  \\
+\midrule
+\multirow[t]{10}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{L30} & SVM & 0.725 & 0.680 & 0.850 & 0.756 \\
+ &  & KNN & 0.650 & 0.625 & 0.750 & 0.682 \\
+ &  & XGB & 0.735 & 0.697 & 0.830 & 0.758 \\
+ &  & LOGISTIC & 0.750 & 0.723 & 0.810 & 0.764 \\
+ &  & RANDOM\_FOREST & 0.730 & 0.702 & 0.800 & 0.748 \\
+\cline{2-7}
+ & \multirow[t]{5}{*}{L60} & SVM & 0.835 & 0.819 & 0.860 & 0.839 \\
+ &  & KNN & 0.795 & 0.761 & 0.860 & 0.808 \\
+ &  & XGB & 0.820 & 0.808 & 0.840 & 0.824 \\
+ &  & LOGISTIC & 0.800 & 0.768 & 0.860 & 0.811 \\
+ &  & RANDOM\_FOREST & 0.805 & 0.802 & 0.810 & 0.806 \\
+\cline{1-7} \cline{2-7}
+\multirow[t]{10}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{L5} & SVM & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  & XGB & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  & LOGISTIC & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  & RANDOM\_FOREST & 0.985 & 1.000 & 0.970 & 0.985 \\
+\cline{2-7}
+ & \multirow[t]{5}{*}{L15} & SVM & 0.995 & 1.000 & 0.990 & 0.995 \\
+ &  & KNN & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-7} \cline{2-7}
+\bottomrule
+\end{tabular}
+\end{table}

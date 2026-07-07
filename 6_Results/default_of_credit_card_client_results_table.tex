@@ -1,0 +1,111 @@
+\begin{table}
+\caption{Performance Metrics Across Experiments for Default of Credit Card Client Dataset}
+\label{tab:results for Default of Credit Card Client Dataset}
+\begin{tabular}{llllrrrr}
+\toprule
+ &  &  &  & Accuracy & Precision & Recall & F1\_score \\
+Exp. & Desc. & Sampling & Model &  &  &  &  \\
+\midrule
+\multirow[t]{5}{*}{Experiment 1} & \multirow[t]{5}{*}{Default parameter performance using ML on original dataset (Baseline Performance)} & \multirow[t]{5}{*}{NaN} & SVM & 0.811 & 0.595 & 0.454 & 0.515 \\
+ &  &  & KNN & 0.749 & 0.437 & 0.475 & 0.455 \\
+ &  &  & XGB & 0.813 & 0.634 & 0.370 & 0.468 \\
+ &  &  & LOGISTIC & 0.678 & 0.369 & 0.638 & 0.467 \\
+ &  &  & RANDOM\_FOREST & 0.812 & 0.618 & 0.398 & 0.484 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{5}{*}{Experiment 2} & \multirow[t]{5}{*}{Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance} & \multirow[t]{5}{*}{NaN} & SVM & 0.809 & 0.589 & 0.455 & 0.513 \\
+ &  &  & KNN & 0.750 & 0.430 & 0.403 & 0.416 \\
+ &  &  & XGB & 0.816 & 0.646 & 0.372 & 0.472 \\
+ &  &  & LOGISTIC & 0.678 & 0.369 & 0.638 & 0.467 \\
+ &  &  & RANDOM\_FOREST & 0.813 & 0.622 & 0.394 & 0.483 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 3} & \multirow[t]{10}{*}{Default parameter performance using ML on generated barcode statistics} & \multirow[t]{5}{*}{L5} & SVM & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & KNN & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & XGB & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & LOGISTIC & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & RANDOM\_FOREST & 0.985 & 1.000 & 0.970 & 0.985 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 4} & \multirow[t]{10}{*}{Tuned parameter performance using ML on generated barcode statistics for improved performance} & \multirow[t]{5}{*}{L5} & SVM & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & XGB & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & LOGISTIC & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & RANDOM\_FOREST & 0.990 & 1.000 & 0.980 & 0.990 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 5} & \multirow[t]{10}{*}{Effect of H0 barcodes only from barcode statistics on model performance} & \multirow[t]{5}{*}{L5} & SVM & 0.975 & 0.990 & 0.960 & 0.975 \\
+ &  &  & KNN & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  & XGB & 0.980 & 1.000 & 0.960 & 0.980 \\
+ &  &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  & RANDOM\_FOREST & 0.980 & 0.990 & 0.970 & 0.980 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 6} & \multirow[t]{10}{*}{Dropping correlated barcode statistics columns before evaluating model performance} & \multirow[t]{5}{*}{L5} & SVM & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & XGB & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & LOGISTIC & 0.985 & 1.000 & 0.970 & 0.985 \\
+ &  &  & RANDOM\_FOREST & 0.985 & 1.000 & 0.970 & 0.985 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L15} & SVM & 0.995 & 1.000 & 0.990 & 0.995 \\
+ &  &  & KNN & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 7} & \multirow[t]{10}{*}{Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.} & \multirow[t]{5}{*}{L1.36} & SVM & 0.855 & 0.845 & 0.870 & 0.857 \\
+ &  &  & KNN & 0.860 & 0.867 & 0.850 & 0.859 \\
+ &  &  & XGB & 0.855 & 0.845 & 0.870 & 0.857 \\
+ &  &  & LOGISTIC & 0.860 & 0.860 & 0.860 & 0.860 \\
+ &  &  & RANDOM\_FOREST & 0.865 & 0.861 & 0.870 & 0.866 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L2.71} & SVM & 0.950 & 0.969 & 0.930 & 0.949 \\
+ &  &  & KNN & 0.955 & 0.969 & 0.940 & 0.954 \\
+ &  &  & XGB & 0.940 & 0.958 & 0.920 & 0.939 \\
+ &  &  & LOGISTIC & 0.950 & 0.969 & 0.930 & 0.949 \\
+ &  &  & RANDOM\_FOREST & 0.945 & 0.968 & 0.920 & 0.944 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 8} & \multirow[t]{10}{*}{Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89\%)} & \multirow[t]{5}{*}{L5} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & XGB & 0.995 & 1.000 & 0.990 & 0.995 \\
+ &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & RANDOM\_FOREST & 0.995 & 1.000 & 0.990 & 0.995 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{10}{*}{Experiment 9} & \multirow[t]{10}{*}{Training with mixed classes on imbalanced data - How do models perform under class imbalance} & \multirow[t]{5}{*}{L5} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 0.990 & 1.000 & 0.950 & 0.974 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 0.995 & 1.000 & 0.975 & 0.987 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{3-8}
+ &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\multirow[t]{2}{*}{Experiment 10} & \multirow[t]{2}{*}{Linear regression for binary prediction to understand if a straight line can easily seperate classes} & L5 & LINEAR & 0.990 & 1.000 & 0.980 & 0.990 \\
+\cline{3-8}
+ &  & L15 & LINEAR & 1.000 & 1.000 & 1.000 & 1.000 \\
+\cline{1-8} \cline{2-8} \cline{3-8}
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,23 @@
+\begin{table}
+\caption{Performance Metrics for Experiment 1}
+\label{tab:experiment_1_results}
+\begin{tabular}{lllrrrr}
+\toprule
+ &  &  & Accuracy & Precision & Recall & F1\_score \\
+Dataset & Sampling & Model &  &  &  &  \\
+\midrule
+\multirow[t]{5}{*}{Statlog German Credit Dataset} & \multirow[t]{5}{*}{NaN} & SVM & 0.740 & 0.559 & 0.633 & 0.594 \\
+ &  & KNN & 0.680 & 0.475 & 0.633 & 0.543 \\
+ &  & XGB & 0.755 & 0.622 & 0.467 & 0.533 \\
+ &  & LOGISTIC & 0.745 & 0.565 & 0.650 & 0.605 \\
+ &  & RANDOM\_FOREST & 0.750 & 0.609 & 0.467 & 0.528 \\
+\cline{1-7} \cline{2-7}
+\multirow[t]{5}{*}{Default of Credit Card Client Dataset} & \multirow[t]{5}{*}{NaN} & SVM & 0.811 & 0.595 & 0.454 & 0.515 \\
+ &  & KNN & 0.749 & 0.437 & 0.475 & 0.455 \\
+ &  & XGB & 0.813 & 0.634 & 0.370 & 0.468 \\
+ &  & LOGISTIC & 0.678 & 0.369 & 0.638 & 0.467 \\
+ &  & RANDOM\_FOREST & 0.812 & 0.618 & 0.398 & 0.484 \\
+\cline{1-7} \cline{2-7}
+\bottomrule
+\end{tabular}
+\end{table}

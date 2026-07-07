@@ -1,0 +1,30 @@
+{
+    "Mean Death (Dim 0)": {
+        "Mean Persistence (Dim 0)": 1.0
+    },
+    "Mean Gap to Max Death (Dim 0)": {
+        "Median Gap to Max Death (Dim 0)": 0.9649
+    },
+    "Median Death (Dim 0)": {
+        "Median Persistence (Dim 0)": 1.0
+    },
+    "Std Death (Dim 0)": {
+        "Std Gap to Max Death (Dim 0)": 1.0,
+        "Std Persistence (Dim 0)": 1.0
+    },
+    "Mean Death (Dim 1)": {
+        "Median Death (Dim 1)": 0.8501,
+        "Mean Birth (Dim 1)": 0.9727,
+        "Median Birth (Dim 1)": 0.8263
+    },
+    "Mean Persistence (Dim 1)": null,
+    "Median Gap to Max Death (Dim 1)": {
+        "Mean Gap to Max Death (Dim 1)": 0.9782
+    },
+    "Median Persistence (Dim 1)": null,
+    "Std Birth (Dim 1)": {
+        "Std Death (Dim 1)": 0.9644,
+        "Std Gap to Max Death (Dim 1)": 0.9644
+    },
+    "Std Persistence (Dim 1)": null
+}

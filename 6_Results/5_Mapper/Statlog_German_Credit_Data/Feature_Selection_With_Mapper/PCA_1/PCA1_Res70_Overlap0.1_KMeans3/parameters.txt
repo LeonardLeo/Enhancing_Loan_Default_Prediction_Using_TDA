@@ -1,0 +1,5 @@
+Parameters for this Mapper graph:
+PCA Components: 1
+Resolution (n_cubes): 70
+Percentage Overlap: 0.1
+KMeans Clusters: 3
