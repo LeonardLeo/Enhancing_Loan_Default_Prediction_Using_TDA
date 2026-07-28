@@ -1,0 +1,154 @@
+{
+    "Default_Of_Credit_Card_Client_Data/data_L5.csv": {
+        "F_2_2": {
+            "observed_F_pq": 0.010885511577424761,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 2,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.013054432950725,
+            "null_std": 4.363769430834935e-05,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_1_1": {
+            "observed_F_pq": 0.2199508659634467,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 1,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.28883192404369096,
+            "null_std": 0.0005301753558986441,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_2_1": {
+            "observed_F_pq": 0.08216198595021511,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.09602931321663329,
+            "null_std": 0.00018031110115683682,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        }
+    },
+    "Default_Of_Credit_Card_Client_Data/data_L15.csv": {
+        "F_2_2": {
+            "observed_F_pq": 0.006904834194209784,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 2,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.008886227517440908,
+            "null_std": 4.065226095897779e-05,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_1_1": {
+            "observed_F_pq": 0.16108947834781562,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 1,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.23638441344811628,
+            "null_std": 0.000520262782627935,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_2_1": {
+            "observed_F_pq": 0.06672375140456491,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.08142592494752512,
+            "null_std": 0.00018852244508672322,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        }
+    },
+    "Statlog_German_Credit_Data/data_L30.csv": {
+        "F_2_2": {
+            "observed_F_pq": 0.10145711631784166,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 2,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.11393270769529595,
+            "null_std": 0.00045412051127025847,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_1_1": {
+            "observed_F_pq": 1.015140810959676,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 1,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 1.066170981479447,
+            "null_std": 0.0019414016897528013,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_2_1": {
+            "observed_F_pq": 0.2996344806542464,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.31585828300911856,
+            "null_std": 0.0006023173204591195,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        }
+    },
+    "Statlog_German_Credit_Data/data_L60.csv": {
+        "F_2_2": {
+            "observed_F_pq": 0.04543066856491643,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 2,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.056022493824816944,
+            "null_std": 0.00026265887698163936,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_1_1": {
+            "observed_F_pq": 0.6309662532667482,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 1,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.6995148342181431,
+            "null_std": 0.0015422903827159492,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        },
+        "F_2_1": {
+            "observed_F_pq": 0.19591782316348078,
+            "p_value": 0.005,
+            "n_permutations": 200,
+            "p": 2,
+            "q": 1,
+            "n1": 100,
+            "n2": 100,
+            "null_mean": 0.21790319614172063,
+            "null_std": 0.0005003414987916685,
+            "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)"
+        }
+    }
+}

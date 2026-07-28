@@ -1038,7 +1038,7 @@ def store_data_as_csv_or_json(
         else:
             raise TypeError(f"Unsupported data type for: {name} ({type(obj)})")
 
-        print(f"✅ Saved: {save_file}")
+        print(f"Saved: {save_file}")
     
 def perform_cross_validation_tda(datasets: List[str],
                                  model_results: Dict[str, Dict[str, Dict[str, Any]]],
@@ -2554,4 +2554,486 @@ def build_results_dataframe_v3(
     df = pd.DataFrame(data, index=index)
 
     return df
+
+
+# =============================================================================
+# Early train/test split helpers (Experiment 23+)
+# =============================================================================
+def stratified_early_split(
+    X: pd.DataFrame,
+    y: pd.Series,
+    test_size: float = 0.2,
+    random_state: int = 42,
+):
+    """
+    Stratified 80/20 (or custom) split on tabular features BEFORE PCA / landmarks.
+    Returns X_train, X_test, y_train, y_test.
+    """
+    return train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=y,
+    )
+
+
+def fit_scaler_pca_on_train(
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    n_components: int,
+    random_state: int = 42,
+):
+    """
+    Fit MinMaxScaler + PCA on TRAIN only; transform train and test.
+    Avoids leakage from fitting PCA on the full dataset.
+    """
+    scaler = MinMaxScaler()
+    X_train_scaled = pd.DataFrame(
+        scaler.fit_transform(X_train),
+        columns=X_train.columns,
+        index=X_train.index,
+    )
+    X_test_scaled = pd.DataFrame(
+        scaler.transform(X_test),
+        columns=X_test.columns,
+        index=X_test.index,
+    )
+
+    pca = PCA(n_components=n_components, random_state=random_state)
+    pca_cols = [f"PCA_{i}" for i in range(1, n_components + 1)]
+    X_train_pca = pd.DataFrame(
+        pca.fit_transform(X_train_scaled),
+        columns=pca_cols,
+        index=X_train.index,
+    )
+    X_test_pca = pd.DataFrame(
+        pca.transform(X_test_scaled),
+        columns=pca_cols,
+        index=X_test.index,
+    )
+    variance_ratio = float(pca.explained_variance_ratio_.sum())
+    return X_train_pca, X_test_pca, scaler, pca, variance_ratio
+
+
+def balance_binary_by_undersampling(
+    features: pd.DataFrame,
+    labels: pd.Series,
+    positive_label: int = 1,
+    random_state: int = 42,
+):
+    """
+    Undersample the majority class to match the minority count.
+    Returns a feature DataFrame with a 'Class' column.
+    """
+    data = features.copy()
+    data["Class"] = labels.values
+    pos = data[data["Class"] == positive_label].reset_index(drop=True)
+    neg = data[data["Class"] != positive_label].reset_index(drop=True)
+    n = min(len(pos), len(neg))
+    pos_b = pos.sample(n=n, random_state=random_state).reset_index(drop=True)
+    neg_b = neg.sample(n=n, random_state=random_state).reset_index(drop=True)
+    return pd.concat([pos_b, neg_b], ignore_index=True)
+
+
+def train_dataset_tda_presplit(
+    train_data: Union[str, pd.DataFrame],
+    test_data: Union[str, pd.DataFrame],
+    y_col_name: str = "label",
+    scale_features: bool = True,
+    random_state: int = 42,
+    **kwargs,
+):
+    """
+    Train on a pre-built train barcode matrix; evaluate on a pre-built test matrix.
+    Does NOT re-split (for early-split Experiment 23 protocol B).
+    """
+    if isinstance(train_data, str):
+        train_df = pd.read_csv(os.path.abspath(train_data))
+    else:
+        train_df = train_data.copy()
+    if isinstance(test_data, str):
+        test_df = pd.read_csv(os.path.abspath(test_data))
+    else:
+        test_df = test_data.copy()
+
+    X_train = train_df.drop(columns=[y_col_name])
+    y_train = train_df[y_col_name]
+    X_test = test_df.drop(columns=[y_col_name])
+    y_test = test_df[y_col_name]
+
+    if scale_features:
+        scaler = MinMaxScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+    else:
+        X_train = X_train.values
+        X_test = X_test.values
+        y_train = y_train.values
+        y_test = y_test.values
+
+    models = {
+        "svm": SVC(**kwargs.get("svm", {})),
+        "knn": KNeighborsClassifier(**kwargs.get("knn", {})),
+        "xgb": XGBClassifier(**kwargs.get("xgb", {})),
+        "logistic": LogisticRegression(**kwargs.get("logistic", {})),
+        "random_forest": RandomForestClassifier(**kwargs.get("random_forest", {})),
+    }
+
+    results = {}
+    for model_name, model in models.items():
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        results[model_name] = {
+            "model": model,
+            "accuracy": accuracy_score(y_test, y_pred),
+            "precision": precision_score(y_test, y_pred, zero_division=0),
+            "recall": recall_score(y_test, y_pred, zero_division=0),
+            "f1_score": f1_score(y_test, y_pred, zero_division=0),
+            "classification_report": classification_report(y_test, y_pred, zero_division=0),
+            "confusion_matrix": confusion_matrix(y_test, y_pred),
+        }
+        print(f"✅ Trained {model_name} (presplit)")
+    return results
+
+
+def train_multiple_dataset_tda_presplit(
+    train_test_pairs: Dict[str, Dict[str, str]],
+    y_col_name: str = "label",
+    scale_features: bool = True,
+    random_state: int = 42,
+    **kwargs,
+):
+    """
+    train_test_pairs: {
+        "data_L5": {"train": path_train_csv, "test": path_test_csv},
+        ...
+    }
+    """
+    model_results = {}
+    overall_start = time.time()
+    for name, paths in train_test_pairs.items():
+        print(f"\n\n🔄 Presplit training on: {name}")
+        start = time.time()
+        model_results[name] = train_dataset_tda_presplit(
+            train_data=paths["train"],
+            test_data=paths["test"],
+            y_col_name=y_col_name,
+            scale_features=scale_features,
+            random_state=random_state,
+            **kwargs,
+        )
+        elapsed = int(time.time() - start)
+        print(f"⏱️ Finished {name} in {elapsed}s")
+    total = int(time.time() - overall_start)
+    print(f"\n✅ All presplit datasets completed in {total}s")
+    return model_results
+
+
+def train_models_on_presplit_dataset(
+    train_path: str,
+    test_path: str,
+    model_configs: dict,
+    target_column: str = "label",
+    scoring_metric: str = "f1",
+    scale_features: bool = True,
+    random_state: int = 42,
+    n_splits_kfold: int = 5,
+):
+    """
+    GridSearchCV on TRAIN barcodes only; evaluate best models on TEST barcodes.
+    """
+    train_df = pd.read_csv(os.path.abspath(train_path))
+    test_df = pd.read_csv(os.path.abspath(test_path))
+
+    X_train = train_df.drop(columns=[target_column]).values
+    y_train = train_df[target_column].values
+    X_test = test_df.drop(columns=[target_column]).values
+    y_test = test_df[target_column].values
+
+    if scale_features:
+        scaler = MinMaxScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+    results = {}
+    cv = StratifiedKFold(
+        n_splits=n_splits_kfold, shuffle=True, random_state=random_state
+    )
+    for model_name, config in model_configs.items():
+        base_model = config["model"]
+        param_grid = config["params"]
+        grid_search = GridSearchCV(
+            estimator=base_model,
+            param_grid=param_grid,
+            scoring=scoring_metric,
+            cv=cv,
+            n_jobs=-1,
+        )
+        grid_search.fit(X_train, y_train)
+        best_model = grid_search.best_estimator_
+        y_pred = best_model.predict(X_test)
+        results[model_name] = {
+            "model": best_model,
+            "best_params": grid_search.best_params_,
+            "accuracy": accuracy_score(y_test, y_pred),
+            "precision": precision_score(y_test, y_pred, zero_division=0),
+            "recall": recall_score(y_test, y_pred, zero_division=0),
+            "f1_score": f1_score(y_test, y_pred, zero_division=0),
+            "classification_report": classification_report(y_test, y_pred, zero_division=0),
+            "confusion_matrix": confusion_matrix(y_test, y_pred),
+        }
+        print(f"✅ Tuned (presplit): {model_name}")
+    return results
+
+
+def train_models_on_multiple_presplit_datasets(
+    train_test_pairs: Dict[str, Dict[str, str]],
+    model_configs: dict,
+    target_column: str = "label",
+    scoring_metric: str = "f1",
+    scale_features: bool = True,
+    random_state: int = 42,
+    n_splits_kfold: int = 5,
+):
+    model_results = {}
+    for name, paths in train_test_pairs.items():
+        print(f"\n\n🔄 Presplit tuned training on: {name}")
+        model_results[name] = train_models_on_presplit_dataset(
+            train_path=paths["train"],
+            test_path=paths["test"],
+            model_configs=model_configs,
+            target_column=target_column,
+            scoring_metric=scoring_metric,
+            scale_features=scale_features,
+            random_state=random_state,
+            n_splits_kfold=n_splits_kfold,
+        )
+    return model_results
+
+
+# =============================================================================
+# Statistical audit helpers (Experiments 24–27)
+# =============================================================================
+def compute_sampling_ratio_audit(
+    n1: int,
+    n2: int,
+    t: int,
+    l: int,
+    landmark_percent: float = None,
+) -> Dict[str, Any]:
+    """
+    Audit sampling ratios from Zaniar's statistical checklist.
+
+    n  = n1 + n2  (class sizes used for landmark generation, typically after balancing)
+    t  = points per landmark snapshot
+    l  = number of landmark files (snapshots) per class
+    """
+    n = n1 + n2
+    ratios = {
+        "n": n,
+        "n1": n1,
+        "n2": n2,
+        "t": t,
+        "l": l,
+        "landmark_percent": landmark_percent,
+        "t_over_n": t / n if n else np.nan,
+        "t_over_n1": t / n1 if n1 else np.nan,
+        "t_over_n2": t / n2 if n2 else np.nan,
+        "max_t_over_class": max(
+            (t / n1) if n1 else 0,
+            (t / n2) if n2 else 0,
+            (t / n) if n else 0,
+        ),
+        "naive_2tl_over_n": (t * 2 * l) / n if n else np.nan,
+        "naive_tl_over_n1": (t * l) / n1 if n1 else np.nan,
+        "naive_tl_over_n2": (t * l) / n2 if n2 else np.nan,
+        "suggested_t_over_class_lt_0_20": None,
+        "suggested_naive_near_or_below_1": None,
+    }
+    ratios["suggested_t_over_class_lt_0_20"] = ratios["max_t_over_class"] < 0.20
+    ratios["suggested_naive_near_or_below_1"] = (
+        ratios["naive_tl_over_n1"] <= 1.0 and ratios["naive_tl_over_n2"] <= 1.0
+    )
+    return ratios
+
+
+def summarize_snapshot_statistics(
+    barcode_csv: str,
+    label_col: str = "label",
+) -> Dict[str, Any]:
+    """
+    Record mean and variance of each barcode-statistic column across snapshots.
+    Also returns the empirical mean vector (proxy for landscape average \\bar\\lambda
+    when working in barcode-statistic feature space rather than full landscapes).
+    """
+    df = pd.read_csv(os.path.abspath(barcode_csv))
+    feature_cols = [c for c in df.columns if c != label_col]
+    means = df[feature_cols].mean()
+    variances = df[feature_cols].var(ddof=1)
+    per_label = {}
+    if label_col in df.columns:
+        for lab, group in df.groupby(label_col):
+            per_label[str(lab)] = {
+                "n_snapshots": len(group),
+                "mean": group[feature_cols].mean().to_dict(),
+                "variance": group[feature_cols].var(ddof=1).to_dict(),
+            }
+    return {
+        "n_snapshots": len(df),
+        "feature_columns": feature_cols,
+        "global_mean": means.to_dict(),
+        "global_variance": variances.to_dict(),
+        "lambda_bar_proxy": means.to_dict(),
+        "per_label": per_label,
+        "source": os.path.abspath(barcode_csv),
+    }
+
+
+def estimate_intrinsic_dimension_two_nn(
+    X: np.ndarray,
+    n_samples: int = None,
+    random_state: int = 42,
+) -> Dict[str, float]:
+    """
+    Two-NN intrinsic dimension estimator (Facco et al.).
+    Uses ratio of distances to 1st and 2nd nearest neighbours.
+    """
+    rng = check_random_state(random_state)
+    X = np.asarray(X, dtype=float)
+    if n_samples is not None and n_samples < len(X):
+        idx = rng.choice(len(X), size=n_samples, replace=False)
+        X = X[idx]
+
+    dists = cdist(X, X)
+    np.fill_diagonal(dists, np.inf)
+    nn = np.sort(dists, axis=1)[:, :2]
+    r1 = nn[:, 0]
+    r2 = nn[:, 1]
+    valid = (r1 > 0) & np.isfinite(r1) & np.isfinite(r2)
+    mu = r2[valid] / r1[valid]
+    mu = mu[mu > 1]
+    if len(mu) < 2:
+        return {"intrinsic_dim_two_nn": np.nan, "n_points_used": float(len(X))}
+
+    # MLE: d = 1 / mean(log(mu))
+    d_hat = 1.0 / np.mean(np.log(mu))
+    return {
+        "intrinsic_dim_two_nn": float(d_hat),
+        "n_points_used": float(valid.sum()),
+        "mean_mu": float(np.mean(mu)),
+    }
+
+
+def estimate_intrinsic_dimension_levina_bickel(
+    X: np.ndarray,
+    k: int = 10,
+    n_samples: int = None,
+    random_state: int = 42,
+) -> Dict[str, float]:
+    """
+    Levina–Bickel MLE intrinsic dimension (average over local neighbourhoods).
+    """
+    rng = check_random_state(random_state)
+    X = np.asarray(X, dtype=float)
+    if n_samples is not None and n_samples < len(X):
+        idx = rng.choice(len(X), size=n_samples, replace=False)
+        X = X[idx]
+
+    dists = cdist(X, X)
+    np.fill_diagonal(dists, np.inf)
+    nn = np.sort(dists, axis=1)[:, :k]
+    dims = []
+    for row in nn:
+        rk = row[-1]
+        if rk <= 0 or not np.isfinite(rk):
+            continue
+        # Avoid zero neighbour distances (duplicates / numerical ties)
+        rj = row[:-1]
+        if np.any(rj <= 0) or not np.all(np.isfinite(rj)):
+            continue
+        # d_i = (1/(k-1)) * sum_{j=1}^{k-1} log(r_k / r_j)
+        logs = np.log(rk / rj)
+        if not np.all(np.isfinite(logs)):
+            continue
+        dims.append((1.0 / (k - 1)) * np.sum(logs))
+    if not dims:
+        return {"intrinsic_dim_levina_bickel": np.nan, "k": float(k), "n_points_used": 0.0}
+    d_hat = float(np.mean(dims))
+    if not np.isfinite(d_hat):
+        d_hat = float("nan")
+    return {
+        "intrinsic_dim_levina_bickel": d_hat,
+        "k": float(k),
+        "n_points_used": float(len(dims)),
+        "std_local_dims": float(np.nanstd(dims)),
+    }
+
+
+def joint_loss_fpq_feature_vectors(
+    group1: np.ndarray,
+    group2: np.ndarray,
+    p: float = 2.0,
+    q: float = 2.0,
+) -> float:
+    """
+    F_{p,q} on vector summaries (barcode statistics), using L_p distances.
+    Proxy for Robinson & Turner (arXiv:1310.7467) when full diagram distances
+    are too costly; document as approximation when publishing.
+    """
+    def _within(G):
+        n = len(G)
+        if n < 2:
+            return 0.0
+        D = cdist(G, G, metric="minkowski", p=p)
+        # exclude diagonal
+        mask = ~np.eye(n, dtype=bool)
+        return float(np.sum(D[mask] ** q) / (2 * n * (n - 1)))
+
+    return _within(group1) + _within(group2)
+
+
+def permutation_test_algorithm2(
+    group1: np.ndarray,
+    group2: np.ndarray,
+    n_permutations: int = 200,
+    p: float = 2.0,
+    q: float = 2.0,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """
+    Algorithm 2 (Robinson & Turner, arXiv:1310.7467): permutation p-value for
+    whether two samples of persistence summaries arise from the same process.
+    Uses F_{p,q} on barcode-statistic vectors (see joint_loss_fpq_feature_vectors).
+    """
+    rng = check_random_state(random_state)
+    g1 = np.asarray(group1, dtype=float)
+    g2 = np.asarray(group2, dtype=float)
+    n1, n2 = len(g1), len(g2)
+    observed = joint_loss_fpq_feature_vectors(g1, g2, p=p, q=q)
+
+    combined = np.vstack([g1, g2])
+    z = 1  # count observed as extreme
+    null_losses = []
+    for _ in range(n_permutations - 1):
+        perm = rng.permutation(n1 + n2)
+        g1_p = combined[perm[:n1]]
+        g2_p = combined[perm[n1:]]
+        loss = joint_loss_fpq_feature_vectors(g1_p, g2_p, p=p, q=q)
+        null_losses.append(loss)
+        if loss <= observed:
+            z += 1
+    p_value = z / n_permutations
+    return {
+        "observed_F_pq": float(observed),
+        "p_value": float(p_value),
+        "n_permutations": n_permutations,
+        "p": p,
+        "q": q,
+        "n1": n1,
+        "n2": n2,
+        "null_mean": float(np.mean(null_losses)) if null_losses else np.nan,
+        "null_std": float(np.std(null_losses)) if null_losses else np.nan,
+        "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)",
+    }
 

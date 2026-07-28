@@ -2,7 +2,7 @@
 
 Research codebase for investigating whether **Topological Data Analysis (TDA)**—specifically **persistent homology barcode statistics**—can improve credit default prediction compared to classical machine learning on raw tabular features.
 
-The project compares baseline classifiers trained on original credit datasets against the same classifiers trained on TDA-derived feature matrices, across two public UCI datasets and **22 controlled experiments**. Results feed into the thesis/paper *Enhancing Loan Default Prediction Using Topological Data Analysis* (`7_Paper/`).
+The project compares baseline classifiers trained on original credit datasets against the same classifiers trained on TDA-derived feature matrices, across two public UCI datasets and a suite of controlled experiments (paper + exploratory + new methodology/statistics). Results feed into the thesis/paper *Enhancing Loan Default Prediction Using Topological Data Analysis* (`7_Paper/`).
 
 ---
 
@@ -14,10 +14,12 @@ The project compares baseline classifiers trained on original credit datasets ag
 - [Methodology](#methodology)
 - [Repository Structure](#repository-structure)
 - [Experiments](#experiments)
+- [New Methodology & Statistics Experiments (23–27)](#new-methodology--statistics-experiments-2327)
 - [Machine Learning Setup](#machine-learning-setup)
 - [Getting Started](#getting-started)
 - [Running Experiments](#running-experiments)
 - [Results and Paper Outputs](#results-and-paper-outputs)
+- [Documentation for the Team](#documentation-for-the-team)
 - [Core Utilities (`utils.py`)](#core-utilities-utilspy)
 - [Known Issues](#known-issues)
 - [What Is Not Tracked in Git](#what-is-not-tracked-in-git)
@@ -206,6 +208,22 @@ These ten folder-level experiments are aggregated in `6_Results/results.py` as *
 
 ---
 
+## New Methodology & Statistics Experiments (23–27)
+
+These address **train/test leakage** and the statistical checklist from the team discussion (Robinson & Turner arXiv:1310.7467; Chazal et al. arXiv:1406.1901; Frontiers survey §6.3.1).
+
+| # | Folder | Purpose | Status |
+|---|--------|---------|--------|
+| 23 | `23_Early_Train_Test_Split` | Stratified 80/20 **before** PCA/landmarks; independent train & test snapshots (Protocol B); default + tuned ML | Scripts ready (heavy to run) |
+| 24 | `24_Sampling_Ratio_Audit` | Audit `n`, `t`, `l` and ratios `(t·l)/n₁` | **Ran** — ratios ≫ 1 with `l=500` |
+| 25 | `25_Snapshot_Mean_Variance` | Mean/variance of barcode columns; `λ̄` proxy | **Ran** |
+| 26 | `26_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for `b` | **Ran** |
+| 27 | `27_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** — p≈0.005 |
+
+Details: `docs/Pipeline_Issues_And_Leakage.md`, `docs/Statistical_Experiments_24_27_Results.md`.
+
+---
+
 ## Machine Learning Setup
 
 ### Classifiers (used in both baseline and TDA experiments)
@@ -337,7 +355,23 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 | `4_Visualization/` | Curated EDA figures, TDA concept diagrams, LucidChart system designs |
 | `7_Paper/Enhancing_Loan_Default_Prediction_Using_Topological_Data_Analysis.pdf` | Final thesis/paper PDF |
 | `7_Paper/Latex Template/` | VGTC conference LaTeX template |
-| `Experiment Report.txt` | Quick index of paper vs. exploratory experiments |
+| `Experiment Report.txt` | Quick index of paper vs. exploratory / new experiments |
+
+## Documentation for the Team
+
+| Document | Formats | Contents |
+|----------|---------|----------|
+| `docs/Pipeline_Issues_And_Leakage.md` | MD | Leakage analysis + statistical gaps |
+| `docs/CV_Results.md` | MD + DOCX + PDF | K-fold means, fold scores, vs hold-out |
+| `docs/Exploratory_Experiments_Team_Report.md` | MD + DOCX + PDF | Exploratory exp narrative for the team |
+| `docs/Statistical_Experiments_24_27_Results.md` | MD | First-pass results for Exp 24–27 |
+
+Regenerate CV / exploratory packs:
+
+```powershell
+python docs/generate_cv_results_doc.py
+python docs/generate_exploratory_report.py
+```
 
 ---
 
@@ -347,7 +381,8 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 |----------|-----------|
 | **Preprocessing / EDA** | `eda`, `data_preprocessing_pipeline`, `fix_string` |
 | **Landmarks & persistence homology** | `select_landmarks`, `generate_landmark_sets`, `generate_landmark_sets_v2`, `compute_barcode_statistics`, `compute_barcodes_from_multiple_landmarks`, `create_barcode_statistics`, `build_final_barcode_statistics_data` |
-| **ML training** | `train_dataset`, `train_dataset_tda`, `train_multiple_dataset_tda`, `train_models_on_dataset`, `train_models_on_multiple_datasets`, `train_multiple_dataset_tda_drop_correlated`, `train_multiple_dataset_tda_linear_regression`, `train_multiple_knn_datasets` |
+| **ML training** | `train_dataset`, `train_dataset_tda`, `train_multiple_dataset_tda`, `train_models_on_dataset`, `train_models_on_multiple_datasets`, `train_multiple_dataset_tda_drop_correlated`, `train_multiple_dataset_tda_linear_regression`, `train_multiple_knn_datasets`, `train_dataset_tda_presplit`, `train_models_on_presplit_dataset` |
+| **Early-split / stats** | `stratified_early_split`, `fit_scaler_pca_on_train`, `balance_binary_by_undersampling`, `compute_sampling_ratio_audit`, `summarize_snapshot_statistics`, `estimate_intrinsic_dimension_two_nn`, `estimate_intrinsic_dimension_levina_bickel`, `permutation_test_algorithm2` |
 | **Cross-validation** | `perform_cross_validation_tda` |
 | **Analysis sweeps** | `run_experiments_with_pca_components`, `plot_all_metrics_vs_pca_components` |
 | **Feature engineering** | `drop_correlated_features`, `rename_barcode_statistics_columns` |

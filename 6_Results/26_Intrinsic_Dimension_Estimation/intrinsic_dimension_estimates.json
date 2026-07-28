@@ -1,0 +1,58 @@
+{
+    "Default_Of_Credit_Card_Client_Data": {
+        "dataset": "Default_Of_Credit_Card_Client_Data",
+        "pca_components_used_in_TDA": 7,
+        "variance_retained_pca": 0.9398407669729583,
+        "two_nn_raw": {
+            "intrinsic_dim_two_nn": 3.9516143363396896,
+            "n_points_used": 4998.0,
+            "mean_mu": 1.4798613272328218
+        },
+        "levina_bickel_raw": {
+            "intrinsic_dim_levina_bickel": 0.22928804599806893,
+            "k": 10.0,
+            "n_points_used": 4998.0,
+            "std_local_dims": 0.14965896629739056
+        },
+        "two_nn_pca": {
+            "intrinsic_dim_two_nn": 2.805151469057436,
+            "n_points_used": 4998.0,
+            "mean_mu": 2.057292091421435
+        },
+        "levina_bickel_pca": {
+            "intrinsic_dim_levina_bickel": 0.312946511592895,
+            "k": 10.0,
+            "n_points_used": 4998.0,
+            "std_local_dims": 0.16009045309096118
+        },
+        "warning_if_b_near_7": false
+    },
+    "Statlog_German_Credit_Data": {
+        "dataset": "Statlog_German_Credit_Data",
+        "pca_components_used_in_TDA": 15,
+        "variance_retained_pca": 0.892558869429702,
+        "two_nn_raw": {
+            "intrinsic_dim_two_nn": 5.342810400966569,
+            "n_points_used": 1000.0,
+            "mean_mu": 1.3340994103241923
+        },
+        "levina_bickel_raw": {
+            "intrinsic_dim_levina_bickel": 0.15023438795197858,
+            "k": 10.0,
+            "n_points_used": 1000.0,
+            "std_local_dims": 0.06957224124271004
+        },
+        "two_nn_pca": {
+            "intrinsic_dim_two_nn": 4.063313349525895,
+            "n_points_used": 1000.0,
+            "mean_mu": 1.4738014961862265
+        },
+        "levina_bickel_pca": {
+            "intrinsic_dim_levina_bickel": 0.19374289599103967,
+            "k": 10.0,
+            "n_points_used": 1000.0,
+            "std_local_dims": 0.09827270417305087
+        },
+        "warning_if_b_near_7": false
+    }
+}

@@ -91,10 +91,6 @@ Datasets Used:
 
 
 
-
-
-
-
 (EXPERIMENTS NOT USED IN RESEARCH PAPER)
 Experiment 5 - Using the Mapper algorithm on the original dataset
 Experiment 7 - EDA for the barcode statistics
@@ -105,5 +101,21 @@ Experiment 15 - Working with KNN
 Experiment 16 - Moving various values for the number of PCA components for Default of Credit Card Client Dataset. Training and evaluating model performance, visualizing results if applicable.
 Experiment 17 - Distribution for each class using T-SNE, PCA, UMAP to a maximum of 3 components for 3D plots.
 Experiment 18 - Moving various values for the number of PCA components for Statlog German Credit Dataset. Training and evaluating model performance, visualizing results if applicable.
-Experiment 20 - Deep learning for prediction
+Experiment 20 - Deep learning for prediction (OUT OF SCOPE / incomplete)
 Experiment 21 - Mapper for barcode statistics
+Experiment 22 - Visualizing persistence diagrams
+
+
+
+(NEW EXPERIMENTS — METHODOLOGY & STATISTICS)
+Experiment 23 - Early 80/20 split BEFORE PCA/landmarks; independent train & test snapshots (Protocol B); default + tuned ML
+Experiment 24 - Sampling ratio audit (n, t, l, t/n, (t*l)/n1, suggested l)
+Experiment 25 - Snapshot mean/variance of barcode statistics; lambda_bar proxy (Chazal / survey 6.3.1)
+Experiment 26 - Intrinsic dimension estimation (Two-NN, Levina-Bickel)
+Experiment 27 - Null hypothesis test Algorithm 2 / F_p,q (Robinson & Turner arXiv:1310.7467; barcode-vector proxy)
+
+See also:
+- docs/Pipeline_Issues_And_Leakage.md
+- docs/CV_Results.md
+- docs/Exploratory_Experiments_Team_Report.md
+- docs/Statistical_Experiments_24_27_Results.md

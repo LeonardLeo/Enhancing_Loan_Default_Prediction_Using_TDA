@@ -1,0 +1,19 @@
+{
+    "n_train": 23972,
+    "n_test": 5993,
+    "train_class_counts": {
+        "0": 18668,
+        "1": 5304
+    },
+    "test_class_counts": {
+        "0": 4667,
+        "1": 1326
+    },
+    "pca_components": 7,
+    "landmark_percentages": [
+        5,
+        15
+    ],
+    "n_files_per_percentage": 500,
+    "protocol": "B_independent_train_test_landmarks"
+}
