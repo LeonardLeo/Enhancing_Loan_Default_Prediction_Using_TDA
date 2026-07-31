@@ -43,6 +43,10 @@ desktop.ini
 # Jupyter
 # =============================================================================
 .ipynb_checkpoints/
+.pytest_cache/
+
+# Runtime logs
+*.log
 
 # =============================================================================
 # Regenerated TDA pipeline data (~2+ GB; reproduce via 5_Experiments/)
@@ -75,6 +79,20 @@ desktop.ini
 6_Results/**/*.gif
 6_Results/**/*.csv
 !6_Results/clean_experiment_results.csv
+
+# Four-dataset pipeline: retain compact top-level result tables, not run internals
+!6_Results/New_Datasets/*.csv
+6_Results/New_Datasets/audits/
+6_Results/New_Datasets/extended/
+6_Results/New_Datasets/models/
+6_Results/New_Datasets/tda/
+6_Results/New_Datasets/active_jobs.json
+6_Results/New_Datasets/extended_manifest.json
+6_Results/New_Datasets/resolved_config.json
+6_Results/New_Datasets/run_manifest.json
+
+# Generated report bookkeeping (keep Markdown/CSV/LaTeX report sources)
+docs/new_datasets/report_metadata.json
 
 # =============================================================================
 # Bulk matplotlib figure exports (curated figures kept elsewhere)

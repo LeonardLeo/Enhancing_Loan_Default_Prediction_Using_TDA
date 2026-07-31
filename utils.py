@@ -23,8 +23,9 @@ from itertools import product
 from matplotlib import animation
 from matplotlib.animation import FFMpegWriter, PillowWriter
 from collections import defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional, Tuple
 from ripser import ripser
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 from kmapper import KeplerMapper
@@ -100,6 +101,112 @@ COLUMN_DESCRIPTIONS = {
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# =============================================================================
+# Dataset registry
+# =============================================================================
+@dataclass(frozen=True)
+class DatasetConfig:
+    """Canonical metadata used by both legacy and registry-driven pipelines."""
+
+    key: str
+    display_name: str
+    folder_name: str
+    aliases: Tuple[str, ...]
+    target_column: str
+    positive_label: int = 1
+    raw_relative_path: Optional[str] = None
+    pca_variance: float = 0.90
+    landmark_percentages: Tuple[float, ...] = (10.0, 20.0)
+    notes: Dict[str, Any] = field(default_factory=dict)
+
+
+DATASET_REGISTRY: Dict[str, DatasetConfig] = {}
+DATASET_ALIASES: Dict[str, str] = {}
+
+
+def register_dataset(config: DatasetConfig, overwrite: bool = False) -> DatasetConfig:
+    """Register a dataset and normalized aliases."""
+    key = config.key.strip().lower()
+    if key in DATASET_REGISTRY and not overwrite:
+        raise ValueError(f"Dataset already registered: {config.key}")
+    DATASET_REGISTRY[key] = config
+    for alias in (config.key, config.folder_name, *config.aliases):
+        normalized = re.sub(r"[^a-z0-9]", "", alias.lower())
+        if normalized in DATASET_ALIASES and DATASET_ALIASES[normalized] != key and not overwrite:
+            raise ValueError(f"Dataset alias already registered: {alias}")
+        DATASET_ALIASES[normalized] = key
+    return config
+
+
+def get_dataset_config(dataset: str) -> DatasetConfig:
+    """Resolve a canonical key, folder name, or backwards-compatible alias."""
+    normalized = re.sub(r"[^a-z0-9]", "", str(dataset).lower())
+    key = DATASET_ALIASES.get(normalized)
+    if key is None:
+        options = ", ".join(sorted(DATASET_REGISTRY))
+        raise ValueError(f"Unknown dataset '{dataset}'. Registered datasets: {options}")
+    return DATASET_REGISTRY[key]
+
+
+def get_dataset_folder(dataset: str) -> str:
+    return get_dataset_config(dataset).folder_name
+
+
+for _dataset_config in (
+    DatasetConfig(
+        key="statlog_german",
+        display_name="Statlog German Credit",
+        folder_name="Statlog_German_Credit_Data",
+        aliases=("dataset1", "sgcd", "statlog", "german", "statloggerman"),
+        target_column="Class",
+        landmark_percentages=(30.0, 60.0),
+    ),
+    DatasetConfig(
+        key="credit_card_default",
+        display_name="Default of Credit Card Client",
+        folder_name="Default_Of_Credit_Card_Client_Data",
+        aliases=("dataset2", "dccdd", "default", "defaultofcreditcard", "defaultofcreditcardclientdata"),
+        target_column="default payment next month",
+        landmark_percentages=(5.0, 15.0),
+    ),
+    DatasetConfig(
+        key="pkdd_czech",
+        display_name="PKDD'99 Czech Financial",
+        folder_name="PKDD_Czech_Financial",
+        aliases=("pkdd", "czech", "berka"),
+        target_column="target",
+        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/03_pkdd_czech",
+    ),
+    DatasetConfig(
+        key="polish_bankruptcy",
+        display_name="Polish Companies Bankruptcy (3 year)",
+        folder_name="Polish_Bankruptcy_3Year",
+        aliases=("polish", "3year", "polish3year"),
+        target_column="target",
+        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/07_polish_bankruptcy/3year.arff",
+        notes={"missing_indicators": True},
+    ),
+    DatasetConfig(
+        key="taiwan_bankruptcy",
+        display_name="Taiwanese Bankruptcy Prediction",
+        folder_name="Taiwan_Bankruptcy",
+        aliases=("taiwan", "taiwanese"),
+        target_column="target",
+        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/08_taiwan_bankruptcy/data.csv",
+        notes={"train_only_winsor_quantiles": (0.005, 0.995)},
+    ),
+    DatasetConfig(
+        key="south_german_credit",
+        display_name="South German Credit (updated-German sensitivity)",
+        folder_name="South_German_Credit",
+        aliases=("southgerman", "sgc", "updatedgerman"),
+        target_column="target",
+        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/09_south_german_credit/SouthGermanCredit.asc",
+        notes={"target_mapping": {"0_bad": 1, "1_good": 0}, "sensitivity_analysis": True},
+    ),
+):
+    register_dataset(_dataset_config)
 
 # Defining Functions
 def fix_string(word: str):
@@ -219,8 +326,6 @@ def save_python_object_using_joblib(python_object,
                                    experiment_name: str):
     # Preparing dataset save
     dataset = dataset_to_use.strip().lower()
-    dataset_options_1 = ["dataset1", "sgcd", "statlog", "german", "statloggerman"]
-    dataset_options_2 = ["dataset2", "dccdd", "default", "defaultofcreditcard", "defaultofcreditcardclientdata"]
     
     # Preparing what to save (2 options - EDA and Feature Info) 
     save_item = save_item.strip().lower()
@@ -229,10 +334,7 @@ def save_python_object_using_joblib(python_object,
     save_item_options_3 = ["option3", "processeddata", "processed_data", "clean_data", "processed"]
     
     # Confirm dataset chosen
-    if dataset in dataset_options_1:
-        dataset_string = "Statlog_German_Credit_Data"
-    elif dataset in dataset_options_2:
-        dataset_string = "Default_Of_Credit_Card_Client_Data"
+    dataset_string = get_dataset_folder(dataset)
         
     # Confirm save item
     if save_item in save_item_options_1:
@@ -302,23 +404,21 @@ def select_landmarks(data: pd.DataFrame,
                      dataset_to_use: str,
                      save_label_dir: str,  # Class Path to store results
                      experiment_name: str,
-                     add_optional_path: str = None): 
+                     add_optional_path: str = None,
+                     verbose: bool = False):
 
     # Print current working directory for debugging
-    print("Current working directory:", os.getcwd())
+    if verbose:
+        print("Current working directory:", os.getcwd())
 
     # Preparing dataset save
     dataset = dataset_to_use.strip().lower()
-    dataset_options_1 = ["dataset1", "sgcd", "statlog", "german", "statloggerman"]
-    dataset_options_2 = ["dataset2", "dccdd", "default", "defaultofcreditcard", "defaultofcreditcardclientdata"]
-    
-    n_landmarks = int(len(data) * percentage / 100)
+    n_landmarks = max(2, int(len(data) * percentage / 100))
+    if n_landmarks > len(data):
+        raise ValueError(f"Requested {n_landmarks} landmarks from only {len(data)} rows")
     
     # Confirm dataset chosen
-    if dataset in dataset_options_1:
-        dataset_string = "Statlog_German_Credit_Data"
-    elif dataset in dataset_options_2:
-        dataset_string = "Default_Of_Credit_Card_Client_Data"
+    dataset_string = get_dataset_folder(dataset)
     
     # Construct relative path
     if add_optional_path is None:
@@ -329,15 +429,14 @@ def select_landmarks(data: pd.DataFrame,
 
     # Convert relative path to absolute path
     absolute_output_dir = os.path.abspath(output_dir)
-    print("Saving to:", absolute_output_dir)
+    if verbose:
+        print("Saving to:", absolute_output_dir)
 
     # Create output directory if it doesn't exist
     os.makedirs(absolute_output_dir, exist_ok=True)  # Create output directory if it doesn't exist
 
     # Check if the directory was successfully created
-    if os.path.exists(absolute_output_dir):
-        print(f"Directory exists: {absolute_output_dir}")
-    else:
+    if not os.path.exists(absolute_output_dir):
         print(f"❌ Directory does not exist: {absolute_output_dir}")
 
     # Saving landmarks
@@ -349,14 +448,20 @@ def select_landmarks(data: pd.DataFrame,
         file_path = os.path.join(absolute_output_dir, f"landmarks_{percentage}_{i}.csv")
         
         # Print the file path to debug
-        print(f"📁 Saving to: {file_path}")
+        if verbose:
+            print(f"📁 Saving to: {file_path}")
         
         # Save the landmarks to a CSV file
         try:
             landmarks.to_csv(file_path, index=False)
-            print(f"✅ Complete for landmarks_{percentage}_{i}")
+            if verbose:
+                print(f"✅ Complete for landmarks_{percentage}_{i}")
         except Exception as e:
-            print(f"❌ Error saving landmarks_{percentage}_{i}: {e}")
+            raise RuntimeError(f"Error saving landmarks_{percentage}_{i}: {e}") from e
+    print(
+        f"Saved {n_files} landmark files ({n_landmarks} points each) to "
+        f"{absolute_output_dir}"
+    )
 
 def generate_landmark_sets(class_label_and_data: dict, # Dictionary containing split classes and their data which is used to generate samples
                            landmark_percentages: list,

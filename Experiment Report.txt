@@ -119,3 +119,46 @@ See also:
 - docs/CV_Results.md
 - docs/Exploratory_Experiments_Team_Report.md
 - docs/Statistical_Experiments_24_27_Results.md
+
+
+(FOUR-DATASET EXTENSION — REGISTRY-DRIVEN RUNNER)
+Datasets:
+- PKDD'99 Czech Financial (loan-level; transactions strictly before loan date)
+- Polish Companies Bankruptcy (3year.arff only)
+- Taiwanese Bankruptcy Prediction
+- South German Credit (updated-German sensitivity analysis)
+
+Protocols:
+- Historical / Protocol A: comparability-only; explicitly leakage-prone
+- Clean / Protocol B: 80/20 split before fitted preprocessing/PCA/landmarks
+
+Snapshot variants:
+- historical500: 500 snapshots per class
+- revised: Experiment 24 calibration l = ceil(n_class / t), per split and landmark size
+
+Implemented outputs:
+- Baseline ML (default model family) on original features
+- Tuned baseline and TDA model suites using documented bounded 3-fold grids
+- Full H0+H1 barcode-statistic TDA runs
+- H0-only and correlated-feature ablations
+- Barcode EDA, PCA, covariance and centroid-distance summaries
+- Matched landmark-size and 90%-variance controls; PCA component sweeps
+- Imbalanced snapshot training, KNN sweeps and linear-regression separability
+- Bounded original/barcode Mapper and representative persistence plots
+- Experiment 23 independent train/test snapshots
+- Experiment 24 n/n1/n2/t/l and reuse-ratio audit
+- Experiment 25 snapshot mean/variance proxy
+- Experiment 26 Two-NN and Levina-Bickel intrinsic dimension
+- Experiment 27 F_pq barcode-vector proxy (not true persistence-diagram distances)
+- Representative persistence diagrams for Experiment 22 follow-up
+
+Not silently claimed:
+- Both snapshot variants and all dependent experiment units completed; final
+  counts (with zero waiting/failed units) are in experiment_coverage.csv.
+- Experiment 20 remains excluded.
+
+Runner: run_new_datasets.py
+Extended runner: run_remaining_experiments.py
+Manifest: 6_Results/New_Datasets/run_manifest.json
+Extended manifest: 6_Results/New_Datasets/extended_manifest.json
+Final reports: docs/new_datasets/

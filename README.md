@@ -418,6 +418,45 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 
 ---
 
+## Four-dataset extension (2026)
+
+The registry-driven runner `run_new_datasets.py` adds four independently
+configured datasets without replacing either canonical legacy dataset:
+
+- PKDD'99 Czech Financial (loan-level, strict pre-origination transaction aggregates)
+- Polish Companies Bankruptcy (`3year.arff` only, train-fit median imputation and missing indicators)
+- Taiwanese Bankruptcy Prediction (train-fit 0.5%/99.5% winsorization and constant removal)
+- South German Credit (updated-German sensitivity analysis; bad=1, good=0)
+
+Every dataset is run under both the historical comparability protocol and clean
+Protocol B. TDA outputs distinguish the historical 500-snapshot setting from
+the Experiment 24 revised count, `l = ceil(n_class / t)`. The historical
+protocol is explicitly labelled leakage-prone; Protocol B splits before any
+fitted transform and creates independent train/test snapshots.
+
+```powershell
+.\tda_env\Scripts\python.exe run_new_datasets.py --stages ingest baseline tda report
+.\tda_env\Scripts\python.exe run_remaining_experiments.py
+```
+
+The command is resumable via `6_Results/New_Datasets/run_manifest.json`.
+Generated audits, model tables, sampling ratios and statistical outputs are
+under `6_Results/New_Datasets/`; publication-format reports are under
+`docs/new_datasets/`. The second runner covers bounded tuned-model grids,
+H0/correlation/imbalance ablations, matched controls, PCA/KNN sweeps,
+EDA/dimensionality reduction/covariance, Mapper, persistence plots, and
+historical500 statistical follow-ups. Its status is persisted separately in
+`6_Results/New_Datasets/extended_manifest.json`. Focused checks can be run with:
+
+```powershell
+.\tda_env\Scripts\python.exe -m pytest test_new_datasets.py -q
+```
+
+Mirror checksums are verified against `raw_data_extracted/MANIFEST.csv`, but
+primary-source and licence verification remain required before publication.
+
+---
+
 ## Citation
 
 If you use this code or methodology, please cite the associated thesis:
