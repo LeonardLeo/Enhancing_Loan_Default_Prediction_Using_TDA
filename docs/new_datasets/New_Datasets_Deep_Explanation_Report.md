@@ -4,6 +4,16 @@
 **Purpose:** not just *what* numbers appeared, but *what we did*, *how*, *why*, and *what the numbers mean*  
 **Companion artefacts:** `6_Results/New_Datasets/*.csv`, canvas `four-new-datasets-results.canvas.tsx`, shorter table dump `New_Datasets_Final_Report.md`
 
+Notation:
+
+| Symbol | Meaning |
+|--------|---------|
+| `t` | points per snapshot |
+| `l` | number of snapshots |
+| `n_c` | size of one class pool |
+| `R` | reuse score = `(t * l) / n_c` |
+| `b` | intrinsic dimension |
+
 ---
 
 ## 1. What question were we answering?
@@ -86,10 +96,10 @@ We do **not** feed one persistence diagram per customer into the classifier.
 Instead, for each class (default / non-default):
 
 1. Take the class’s feature points (after PCA) as a point cloud  
-2. Draw a random subset of **t** points → one **landmark / snapshot**  
-3. Repeat **l** times → **l** snapshots per class  
+2. Draw a random subset of `t` points → one **landmark / snapshot**  
+3. Repeat `l` times → `l` snapshots per class  
 4. Run **Ripser** persistent homology on each snapshot  
-5. Summarise each diagram with **12 barcode statistics × 2 homology dimensions (H₀, H₁) = 24 numbers**  
+5. Summarise each diagram with **12 barcode statistics × 2 homology dimensions (H0, H1) = 24 numbers**  
 6. Each snapshot becomes **one training row** with those 24 numbers + a class label  
 
 So the ML problem becomes:  
@@ -103,43 +113,43 @@ That is a **different** question from “will this individual default?” — ke
 
 ### `historical500`
 
-- **l = 500** snapshots per class (legacy habit from the original pipeline)  
+- `l = 500` snapshots per class (legacy habit from the original pipeline)  
 - Landmark size still tied to a **percentage** of the (often balanced) class  
 
 ### `revised`
 
-- **l** chosen so the **reuse score** is near or below 1  
+- `l` chosen so the **reuse score** is near or below 1  
 
 ### Reuse score (formula)
 
-For a class with \(n_c\) customers, snapshot size \(t\), snapshot count \(l\):
+For a class with `n_c` customers, snapshot size `t`, snapshot count `l`:
 
-\[
-R_c = \frac{t \cdot l}{n_c}
-\]
+```text
+R_c  =  (t * l) / n_c
+```
 
 **Meaning:** if you glued all snapshot memberships together, how many times does a typical customer appear?
 
-- \(R_c \approx 1\): each customer is used about once across the whole snapshot library → good  
-- \(R_c = 25\) (seen on old DCCCD L5): each customer appears on the order of **25 times** → snapshots are highly dependent; effective sample size is much smaller than 500  
+- `R_c ≈ 1`: each customer is used about once across the whole snapshot library → good  
+- `R_c = 25` (seen on old DCCCD L5): each customer appears on the order of **25 times** → snapshots are highly dependent; effective sample size is much smaller than 500  
 
 **Also checked:**
 
-\[
-\frac{t}{n_c} < 0.20
-\]
+```text
+t / n_c  <  0.20
+```
 
 so a single snapshot does not eat most of the class.
 
 ### What the audit found on the four new datasets
 
-| Dataset | Variant | Typical reuse \(R = tl/n_c\) | Verdict |
-|---------|---------|-----------------------------|---------|
+| Dataset | Variant | Typical reuse `R = (t * l) / n_c` | Verdict |
+|---------|---------|----------------------------------|---------|
 | All four | `historical500` | often ≫ 1 — e.g. South German ~**32**, PKDD test ~**12** | Over-reuse |
-| All four | `revised` | train/test \(R\) brought near **≤ 1** | Meets the sampling checklist |
+| All four | `revised` | train/test `R` brought near **≤ 1** | Meets the sampling checklist |
 
 **How to say this in a meeting:**  
-“500 was a historical convenience, not a statistically justified sample size. Once we enforce \(R \lesssim 1\), we only keep on the order of **tens** of snapshots, not hundreds.”
+“500 was a historical convenience, not a statistically justified sample size. Once we enforce `R` near or below 1, we only keep on the order of **tens** of snapshots, not hundreds.”
 
 ---
 
@@ -197,9 +207,9 @@ On `clean` protocol, some revised runs still look extremely high (Taiwan revised
 
 ## 8. Statistical experiments on the new datasets (24–27 analogues)
 
-### Intrinsic dimension \(b\) (Two-NN / Levina–Bickel)
+### Intrinsic dimension `b` (Two-NN / Levina–Bickel)
 
-**Why:** persistent homology and the email-style sample-size formula need a notion of how many degrees of freedom the cloud has. If \(b\) were enormous, topology estimates would need huge \(t\).
+**Why:** persistent homology and the email-style sample-size formula need a notion of how many degrees of freedom the cloud has. If `b` were enormous, topology estimates would need huge `t`.
 
 **What we saw (Two-NN order of magnitude):**
 
@@ -214,19 +224,19 @@ South German / Taiwan sit near or above the “~7 is worrying” informal thresh
 
 ### Mean / variance of barcode features
 
-We logged global mean/variance of the 24 barcode stats across snapshots — a proxy for landscape stability \(\bar\lambda\). Large variance ⇒ snapshots are noisy; tiny variance ⇒ summaries are stable (but stability ≠ predictive power for individuals).
+We logged global mean/variance of the 24 barcode stats across snapshots — a proxy for landscape stability (average barcode-feature vector across snapshots). Large variance ⇒ snapshots are noisy; tiny variance ⇒ summaries are stable (but stability ≠ predictive power for individuals).
 
-### Robinson & Turner Algorithm 2 (permutation test on \(F_{p,q}\))
+### Robinson & Turner Algorithm 2 (permutation test on F_p,q)
 
 **Idea:** are default-snapshot clouds and non-default-snapshot clouds exchangeable?
 
-- Compute a joint loss \(F_{p,q}\) on barcode-statistic vectors (proxy for diagram distances)  
+- Compute a joint loss `F_p,q` on barcode-statistic vectors (proxy for diagram distances)  
 - Shuffle labels many times; see how often the shuffled loss is as small as the real one  
 - Small p-value ⇒ classes look different in barcode space  
 
 **Caveat to always mention:** we used **barcode-vector distances**, not true persistence-diagram metrics. It is a computational proxy.
 
-Many settings gave \(p \approx 0.005\) (minimum resolution with ~200 permutations). That supports “the two clouds differ,” **not** “we can deploy this as a credit score.”
+Many settings gave `p ≈ 0.005` (minimum resolution with ~200 permutations). That supports “the two clouds differ,” **not** “we can deploy this as a credit score.”
 
 ---
 
@@ -234,7 +244,7 @@ Many settings gave \(p \approx 0.005\) (minimum resolution with ~200 permutation
 
 | Exp | Intent | What to remember |
 |-----|--------|------------------|
-| 12 | Match sample sizes / \(t\) | Isolates whether gains are just from snapshot size |
+| 12 | Match sample sizes / `t` | Isolates whether gains are just from snapshot size |
 | 13 | Match PCA variance | Fairer comparison when component counts differ |
 | 14 | 1:4 default:non-default snapshot mix | Stress test under imprint of real imbalance |
 | 16 / 18 | PCA component sweeps | Sensitivity of tabular/TDA path to dimension |
@@ -267,10 +277,16 @@ The four-new-dataset suite still used:
 The meeting then ordered a cleaner rule set (implemented as **Experiment 28**):
 
 1. **No undersampling** — keep full class pools  
-2. **Fixed absolute \(t\)** (same for train and test)  
-3. Default **train \(l = 60\)**, **test \(l = 15\)**, plus a 3-point sweep in Zaniar’s ranges  
-4. For **DCCCD** (the bigger dataset) non-split arm: \(l \in \{60,75,90\}\)  
-5. Separate **Concern A** (email formula \(l \sim (t/\log t)^{2/b}\)) from **Concern B** (reuse \(R = tl/n_c\))  
+2. **Fixed absolute `t`** (same for train and test)  
+3. Default **train `l = 60`**, **test `l = 15`**, plus a 3-point sweep in Zaniar’s ranges  
+4. For **DCCCD** (the bigger dataset) non-split arm: `l` in `{60, 75, 90}`  
+5. Separate **Concern A** (email formula) from **Concern B** (reuse):
+
+```text
+Concern A:   l ≈ (t / log(t))^(2/b)
+Concern B:   R = (t * l) / n_c   (target R ≤ 1)
+```
+
 6. Measure **pairwise snapshot overlap**, reuse, **and** significance tests  
 
 See: `docs/Revised_Snapshot_Protocol_Deep_Report.md` and `5_Experiments/28_Revised_Snapshot_Protocol/`.
@@ -282,10 +298,10 @@ See: `docs/Revised_Snapshot_Protocol_Deep_Report.md` and `5_Experiments/28_Revis
 1. We onboarded four public credit/bankruptcy sets with explicit prep rules.  
 2. We ran leaky-historical and clean-early-split protocols.  
 3. Tabular baselines are competent but not perfect (balanced acc roughly 0.68–0.87).  
-4. `l = 500` massively reuses customers; revised \(l\) fixes reuse but shrinks the barcode sample.  
+4. `l = 500` massively reuses customers; revised `l` fixes reuse but shrinks the barcode sample.  
 5. Barcode ML often looks unrealistically strong under leakage / tiny tests; South German clean is a useful counterexample near chance.  
 6. Intrinsic dimensions vary (~2.6 to ~9.4); class clouds often differ by permutation test.  
-7. The next methodology (Exp 28) removes undersampling, fixes \(t\), and separates formula vs reuse math so we can defend every knob.
+7. The next methodology (Exp 28) removes undersampling, fixes `t`, and separates formula vs reuse math so we can defend every knob.
 
 ---
 
@@ -295,7 +311,7 @@ See: `docs/Revised_Snapshot_Protocol_Deep_Report.md` and `5_Experiments/28_Revis
 |------|----------|
 | `6_Results/New_Datasets/baseline_results.csv` | Tabular model metrics |
 | `6_Results/New_Datasets/tda_results.csv` | Barcode model metrics |
-| `6_Results/New_Datasets/sampling_ratio_audit.csv` | \(t,l,R\) audit |
-| `6_Results/New_Datasets/statistical_results.csv` | ID + \(F_{p,q}\) tests |
+| `6_Results/New_Datasets/sampling_ratio_audit.csv` | `t`, `l`, `R` audit |
+| `6_Results/New_Datasets/statistical_results.csv` | ID + `F_p,q` tests |
 | `6_Results/New_Datasets/experiment_coverage.csv` | What finished |
 | `docs/new_datasets/New_Datasets_Final_Report.md` | Compact tables (less narrative) |
