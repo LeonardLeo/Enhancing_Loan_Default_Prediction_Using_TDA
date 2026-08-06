@@ -1,0 +1,76 @@
+{
+  "train_default": {
+    "summary": {
+      "n_snapshots": 60,
+      "n_pairs_evaluated": 500,
+      "pairs_sampled": true,
+      "mean_jaccard": 0.006,
+      "std_jaccard": 0.02865559032968711,
+      "mean_overlap_frac": 0.0105,
+      "std_overlap_frac": 0.05014728307695243,
+      "expected_overlap_frac_indep": 0.010101010101010102,
+      "expected_jaccard_approx": 0.005076142131979696,
+      "reuse_ratio_tl_over_n": 0.6060606060606061
+    },
+    "significance": {
+      "observed_mean_overlap_frac": 0.008333333333333333,
+      "null_mean_of_means": 0.010225000000000001,
+      "null_std_of_means": 0.003931894157612418,
+      "expected_overlap_frac_theory": 0.010101010101010102,
+      "p_value_mean_overlap_greater_than_null": 0.7086092715231788,
+      "mannwhitney_U": 4466820.0,
+      "mannwhitney_p_greater": 0.7401036718659143,
+      "n_permutations": 150,
+      "interpretation": "Large p-values support the null that snapshots behave like independent uniform draws. Small p-values suggest excess overlap beyond chance.",
+      "summary_without_raw": {
+        "n_snapshots": 60,
+        "n_pairs_evaluated": 300,
+        "pairs_sampled": true,
+        "mean_jaccard": 0.0047619047619047615,
+        "std_jaccard": 0.025643641938735726,
+        "mean_overlap_frac": 0.008333333333333333,
+        "std_overlap_frac": 0.04487637339278753,
+        "expected_overlap_frac_indep": 0.010101010101010102,
+        "expected_jaccard_approx": 0.005076142131979696,
+        "reuse_ratio_tl_over_n": 0.6060606060606061
+      }
+    }
+  },
+  "train_non-default": {
+    "summary": {
+      "n_snapshots": 60,
+      "n_pairs_evaluated": 500,
+      "pairs_sampled": true,
+      "mean_jaccard": 0.0002857142857142857,
+      "std_jaccard": 0.006382373686768193,
+      "mean_overlap_frac": 0.0005,
+      "std_overlap_frac": 0.011169153951844339,
+      "expected_overlap_frac_indep": 0.0004996252810392206,
+      "expected_jaccard_approx": 0.0002498750624687656,
+      "reuse_ratio_tl_over_n": 0.029977516862353237
+    },
+    "significance": {
+      "observed_mean_overlap_frac": 0.0,
+      "null_mean_of_means": 0.00043333333333333337,
+      "null_std_of_means": 0.0006920179830675567,
+      "expected_overlap_frac_theory": 0.0004996252810392206,
+      "p_value_mean_overlap_greater_than_null": 1.0,
+      "mannwhitney_U": 4492350.0,
+      "mannwhitney_p_greater": 0.7626273522849797,
+      "n_permutations": 150,
+      "interpretation": "Large p-values support the null that snapshots behave like independent uniform draws. Small p-values suggest excess overlap beyond chance.",
+      "summary_without_raw": {
+        "n_snapshots": 60,
+        "n_pairs_evaluated": 300,
+        "pairs_sampled": true,
+        "mean_jaccard": 0.0,
+        "std_jaccard": 0.0,
+        "mean_overlap_frac": 0.0,
+        "std_overlap_frac": 0.0,
+        "expected_overlap_frac_indep": 0.0004996252810392206,
+        "expected_jaccard_approx": 0.0002498750624687656,
+        "reuse_ratio_tl_over_n": 0.029977516862353237
+      }
+    }
+  }
+}

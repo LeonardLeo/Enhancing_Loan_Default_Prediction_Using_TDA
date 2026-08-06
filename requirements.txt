@@ -16,6 +16,7 @@ ripser
 persim
 kmapper
 umap-learn
+scikit-dimension
 ydata-profiling
 python-docx
 reportlab

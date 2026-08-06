@@ -3142,3 +3142,68 @@ def permutation_test_algorithm2(
         "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)",
     }
 
+
+# =============================================================================
+# Revised snapshot protocol helpers (Experiment 28+)
+# Fixed absolute t, no undersampling, formula vs reuse as separate concerns.
+# Full implementation lives in:
+#   5_Experiments/28_Revised_Snapshot_Protocol/protocol_lib.py
+# =============================================================================
+def formula_l_from_t_b(t: int, b: float, log_base: str = "e") -> float:
+    """Email rule: l ≈ (t / log t)^{2/b}. See Experiment 28 protocol_lib for details."""
+    import math
+
+    t = int(t)
+    if t < 3:
+        raise ValueError("t must be >= 3")
+    if b is None or not np.isfinite(b) or b <= 0:
+        raise ValueError(f"b must be positive finite, got {b}")
+    log_t = math.log(t) if log_base == "e" else math.log10(t)
+    return float((t / log_t) ** (2.0 / float(b)))
+
+
+def reuse_ratio_tl_over_n(t: int, l: int, n_class: int) -> float:
+    """R = (t * l) / n_class — expected appearances of a typical point across snapshots."""
+    if n_class <= 0:
+        return float("nan")
+    return float(t * l) / float(n_class)
+
+
+def select_landmarks_fixed_t(
+    data: pd.DataFrame,
+    t: int,
+    n_files: int,
+    dataset_to_use: str,
+    save_label_dir: str,
+    experiment_name: str,
+    add_optional_path: str = None,
+    random_state: int = 42,
+    verbose: bool = False,
+):
+    """
+    Fixed absolute landmark count t (not a percentage of the class).
+    Does not undersample; caller must pass the full class pool.
+    """
+    rng = check_random_state(random_state)
+    if t > len(data):
+        raise ValueError(f"Requested t={t} landmarks from only {len(data)} rows")
+    dataset_string = get_dataset_folder(dataset_to_use)
+    if add_optional_path is None:
+        output_dir = f"../../../1_Data/Landmark_Sets/{dataset_string}/{experiment_name}/{save_label_dir}"
+    else:
+        output_dir = (
+            f"../../../1_Data/Landmark_Sets/{dataset_string}/{experiment_name}/"
+            f"{add_optional_path}/{save_label_dir}"
+        )
+    absolute_output_dir = os.path.abspath(output_dir)
+    os.makedirs(absolute_output_dir, exist_ok=True)
+    for i in range(n_files):
+        local = check_random_state(rng.randint(0, 2**31 - 1))
+        landmarks = data.sample(n=t, random_state=int(local.randint(0, 2**31 - 1)))
+        file_path = os.path.join(absolute_output_dir, f"landmarks_t{t}_{i}.csv")
+        landmarks.to_csv(file_path, index=False)
+        if verbose:
+            print(f"Saved: {file_path}")
+    print(f"Saved {n_files} fixed-t landmark files (t={t}) to {absolute_output_dir}")
+    return absolute_output_dir
+
