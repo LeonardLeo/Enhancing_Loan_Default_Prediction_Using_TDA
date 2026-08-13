@@ -49,20 +49,20 @@ Shared helpers live in **`utils.py`** (same as Statlog / DCCCD). Registry raw→
 
 ### 2.1 Sampling ratios too large
 With `l = 500` and landmark fractions L5/L15 (DCCCD) or L30/L60 (SGCD), naive proportions `(t·l)/n₁` are typically **≫ 1**.  
-**Experiment 24** audits `n`, `t`, `l` and suggests revised `l ≈ ceil(n₁/t)`. Registry results live under `6_Results/24_Sampling_Ratio_Audit/{Folder}/`.
+**Experiment 24** audits `n`, `t`, `l` and suggests revised `l ≈ ceil(n₁/t)`. Registry results live under `6_Results/Historical_Late_Split_Balanced_TDA/6_Sampling_Ratio_Audit/{Folder}/`.
 
 ### 2.2 Snapshot mean / variance
-**Experiment 25** records mean/variance of barcode-statistic columns (vector proxy for `\barλ`). Artefacts: `6_Results/25_Snapshot_Mean_Variance/`.
+**Experiment 25** records mean/variance of barcode-statistic columns (vector proxy for `\barλ`). Artefacts: `6_Results/Historical_Late_Split_Balanced_TDA/7_Snapshot_Mean_Variance/`.
 
 ### 2.3 Intrinsic dimension `b`
 PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrinsic dimension.  
-**Experiment 26** estimates `b` via Two-NN and Levina–Bickel. Artefacts: `6_Results/26_Intrinsic_Dimension_Estimation/`.
+**Experiment 26** estimates `b` via Two-NN and Levina–Bickel. Artefacts: `6_Results/Statistics/1_Intrinsic_Dimension_Estimation/`.
 
 ### 2.4 Two-sample test on diagrams
 **Experiment 27** implements Robinson & Turner Algorithm 2 with `F_{p,q}` on barcode-statistic vectors (proxy). Cite the paper; note the proxy when publishing.
 
 ### 2.5 Revised snapshot protocol
-**Experiment 28** replaces percentage landmarks + `l=500` with fixed absolute `t`, default train/test `l = 60/15`, no undersampling, and reuse/overlap reporting for all six datasets. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
+**Experiment 28** (arm Exp 9) replaces percentage landmarks + `l=500` with fixed absolute `t`, default train/test `l = 60/15`, and reuse/overlap reporting. It is cloned into all four TDA arms; the original (early split + no undersample) lives at `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/`. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 ---
 
@@ -78,7 +78,7 @@ PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrins
 | Metric naming | CV scripts wrote `mean_accracy` | **Fixed** in source → `mean_accuracy`; viz helpers still accept the old key when reading pickles |
 | Relative paths | Legacy scripts expect cwd = experiment/dataset folder | Run from that folder; new scripts also insert repo root on `sys.path` |
 | Landmark cost | 500 files × 2 classes is expensive | Prefer Exp 24 revised `l` / Exp 28 grids for new work |
-| TDA path layout | New-dataset Exp 3+ now write Statlog-style `data_L10.csv` / `data_L20.csv` under `1_Data/TDA_Datasets/{Folder}/3_PH_Default_Parameters/` | Re-run Exp 3 after the rewrite; older `clean/L10/revised/` artefacts are from the retired parallel pipeline |
+| TDA path layout | Protocol artefacts live at `1_Data/{TDA_Datasets\|Landmark_Sets\|Barcode_Statistics}/{ProtocolBucket}/{ExperimentName}/{Dataset}/` | Historical Exp 1 `data_L*.csv` reused; older `clean/L10/` trees are not the Design_Decisions PCA-rank protocol |
 
 ---
 

@@ -14,7 +14,7 @@ The project compares baseline classifiers trained on original credit datasets ag
 - [Methodology](#methodology)
 - [Repository Structure](#repository-structure)
 - [Experiments](#experiments)
-- [New Methodology & Statistics Experiments (23–27)](#new-methodology--statistics-experiments-2327)
+- [New Methodology & Statistics Experiments (23–28)](#new-methodology--statistics-experiments-2328)
 - [Machine Learning Setup](#machine-learning-setup)
 - [Getting Started](#getting-started)
 - [Running Experiments](#running-experiments)
@@ -161,22 +161,20 @@ Enhancing_Loan_Default_Prediction_Using_TDA/
 ├── 2_Pandas_Profiling_Report/        # HTML EDA reports (generated; gitignored)
 ├── 3_Python_Objects/                 # EDA workbooks, serialized objects (gitignored)
 ├── 4_Visualization/                  # Figures, system diagrams, Mapper recordings
-├── 5_Experiments/                    # 22 experiment folders with runnable scripts
-├── 6_Results/                        # Pickled metrics, plots, LaTeX tables, summary CSV
+├── 5_Experiments/                    # Protocol buckets (see 5_Experiments/README.md)
+├── 6_Results/                        # Same bucket tree as 5_Experiments/
 └── 7_Paper/                          # Thesis PDF, LaTeX template, proposal, literature
 ```
 
-Experiment folder names are mirrored across `1_Data/`, `5_Experiments/`, and `6_Results/` so outputs stay organized by experiment ID.
+Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Parameters/`, `Historical_Late_Split_Balanced_TDA/`, `Early_Split_TDA/`, `No_Undersampling/`, `Early_Split_TDA_And_No_Undersampling/`, `Statistics/`, `Archives/`. Numbered experiments live *inside* a bucket. TDA artefacts are mirrored at `1_Data/{TDA_Datasets,Landmark_Sets,Barcode_Statistics}/{ProtocolBucket}/{ExperimentName}/{Dataset}/`. `1_Data/Processed_Datasets/` is shared and is not re-bucketed.
 
 ---
 
 ## Experiments
 
-There are **22 experiment folders** under `5_Experiments/`. Each typically contains:
+Numbered experiments live **inside** protocol buckets under `5_Experiments/` (mirrored in `6_Results/`). See `5_Experiments/README.md`.
 
-- `{dataset}/` subfolders with main run scripts (`*_PH.py`, `*_data.py`, etc.)
-- Optional `*_CV.py` companions for stratified cross-validation
-- Optional `visualize_results.py` at the experiment root for comparison plots
+Each dataset folder typically contains a `run.py` entry point (legacy `*_PH.py` / `*_data.py` still exist in older arms), optional `*_CV.py` companions, and optional `visualize_results.py`.
 
 ### Experiments used in the research paper
 
@@ -184,51 +182,54 @@ These ten folder-level experiments are aggregated in `6_Results/results.py` as *
 
 | Paper # | Folder | Name | Description | Datasets |
 |---------|--------|------|-------------|----------|
-| 1 | `1_ML_Default_Parameters` | ML baseline (default params) | Classifiers on **original** features, default hyperparameters | Both |
-| 2 | `2_ML_Tuned_Parameters` | ML baseline (tuned) | GridSearchCV on original features | Both |
-| 3 | `3_PH_Default_Parameters` | TDA + ML (default params) | Full PH pipeline → classifiers with default params | Both |
-| 4 | `4_PH_Tuned_Parameters` | TDA + ML (tuned) | Full PH pipeline → GridSearchCV | Both |
-| 5 | `6_Experiment_Impact_of_H0_Only` | H₀-only barcodes | Same as Exp 3 but `dim=1` (connected components only) | Both |
-| 6 | `11_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | Both |
-| 7 | `12_Equivalent_Sample_Size_For_Each_Dataset` | Matched sample size | DCCCD landmarks at **1.36% / 2.71%** to match SGCD L30/L60 counts | DCCCD only |
-| 8 | `13_Similar_Variance_Retained_After_PCA` | Matched PCA variance | DCCCD with **5 PCA components** (~89% variance, matching SGCD) | DCCCD only |
-| 9 | `14_Mixed_Classes_Training_With_Imbalanced_Datasets` | Imbalanced landmarks | 200 default vs. 800 non-default landmark files per class | Both |
-| 10 | `19_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | Both |
+| 1 | `Default_Parameters/1_ML_Default_Parameters` | ML baseline (default params) | Classifiers on **original** features, default hyperparameters | Both |
+| 2 | `Default_Parameters/2_ML_Tuned_Parameters` | ML baseline (tuned) | GridSearchCV on original features | Both |
+| 3 | `Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters` | TDA + ML (default params) | Full PH pipeline → classifiers with default params | Both |
+| 4 | `Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters` | TDA + ML (tuned) | Consumes Exp 3 barcodes → GridSearchCV | Both |
+| 5 | `Historical_Late_Split_Balanced_TDA/3_H0_Only` | H₀-only barcodes | Same as Exp 3 but H₀ columns only | Both |
+| 6 | `Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | Both |
+| 7 | `Archives/12_Equivalent_Sample_Size_For_Each_Dataset` | Matched sample size | DCCCD landmarks at **1.36% / 2.71%** to match SGCD L30/L60 counts | DCCCD only |
+| 8 | `Archives/13_Similar_Variance_Retained_After_PCA` | Matched PCA variance | DCCCD with **5 PCA components** (~89% variance, matching SGCD) | DCCCD only |
+| 9 | `Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets` | Imbalanced landmarks | 200 default vs. 800 non-default landmark files per class | Both |
+| 10 | `Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | Both |
 
-> **Note:** Paper experiment numbers in `6_Results/results.py` differ from folder numbers for experiments 5–10. The mapping above reflects the authoritative folder names; `results.py` re-labels them sequentially for LaTeX tables.
+> **Note:** Paper experiment numbers in `6_Results/results.py` differ from historical folder numbers for experiments 5–10. `results.py` re-labels them sequentially for LaTeX tables.
 
-### Exploratory experiments (not in main paper tables)
+### Exploratory experiments (archived; not in main paper tables)
 
 | Folder | Purpose |
 |--------|---------|
-| `5_Mapper` | Kepler Mapper on **original** features (interactive HTML graphs) |
-| `7_EDA_Barcode_Statistics` | EDA of barcode statistics from Experiments 3 and 6 |
-| `8_Dimensionality_Reduction_On_Barcode_Statistics` | PCA scree plots and 2D scatter on barcode data |
-| `9_Dimensionality_Reduction_On_Original_Dataset` | PCA on processed original data |
-| `10_Covariance_Matrix_And_Distances` | Centroid-based distance analysis (mean / farthest / random) |
-| `15_Working_With_K_in_KNN` | KNN elbow curve for k = 1…20 on barcode features |
-| `16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset` | PCA component sweep on DCCCD |
-| `17_Distribution_For_Each_Class` | PCA, t-SNE, UMAP class separability plots (2D/3D, animated) |
-| `18_Variance_Retained_for_Statlog_German_Credit_Dataset` | PCA component sweep on SGCD |
-| `20_Deep_Learning_For_Prediction` | **Placeholder** — not implemented (see [Known Issues](#known-issues)) |
-| `21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA` | Kepler Mapper on barcode statistics |
-| `22_Visualizing_Persistence_Diagrams` | Persistence diagram plots per class (Ripser + persim) |
+| `Archives/5_Mapper` | Kepler Mapper on **original** features (interactive HTML graphs) |
+| `Archives/7_EDA_Barcode_Statistics` | EDA of barcode statistics from Experiments 3 and 6 |
+| `Archives/8_Dimensionality_Reduction_On_Barcode_Statistics` | PCA scree plots and 2D scatter on barcode data |
+| `Archives/9_Dimensionality_Reduction_On_Original_Dataset` | PCA on processed original data |
+| `Archives/10_Covariance_Matrix_And_Distances` | Centroid-based distance analysis (mean / farthest / random) |
+| `Archives/15_Working_With_K_in_KNN` | KNN elbow curve for k = 1…20 on barcode features |
+| `Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset` | PCA component sweep on DCCCD |
+| `Archives/17_Distribution_For_Each_Class` | PCA, t-SNE, UMAP class separability plots (2D/3D, animated) |
+| `Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset` | PCA component sweep on SGCD |
+| `Archives/20_Deep_Learning_For_Prediction` | **Placeholder** — not implemented (see [Known Issues](#known-issues)) |
+| `Archives/21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA` | Kepler Mapper on barcode statistics |
+| `Archives/22_Visualizing_Persistence_Diagrams` | Persistence diagram plots per class (Ripser + persim) |
 
 ---
 
-## New Methodology & Statistics Experiments (23–27)
+## New Methodology & Statistics Experiments (23–28)
 
 These address **train/test leakage** and the statistical checklist from the team discussion (Robinson & Turner arXiv:1310.7467; Chazal et al. arXiv:1406.1901; Frontiers survey §6.3.1).
 
 | # | Folder | Purpose | Status |
 |---|--------|---------|--------|
-| 23 | `23_Early_Train_Test_Split` | Stratified 80/20 **before** PCA/landmarks; independent train & test snapshots (Protocol B); default + tuned ML | Scripts ready (heavy to run) |
-| 24 | `24_Sampling_Ratio_Audit` | Audit `n`, `t`, `l` and ratios `(t·l)/n₁` | **Ran** — ratios ≫ 1 with `l=500` |
-| 25 | `25_Snapshot_Mean_Variance` | Mean/variance of barcode columns; `λ̄` proxy | **Ran** |
-| 26 | `26_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for `b` | **Ran** |
-| 27 | `27_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** — p≈0.005 |
+| 23 | `Early_Split_TDA/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | DCCCD + Statlog reused; other four need Ripser |
+| 24 | `{TDA arm}/6_Sampling_Ratio_Audit` | Audit `n`, `t`, `l` and ratios `(t·l)/n₁` | **Ran** on Historical — ratios ≫ 1 with `l=500` |
+| 25 | `{TDA arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; `λ̄` proxy | **Ran** on Historical |
+| 26 | `Statistics/1_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for `b` | **Ran** (protocol-independent) |
+| 27 | `{TDA arm}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on Historical — p≈0.005 |
+| 28 | `{TDA arm}/9_Revised_Snapshot_Protocol` | Fixed absolute `t`, default `l_train/l_test = 60/15`, reuse/overlap | Canonical Early+NoUnder reused; other three arms queued |
 
-Details: `docs/Pipeline_Issues_And_Leakage.md`, `docs/Statistical_Experiments_24_27_Results.md`.
+Active TDA set inside every arm is 1–9. Experiment 2 stays under `Default_Parameters/`. Experiment 28 is **not** archived.
+
+Details: `docs/Pipeline_Issues_And_Leakage.md`, `docs/Statistical_Experiments_24_27_Results.md`, `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 ---
 
@@ -260,7 +261,7 @@ Hyperparameter tuning (Experiments 2 and 4) uses **5-fold stratified cross-valid
 
 ### Typical TDA experiment script layout
 
-Most PH experiments follow the structure in `5_Experiments/3_PH_Default_Parameters/`:
+Most PH experiments follow the structure in `5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/`:
 
 ```
 1. Load processed_data.xlsx
@@ -306,8 +307,8 @@ pip install ydata-profiling
 Experiment scripts use **relative paths** (e.g. `../../../1_Data/...`). Always `cd` into the script's directory before running:
 
 ```powershell
-cd "5_Experiments\3_PH_Default_Parameters\Default_Of_Credit_Card_Client_Data"
-python default_of_credit_cards_client_PH.py
+cd "5_Experiments\Historical_Late_Split_Balanced_TDA\1_PH_Default_Parameters\Default_Of_Credit_Card_Client_Data"
+python run.py
 ```
 
 Alternatively, run from the repo root with `PYTHONPATH` set, but the experiment scripts assume their own working directory for path resolution.
@@ -322,10 +323,10 @@ Because later experiments depend on earlier outputs, run in this order:
 
 | Step | Script(s) | Produces |
 |------|-----------|----------|
-| **1** | `5_Experiments/1_ML_Default_Parameters/{dataset}/*_data.py` | Processed splits, EDA artifacts, baseline `model_results.pkl` |
-| **2** | `5_Experiments/2_ML_Tuned_Parameters/{dataset}/*_data.py` | Tuned baseline results |
-| **3** | `5_Experiments/3_PH_Default_Parameters/{dataset}/*_PH.py` | Landmark sets, barcode CSVs, TDA datasets, TDA model results |
-| **4** | `5_Experiments/4_PH_Tuned_Parameters/{dataset}/*_PH.py` | Tuned TDA results |
+| **1** | `5_Experiments/Default_Parameters/1_ML_Default_Parameters/{dataset}/*_data.py` | Processed splits, EDA artifacts, baseline `model_results.pkl` |
+| **2** | `5_Experiments/Default_Parameters/2_ML_Tuned_Parameters/{dataset}/*_data.py` | Tuned baseline results |
+| **3** | `5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/{dataset}/*_PH.py` | Landmark sets, barcode CSVs, TDA datasets, TDA model results |
+| **4** | `5_Experiments/Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/{dataset}/*_PH.py` | Tuned TDA results |
 | **5+** | Remaining experiment scripts | Variants and analyses (many consume Exp 3 outputs) |
 
 ### Cross-validation companions
@@ -418,7 +419,7 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 - `2_Pandas_Profiling_Report/`, `3_Python_Objects/`
 - `*.pkl`, `*.joblib`, `*.html` (experiment outputs)
 - Most generated plots/CSVs/JSON under `6_Results/` (except `clean_experiment_results.csv`)
-- KeplerMapper `parameters.txt` dumps and `6_Results/5_Mapper/`
+- KeplerMapper `parameters.txt` dumps and `6_Results/Archives/5_Mapper/`
 - `4_Visualization/Visualization/` bulk figure exports
 - `7_Paper/Datasets/` and literature PDFs
 
@@ -444,9 +445,9 @@ Each experiment folder contains **real per-dataset scripts** (same pattern as
 the legacy Statlog / DCCCD scripts), for example:
 
 ```
-5_Experiments/1_ML_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial.py
-5_Experiments/3_PH_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial_PH.py
-6_Results/1_ML_Default_Parameters/PKDD_Czech_Financial/baseline_results.csv
+5_Experiments/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial.py
+5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial_PH.py
+6_Results/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/baseline_results.csv
 ```
 
 Shared helpers are the same **`utils.py`** used by Statlog / DCCCD.

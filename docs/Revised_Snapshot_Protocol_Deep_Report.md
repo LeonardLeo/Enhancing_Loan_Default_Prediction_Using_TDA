@@ -1,8 +1,8 @@
 # Experiment 28 — Revised Snapshot Protocol
 ## Deep Explanation Report (What / How / Why / Formulas / Calculations)
 
-**Status:** design + ML complete for all six datasets under `6_Results/28_Revised_Snapshot_Protocol/`.  
-**Code:** `5_Experiments/28_Revised_Snapshot_Protocol/`  
+**Status:** design + ML complete for the canonical arm (early split + no undersample) under `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/`. The same Exp 9 engine is cloned into the other three TDA arms (`Historical_Late_Split_Balanced_TDA`, `Early_Split_TDA`, `No_Undersampling`) with that arm's split/undersample knobs.  
+**Canonical code:** `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/`  
 **Package for intrinsic dimension:** [scikit-dimension](https://pypi.org/project/scikit-dimension/) (`TwoNN`, `MLE`, `lPCA`, optional `DANCo`).
 
 Notation used everywhere below:
@@ -255,7 +255,7 @@ Null: snapshots behave like independent uniform draws of size `t`.
 
 **How to read:** large `p` → overlap looks like chance (good). Small `p` → systematic excess dependence.
 
-JSON outputs: `6_Results/28_Revised_Snapshot_Protocol/<dataset>/overlap_*.json`.
+JSON outputs: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/<dataset>/overlap_*.json`.
 
 ---
 
@@ -300,8 +300,8 @@ So **`l = 90` is skipped** under `R ≤ 1`.
 
 Sources:
 
-- Per dataset: `6_Results/28_Revised_Snapshot_Protocol/<Folder>/ml_results.csv`  
-- Aggregate: `6_Results/28_Revised_Snapshot_Protocol/all_ml_results.csv`  
+- Per dataset: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/<Folder>/ml_results.csv`  
+- Aggregate: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/all_ml_results.csv`  
 
 Numbers below use the **final design’s effective `(train_l, test_l)`**.
 
@@ -396,9 +396,9 @@ We sit exactly on the minority bound for train `l = 60`. That is intentional and
 
 | Path | Role |
 |------|------|
-| `5_Experiments/28_Revised_Snapshot_Protocol/protocol_lib.py` | Formulas, overlap tests, fixed-`t` snapshots |
-| `5_Experiments/28_Revised_Snapshot_Protocol/run_protocol.py` | Orchestrator |
-| `6_Results/28_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
+| `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/protocol_lib.py` | Formulas, overlap tests, fixed-`t` snapshots |
+| `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/run_protocol.py` | Orchestrator |
+| `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
 | `.../<dataset>/worked_calculations.csv` | Step-by-step numeric audit |
 | `.../<dataset>/concern_A_formula_rows.csv` | Formula table |
 | `.../<dataset>/concern_B_reuse_rows.csv` | Reuse table |

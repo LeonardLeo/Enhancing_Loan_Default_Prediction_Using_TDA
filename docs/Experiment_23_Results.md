@@ -3,10 +3,10 @@
 **Protocol:** 80/20 stratified split on processed tabular data → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes.
 
 **Code / results layout:**
-- Legacy: `5_Experiments/23_Early_Train_Test_Split/{Default_Of_Credit_Card_Client_Data,Statlog_German_Credit_Data}/`
+- Legacy: `5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/{Default_Of_Credit_Card_Client_Data,Statlog_German_Credit_Data}/`
 - Registry (clean-protocol barcodes also namespaced here):  
-  `6_Results/23_Early_Train_Test_Split/{PKDD_Czech_Financial,Polish_Bankruptcy_3Year,Taiwan_Bankruptcy,South_German_Credit}/`  
-  plus matching barcode trees under `1_Data/TDA_Datasets/{Folder}/23_Early_Train_Test_Split/`.
+  `6_Results/Early_Split_TDA/1_PH_Default_Parameters/{PKDD_Czech_Financial,Polish_Bankruptcy_3Year,Taiwan_Bankruptcy,South_German_Credit}/`  
+  plus matching barcode trees under `1_Data/TDA_Datasets/Early_Split_TDA/1_PH_Default_Parameters/{Folder}/`.
 
 ---
 
@@ -64,4 +64,4 @@
 - Registry clean-protocol TDA metrics for the four additional datasets are stored as `tda_results.csv` under each Exp 23 dataset folder (sourced from the Exp 3 clean Protocol B runs).
 - For the meeting-driven fixed-`t` redesign across all six datasets, see Experiment **28** and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
-Artefacts: `6_Results/23_Early_Train_Test_Split/`
+Artefacts: `6_Results/Early_Split_TDA/1_PH_Default_Parameters/`

@@ -1,5 +1,20 @@
 EXPERIMENT REPORT - MACHINE LEARNING ON GENERATED BARCODE STATISTICS
 (EXPERIMENTS USED IN RESEARCH PAPER)
+
+Current folder locations (2026 restructure):
+- Exp 1  -> 5_Experiments/Default_Parameters/1_ML_Default_Parameters/
+- Exp 2  -> 5_Experiments/Default_Parameters/2_ML_Tuned_Parameters/
+- Exp 3  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/
+- Exp 4  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/
+- Exp 6  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/3_H0_Only/
+- Exp 11 -> 5_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/
+- Exp 19 -> 5_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/
+- Exp 24 -> 5_Experiments/Historical_Late_Split_Balanced_TDA/6_Sampling_Ratio_Audit/  (also cloned into every TDA arm)
+- Exp 25 -> 5_Experiments/Historical_Late_Split_Balanced_TDA/7_Snapshot_Mean_Variance/
+- Exp 26 -> 5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/
+- Exp 27 -> 5_Experiments/Historical_Late_Split_Balanced_TDA/8_Null_Hypothesis_Algorithm2/
+- Exp 28 -> 5_Experiments/{TDA arm}/9_Revised_Snapshot_Protocol/  (all four TDA arms)
+- Exp 12, 13, 14 and other exploratory folders -> 5_Experiments/Archives/ (original numbers kept)
 Experiment 1
 Description: Default parameter performance using ML on original dataset (Baseline Performance)
 

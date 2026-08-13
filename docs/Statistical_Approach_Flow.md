@@ -1,23 +1,25 @@
 # Statistical approach — stage-by-stage flow
 
-This is the “at what stage did we do what?” map for Experiments 3 and 24–28. Numbers live in `docs/Statistical_Experiments_24_27_Results.md`. Design knobs (why L10/L20, why PCA 10, why ID before *and* after PCA) live in `docs/Design_Decisions.md`.
+This is the “at what stage did we do what?” map for the four TDA protocol arms. Numbers live in `docs/Statistical_Experiments_24_27_Results.md`. Design knobs live in `docs/Design_Decisions.md`.
+
+Active TDA arms (same experiments 1–9 inside each):
+`Historical_Late_Split_Balanced_TDA`, `Early_Split_TDA`, `No_Undersampling`, `Early_Split_TDA_And_No_Undersampling`.
 
 ```text
 processed table
       |
-      |  Exp 3  (builds the historical TDA artefacts)
-      |  scale → PCA → undersample → l=500 snapshots → Ripser → data_L*.csv
+      |  Arm Exp 1  (builds that arm's TDA artefacts)
+      |  protocol knobs → landmarks → Ripser → data_L*.csv
       |
-      +-- Exp 24  uses class counts only          (no barcodes)
-      +-- Exp 26  uses scaled features ± PCA      (no barcodes)
-      +-- Exp 25  reads data_L*.csv               (means / variances)
-      +-- Exp 27  reads data_L*.csv               (Algorithm 2 permutation)
+      +-- Arm Exp 6  sampling-ratio audit (class counts + L + l; no barcodes)
+      +-- Statistics/1  intrinsic dimension (no barcodes; protocol-independent)
+      +-- Arm Exp 7  reads that arm's data_L*.csv
+      +-- Arm Exp 8  reads that arm's data_L*.csv
       |
-      +-- Exp 28  starts over                     (no undersample, split first,
-                   design → split_ml → full_ml     fixed t, small l)
+      +-- Arm Exp 9  Revised Snapshot Protocol (fixed t, l_train/l_test=60/15)
 ```
 
-Barcode **consumers** (7, 8, 10, 11, 15, 17, 19, 21, 25, 27) **read** Exp 3 `data_L*.csv`. They must not regenerate 500 Ripser jobs.
+Barcode **consumers** (arm experiments 2–5, 7–8) **read** that arm's experiment-1 `data_L*.csv`. They must not regenerate 500 Ripser jobs.
 
 ---
 
@@ -45,7 +47,7 @@ This is the common starting file for Exp 1 (tabular ML) and Exp 3 (TDA).
 6. Write Statlog-style matrices:
 
 ```text
-1_Data/TDA_Datasets/{Folder}/3_PH_Default_Parameters/data_L{percent}.csv
+1_Data/TDA_Datasets/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/{Folder}/data_L{percent}.csv
 ```
 
 1,000 rows (500 + 500) × 24 features + `label`.
@@ -120,15 +122,15 @@ Tiny p-value ⇒ the two clouds are probably not the same process. It does **not
 
 **When:** after Exp 24 / 26 have told us that `l = 500` over-reuses and what `b` looks like.
 
-**Does not consume** Exp 3 `data_L*.csv`. Starts from the processed table.
+**Does not consume** Exp 3 `data_L*.csv`. Starts from the processed table. Lives as arm experiment **9** in every TDA bucket (`9_Revised_Snapshot_Protocol`). The original meeting protocol (early split + no undersample) is `Early_Split_TDA_And_No_Undersampling`; the other three arms reuse the same engine with that arm's split/undersample knobs.
 
-**Stages inside Exp 28:**
+**Stages inside Exp 28 / arm Exp 9:**
 
 1. **design** — estimate `b` (skdim TwoNN / MLE / lPCA / DANCo when cheap), choose a joint snapshot size `t`, print reuse `R`.
-2. **split_ml** — split **customers** into train/test *before* snapshots; draw independent snapshots (`l_train = 60`, `l_test = 15` by default); fit models.
+2. **split_ml** — apply the arm's split + undersample factory; draw independent snapshots (`l_train = 60`, `l_test = 15` by default); fit models.
 3. **full_ml** — DCCCD-only extra arm that skips the split (documented in the launcher).
 
-No undersampling to force `n1 = n2`. `t` is an absolute count, not a percent of class size.
+`t` is an absolute count, not a percent of class size. PCA ranks still come from `DatasetConfig` / `docs/Design_Decisions.md`.
 
 ---
 

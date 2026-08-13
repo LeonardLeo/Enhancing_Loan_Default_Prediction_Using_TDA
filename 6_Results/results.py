@@ -12,15 +12,15 @@ from utils import build_results_dataframe_v3
 # Experiment 1 - 1_ML_Default_Parameters
 # =============================================================================
 # --- Statlog
-Experiment_1_Model_Results_SGCD = joblib.load("1_ML_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_1_CV_Results_SGCD = joblib.load("1_ML_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_1_Model_Results_SGCD = joblib.load("Default_Parameters/1_ML_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_1_CV_Results_SGCD = joblib.load("Default_Parameters/1_ML_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 Experiment_1_Model_Results_SGCD = {"Statlog German Credit Dataset": Experiment_1_Model_Results_SGCD}
 Experiment_1_CV_Results_SGCD = {"Statlog German Credit Dataset": Experiment_1_CV_Results_SGCD}
 
 # --- Default of Credit Card Client
-Experiment_1_Model_Results_DCCCD = joblib.load("1_ML_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_1_CV_Results_DCCCD = joblib.load("1_ML_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_1_Model_Results_DCCCD = joblib.load("Default_Parameters/1_ML_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_1_CV_Results_DCCCD = joblib.load("Default_Parameters/1_ML_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 Experiment_1_Model_Results_DCCCD = {"Default of Credit Card Client Dataset": Experiment_1_Model_Results_DCCCD}
 Experiment_1_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experiment_1_CV_Results_DCCCD}
@@ -31,15 +31,15 @@ Experiment_1_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experi
 # Experiment 2 - 2_ML_Tuned_Parameters
 # =============================================================================
 # --- Statlog
-Experiment_2_Model_Results_SGCD = joblib.load("2_ML_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_2_CV_Results_SGCD = joblib.load("2_ML_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_2_Model_Results_SGCD = joblib.load("Default_Parameters/2_ML_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_2_CV_Results_SGCD = joblib.load("Default_Parameters/2_ML_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 Experiment_2_Model_Results_SGCD = {"Statlog German Credit Dataset": Experiment_2_Model_Results_SGCD}
 Experiment_2_CV_Results_SGCD = {"Statlog German Credit Dataset": Experiment_2_CV_Results_SGCD}
 
 # --- Default of Credit Card Client
-Experiment_2_Model_Results_DCCCD = joblib.load("2_ML_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_2_CV_Results_DCCCD = joblib.load("2_ML_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_2_Model_Results_DCCCD = joblib.load("Default_Parameters/2_ML_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_2_CV_Results_DCCCD = joblib.load("Default_Parameters/2_ML_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 Experiment_2_Model_Results_DCCCD = {"Default of Credit Card Client Dataset": Experiment_2_Model_Results_DCCCD}
 Experiment_2_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experiment_2_CV_Results_DCCCD}
@@ -50,12 +50,12 @@ Experiment_2_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experi
 # Experiment 3 - 3_PH_Default_Parameters
 # =============================================================================
 # --- Statlog
-Experiment_3_Model_Results_SGCD = joblib.load("3_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_3_CV_Results_SGCD = joblib.load("3_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_3_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_3_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_3_Model_Results_DCCCD = joblib.load("3_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_3_CV_Results_DCCCD = joblib.load("3_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_3_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_3_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -63,12 +63,12 @@ Experiment_3_CV_Results_DCCCD = joblib.load("3_PH_Default_Parameters/Default_Of_
 # Experiment 4 - 4_PH_Tuned_Parameters
 # =============================================================================
 # --- Statlog
-Experiment_4_Model_Results_SGCD = joblib.load("4_PH_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_4_CV_Results_SGCD = joblib.load("4_PH_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_4_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_4_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_4_Model_Results_DCCCD = joblib.load("4_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_4_CV_Results_DCCCD = joblib.load("4_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_4_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_4_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -81,12 +81,12 @@ Experiment_4_CV_Results_DCCCD = joblib.load("4_PH_Tuned_Parameters/Default_Of_Cr
 # Experiment 6 - 6_Experiment_Impact_of_H0_Only
 # =============================================================================
 # --- Statlog
-Experiment_6_Model_Results_SGCD = joblib.load("6_Experiment_Impact_of_H0_Only/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_6_CV_Results_SGCD = joblib.load("6_Experiment_Impact_of_H0_Only/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_6_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_6_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_6_Model_Results_DCCCD = joblib.load("6_Experiment_Impact_of_H0_Only/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_6_CV_Results_DCCCD = joblib.load("6_Experiment_Impact_of_H0_Only/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_6_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_6_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -94,16 +94,16 @@ Experiment_6_CV_Results_DCCCD = joblib.load("6_Experiment_Impact_of_H0_Only/Defa
 # Experiment 7 - 7_EDA_Barcode_Statistics
 # =============================================================================
 # --- Statlog
-Experiment_7_per_class_BS_SGCD = joblib.load("7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_each_class_BS.pkl")
-Experiment_7_BS_SGCD = joblib.load("7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_entire_BS.pkl")
-Experiment_7_per_class_BS_H0_Only_SGCD = joblib.load("7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_each_class_BS_H0.pkl")
-Experiment_7_BS_H0_Only_SGCD = joblib.load("7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_entire_BS_H0.pkl")
+Experiment_7_per_class_BS_SGCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_each_class_BS.pkl")
+Experiment_7_BS_SGCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_entire_BS.pkl")
+Experiment_7_per_class_BS_H0_Only_SGCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_each_class_BS_H0.pkl")
+Experiment_7_BS_H0_Only_SGCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Statlog_German_Credit_Data/eda_entire_BS_H0.pkl")
 
 # --- Default of Credit Card Clients
-Experiment_7_per_class_BS_DCCCD = joblib.load("7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_each_class_BS_DCCD.pkl")
-Experiment_7_BS_DCCCD = joblib.load("7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_entire_BS_DCCD.pkl")
-Experiment_7_per_class_BS_H0_DCCCD = joblib.load("7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_each_class_BS_DCCD_H0_Only.pkl")
-Experiment_7_BS_H0_DCCCD = joblib.load("7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_entire_BS_DCCD_H0_Only.pkl")
+Experiment_7_per_class_BS_DCCCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_each_class_BS_DCCD.pkl")
+Experiment_7_BS_DCCCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_entire_BS_DCCD.pkl")
+Experiment_7_per_class_BS_H0_DCCCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_each_class_BS_DCCD_H0_Only.pkl")
+Experiment_7_BS_H0_DCCCD = joblib.load("Archives/7_EDA_Barcode_Statistics/Default_Of_Credit_Card_Client_Data/eda_entire_BS_DCCD_H0_Only.pkl")
 
 # =============================================================================
 # Experiment 8 - 8_Dimensionality_Reduction_On_Barcode_Statistics
@@ -121,37 +121,37 @@ Experiment_7_BS_H0_DCCCD = joblib.load("7_EDA_Barcode_Statistics/Default_Of_Cred
 # Experiment 10 - 10_Covariance_Matrix_And_Distances
 # =============================================================================
 # --- Default of Credit Card Clients (L5)
-Experiment_10_data_L5_distance_matrix = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_matrix_L5.pkl")
-Experiment_10_data_L5_farthest_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_farthest_centriod_L5.pkl")
-Experiment_10_data_L5_mean_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_mean_centriod_L5.pkl")
-Experiment_10_data_L5_random_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_random_centriod_L5.pkl")
+Experiment_10_data_L5_distance_matrix = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_matrix_L5.pkl")
+Experiment_10_data_L5_farthest_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_farthest_centriod_L5.pkl")
+Experiment_10_data_L5_mean_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_mean_centriod_L5.pkl")
+Experiment_10_data_L5_random_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L5/distance_random_centriod_L5.pkl")
 
 # --- Default of Credit Card Clients (L15)
-Experiment_10_data_L15_distance_matrix = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_matrix_L15.pkl")
-Experiment_10_data_L15_farthest_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_farthest_centriod_L15.pkl")
-Experiment_10_data_L15_mean_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_mean_centriod_L15.pkl")
-Experiment_10_data_L15_random_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_random_centriod_L15.pkl")
+Experiment_10_data_L15_distance_matrix = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_matrix_L15.pkl")
+Experiment_10_data_L15_farthest_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_farthest_centriod_L15.pkl")
+Experiment_10_data_L15_mean_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_mean_centriod_L15.pkl")
+Experiment_10_data_L15_random_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Default_Of_Credit_Card_Client_Data/L15/distance_random_centriod_L15.pkl")
 
 # --- Statlog (L30)
-Experiment_10_data_L30_distance_matrix = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_matrix_L30.pkl")
-Experiment_10_data_L30_farthest_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_farthest_centriod_L30.pkl")
-Experiment_10_data_L30_mean_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_mean_centriod_L30.pkl")
-Experiment_10_data_L30_random_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_random_centriod_L30.pkl")
+Experiment_10_data_L30_distance_matrix = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_matrix_L30.pkl")
+Experiment_10_data_L30_farthest_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_farthest_centriod_L30.pkl")
+Experiment_10_data_L30_mean_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_mean_centriod_L30.pkl")
+Experiment_10_data_L30_random_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L30/distance_random_centriod_L30.pkl")
 
 # --- Statlog (L60)
-Experiment_10_data_L60_distance_matrix = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_matrix_L60.pkl")
-Experiment_10_data_L60_farthest_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_farthest_centriod_L60.pkl")
-Experiment_10_data_L60_mean_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_mean_centriod_L60.pkl")
-Experiment_10_data_L60_random_centriod = joblib.load("10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_random_centriod_L60.pkl")
+Experiment_10_data_L60_distance_matrix = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_matrix_L60.pkl")
+Experiment_10_data_L60_farthest_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_farthest_centriod_L60.pkl")
+Experiment_10_data_L60_mean_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_mean_centriod_L60.pkl")
+Experiment_10_data_L60_random_centriod = joblib.load("Archives/10_Covariance_Matrix_And_Distances/Statlog_German_Credit_Data/L60/distance_random_centriod_L60.pkl")
 
 # =============================================================================
 # Experiment 11 - 11_Dropping_Correlated_Barcode_Statistics_Columns
 # =============================================================================
 # --- Statlog
-Experiment_11_Model_Results_SGCD = joblib.load("11_Dropping_Correlated_Barcode_Statistics_Columns/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_11_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Statlog_German_Credit_Data/model_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_11_Model_Results_DCCCD = joblib.load("11_Dropping_Correlated_Barcode_Statistics_Columns/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_11_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Default_Of_Credit_Card_Client_Data/model_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -159,8 +159,8 @@ Experiment_11_Model_Results_DCCCD = joblib.load("11_Dropping_Correlated_Barcode_
 # Experiment 12 - 12_Equivalent_Sample_Size_For_Each_Dataset
 # =============================================================================
 # --- Default of Credit Card Client
-Experiment_12_Model_Results_DCCCD = joblib.load("12_Equivalent_Sample_Size_For_Each_Dataset/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_12_CV_Results_DCCCD = joblib.load("12_Equivalent_Sample_Size_For_Each_Dataset/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_12_Model_Results_DCCCD = joblib.load("Archives/12_Equivalent_Sample_Size_For_Each_Dataset/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_12_CV_Results_DCCCD = joblib.load("Archives/12_Equivalent_Sample_Size_For_Each_Dataset/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -168,8 +168,8 @@ Experiment_12_CV_Results_DCCCD = joblib.load("12_Equivalent_Sample_Size_For_Each
 # Experiment 13 - 13_Similar_Variance_Retained_After_PCA
 # =============================================================================
 # --- Default of Credit Card Client
-Experiment_13_Model_Results_DCCCD = joblib.load("13_Similar_Variance_Retained_After_PCA/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_13_CV_Results_DCCCD = joblib.load("13_Similar_Variance_Retained_After_PCA/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_13_Model_Results_DCCCD = joblib.load("Archives/13_Similar_Variance_Retained_After_PCA/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_13_CV_Results_DCCCD = joblib.load("Archives/13_Similar_Variance_Retained_After_PCA/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -177,12 +177,12 @@ Experiment_13_CV_Results_DCCCD = joblib.load("13_Similar_Variance_Retained_After
 # Experiment 14 - 14_Mixed_Classes_Training_With_Imbalanced_Datasets
 # =============================================================================
 # --- Statlog
-Experiment_14_Model_Results_SGCD = joblib.load("14_Mixed_Classes_Training_With_Imbalanced_Datasets/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_14_CV_Results_SGCD = joblib.load("14_Mixed_Classes_Training_With_Imbalanced_Datasets/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_14_Model_Results_SGCD = joblib.load("Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_14_CV_Results_SGCD = joblib.load("Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_14_Model_Results_DCCCD = joblib.load("14_Mixed_Classes_Training_With_Imbalanced_Datasets/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_14_CV_Results_DCCCD = joblib.load("14_Mixed_Classes_Training_With_Imbalanced_Datasets/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_14_Model_Results_DCCCD = joblib.load("Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_14_CV_Results_DCCCD = joblib.load("Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -190,10 +190,10 @@ Experiment_14_CV_Results_DCCCD = joblib.load("14_Mixed_Classes_Training_With_Imb
 # Experiment 15 - 15_Working_With_K_in_KNN
 # =============================================================================
 # --- Statlog
-Experiment_15_Model_Results_SGCD = joblib.load("15_Working_With_K_in_KNN/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_15_Model_Results_SGCD = joblib.load("Archives/15_Working_With_K_in_KNN/Statlog_German_Credit_Data/model_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_15_Model_Results_DCCCD = joblib.load("15_Working_With_K_in_KNN/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_15_Model_Results_DCCCD = joblib.load("Archives/15_Working_With_K_in_KNN/Default_Of_Credit_Card_Client_Data/model_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -201,12 +201,12 @@ Experiment_15_Model_Results_DCCCD = joblib.load("15_Working_With_K_in_KNN/Defaul
 # Experiment 16 - 16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset
 # =============================================================================
 # --- Default of Credit Card Client
-Experiment_16_Model_Results_DCCCD = joblib.load("16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_16_Model_Results_3_Components_DCCCD = joblib.load("16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_3_components.pkl")
-Experiment_16_Model_Results_5_Components_DCCCD = joblib.load("16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_5_components.pkl")
-Experiment_16_Model_Results_7_Components_DCCCD = joblib.load("16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_7_components.pkl")
-Experiment_16_Model_Results_9_Components_DCCCD = joblib.load("16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_9_components.pkl")
-Experiment_16_Model_Results_11_Components_DCCCD = joblib.load("16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_11_components.pkl")
+Experiment_16_Model_Results_DCCCD = joblib.load("Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_16_Model_Results_3_Components_DCCCD = joblib.load("Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_3_components.pkl")
+Experiment_16_Model_Results_5_Components_DCCCD = joblib.load("Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_5_components.pkl")
+Experiment_16_Model_Results_7_Components_DCCCD = joblib.load("Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_7_components.pkl")
+Experiment_16_Model_Results_9_Components_DCCCD = joblib.load("Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_9_components.pkl")
+Experiment_16_Model_Results_11_Components_DCCCD = joblib.load("Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset/Default_Of_Credit_Card_Client_Data/model_results_using_11_components.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -220,15 +220,15 @@ Experiment_16_Model_Results_11_Components_DCCCD = joblib.load("16_Variance_Retai
 # Experiment 18 - 18_Variance_Retained_for_Statlog_German_Credit_Dataset
 # =============================================================================
 # --- Default of Credit Card Client
-Experiment_18_Model_Results_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_18_Model_Results_5_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_5_components.pkl")
-Experiment_18_Model_Results_7_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_7_components.pkl")
-Experiment_18_Model_Results_9_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_9_components.pkl")
-Experiment_18_Model_Results_11_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_11_components.pkl")
-Experiment_18_Model_Results_13_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_13_components.pkl")
-Experiment_18_Model_Results_15_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_15_components.pkl")
-Experiment_18_Model_Results_17_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_17_components.pkl")
-Experiment_18_Model_Results_19_Components_SGCD = joblib.load("18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_19_components.pkl")
+Experiment_18_Model_Results_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_18_Model_Results_5_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_5_components.pkl")
+Experiment_18_Model_Results_7_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_7_components.pkl")
+Experiment_18_Model_Results_9_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_9_components.pkl")
+Experiment_18_Model_Results_11_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_11_components.pkl")
+Experiment_18_Model_Results_13_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_13_components.pkl")
+Experiment_18_Model_Results_15_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_15_components.pkl")
+Experiment_18_Model_Results_17_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_17_components.pkl")
+Experiment_18_Model_Results_19_Components_SGCD = joblib.load("Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset/Statlog_German_Credit_Data/model_results_using_19_components.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -236,12 +236,12 @@ Experiment_18_Model_Results_19_Components_SGCD = joblib.load("18_Variance_Retain
 # Experiment 19 - 19_Linear_Regression_For_Prediction
 # =============================================================================
 # --- Statlog
-Experiment_19_Model_Results_SGCD = joblib.load("19_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_19_CV_Results_SGCD = joblib.load("19_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_19_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_19_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_19_Model_Results_DCCCD = joblib.load("19_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_19_CV_Results_DCCCD = joblib.load("19_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_19_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_19_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 

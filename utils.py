@@ -62,6 +62,17 @@ except ImportError:
     HAS_UMAP = False
 
 
+def win_long_path(path) -> Path:
+    """Windows path that can be created/opened beyond MAX_PATH (260)."""
+    raw = os.path.abspath(os.fspath(path))
+    if os.name == "nt" and not raw.startswith("\\\\?\\"):
+        if raw.startswith("\\\\"):
+            raw = "\\\\?\\UNC\\" + raw[2:]
+        else:
+            raw = "\\\\?\\" + raw
+    return Path(raw)
+
+
 def _ensure_dir(path) -> Path:
     """Create ``path`` (and parents). Returns an absolute Path.
 
@@ -71,7 +82,7 @@ def _ensure_dir(path) -> Path:
     p = Path(path).expanduser()
     if not p.is_absolute():
         p = Path.cwd() / p
-    p = p.resolve()
+    p = win_long_path(p)
     p.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -115,6 +126,89 @@ COLUMN_DESCRIPTIONS = {
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# Repository root (this file lives at the project root). Landmark / barcode
+# writers resolve against this so script depth (bucket vs archive) cannot
+# break artefact paths.
+REPO_ROOT = Path(__file__).resolve().parent
+
+ACTIVE_TDA_PROTOCOL_BUCKETS = (
+    "Historical_Late_Split_Balanced_TDA",
+    "Early_Split_TDA",
+    "No_Undersampling",
+    "Early_Split_TDA_And_No_Undersampling",
+)
+
+ACTIVE_TDA_EXPERIMENT_NAMES = (
+    "1_PH_Default_Parameters",
+    "2_PH_Tuned_Parameters",
+    "3_H0_Only",
+    "4_Dropping_Correlated_Barcode_Statistics_Columns",
+    "5_Linear_Regression_For_Prediction",
+    "6_Sampling_Ratio_Audit",
+    "7_Snapshot_Mean_Variance",
+    "8_Null_Hypothesis_Algorithm2",
+    "9_Revised_Snapshot_Protocol",
+)
+
+TDA_PROTOCOL_SPECS: Dict[str, Dict[str, Any]] = {
+    "Historical_Late_Split_Balanced_TDA": {
+        "split_timing": "late",
+        "undersample": True,
+        "description": "Scale/PCA on the full table, undersample majority to minority count, then 80/20 on barcode rows.",
+    },
+    "Early_Split_TDA": {
+        "split_timing": "early",
+        "undersample": True,
+        "description": "Stratified 80/20 on customers first; train-only scaler/PCA; undersample within each split.",
+    },
+    "No_Undersampling": {
+        "split_timing": "late",
+        "undersample": False,
+        "description": "Late-split historical geometry without majority downsample. t = floor(n_class * L / 100) per class.",
+    },
+    "Early_Split_TDA_And_No_Undersampling": {
+        "split_timing": "early",
+        "undersample": False,
+        "description": "Early customer split, train-only scaler/PCA, full class pools (no undersample).",
+    },
+}
+
+
+def tda_artefact_dir(
+    kind: str,
+    protocol_bucket: str,
+    experiment_name: str,
+    dataset_folder: str,
+    *extra: str,
+) -> Path:
+    """Protocol-mirrored artefact path under 1_Data/{kind}/.
+
+    kind is Landmark_Sets, Barcode_Statistics, or TDA_Datasets.
+    Layout: 1_Data/{kind}/{ProtocolBucket}/{ExperimentName}/{DatasetFolder}/[extra]
+    """
+    if kind not in {"Landmark_Sets", "Barcode_Statistics", "TDA_Datasets"}:
+        raise ValueError(f"Unknown TDA artefact kind: {kind}")
+    path = REPO_ROOT / "1_Data" / kind / protocol_bucket / experiment_name / dataset_folder
+    for part in extra:
+        if part:
+            path = path / part
+    return path
+
+
+def tda_results_dir(protocol_bucket: str, experiment_name: str, dataset_folder: str) -> Path:
+    return REPO_ROOT / "6_Results" / protocol_bucket / experiment_name / dataset_folder
+
+
+def get_tda_protocol(protocol_bucket: str) -> Dict[str, Any]:
+    if protocol_bucket not in TDA_PROTOCOL_SPECS:
+        raise ValueError(
+            f"Unknown TDA protocol bucket '{protocol_bucket}'. "
+            f"Known: {', '.join(TDA_PROTOCOL_SPECS)}"
+        )
+    spec = dict(TDA_PROTOCOL_SPECS[protocol_bucket])
+    spec["bucket"] = protocol_bucket
+    return spec
 
 # =============================================================================
 # Dataset registry
@@ -460,7 +554,8 @@ def select_landmarks(data: pd.DataFrame,
                      save_label_dir: str,  # Class Path to store results
                      experiment_name: str,
                      add_optional_path: str = None,
-                     verbose: bool = False):
+                     verbose: bool = False,
+                     protocol_bucket: str = None):
 
     # Print current working directory for debugging
     if verbose:
@@ -471,19 +566,36 @@ def select_landmarks(data: pd.DataFrame,
     n_landmarks = max(2, int(len(data) * percentage / 100))
     if n_landmarks > len(data):
         raise ValueError(f"Requested {n_landmarks} landmarks from only {len(data)} rows")
-    
+
     # Confirm dataset chosen
     dataset_string = get_dataset_folder(dataset)
-    
-    # Construct relative path
-    if add_optional_path is None:
-        output_dir = f"../../../1_Data/Landmark_Sets/{dataset_string}/{experiment_name}/{save_label_dir}"
+
+    # Protocol buckets write
+    # 1_Data/Landmark_Sets/{ProtocolBucket}/{ExperimentName}/{DatasetFolder}/...
+    # Legacy / archive calls keep DatasetFolder/ExperimentName.
+    if protocol_bucket:
+        output_dir = str(
+            tda_artefact_dir(
+                "Landmark_Sets",
+                protocol_bucket,
+                experiment_name,
+                dataset_string,
+                *([add_optional_path] if add_optional_path else []),
+                save_label_dir,
+            )
+        )
+    elif add_optional_path is None:
+        output_dir = str(
+            REPO_ROOT / "1_Data" / "Landmark_Sets" / dataset_string / experiment_name / save_label_dir
+        )
     else:
-        output_dir = f"../../../1_Data/Landmark_Sets/{dataset_string}/{experiment_name}/{add_optional_path}/{save_label_dir}"
+        output_dir = str(
+            REPO_ROOT / "1_Data" / "Landmark_Sets" / dataset_string / experiment_name / add_optional_path / save_label_dir
+        )
         
 
-    # Convert relative path to absolute path
-    absolute_output_dir = os.path.abspath(output_dir)
+    # Convert relative path to absolute path (Windows long-path safe)
+    absolute_output_dir = str(win_long_path(output_dir))
     if verbose:
         print("Saving to:", absolute_output_dir)
 
@@ -523,7 +635,8 @@ def generate_landmark_sets(class_label_and_data: dict, # Dictionary containing s
                            dataset_to_use: str,
                            experiment_name: str,
                            add_optional_path: str = None,
-                           n_files_per_percentage: int = 500): # Number of landmark sets to generate per percentage
+                           n_files_per_percentage: int = 500,
+                           protocol_bucket: str = None): # Number of landmark sets to generate per percentage
     
     # Generate landmarks for default and non-default separately
     for each_name, each_data in class_label_and_data.items():
@@ -535,7 +648,8 @@ def generate_landmark_sets(class_label_and_data: dict, # Dictionary containing s
                              dataset_to_use = dataset_to_use,
                              save_label_dir = f"{each_name}_L{each_percentage}",
                              add_optional_path = add_optional_path,
-                             experiment_name = experiment_name)
+                             experiment_name = experiment_name,
+                             protocol_bucket = protocol_bucket)
 
     print("Landmark selection complete!")
 
@@ -544,7 +658,8 @@ def generate_landmark_sets_v2(class_label_and_data: dict,
                              dataset_to_use: str,
                              experiment_name: str,
                              num_files_per_class: dict,
-                             add_optional_path: str = None):
+                             add_optional_path: str = None,
+                             protocol_bucket: str = None):
     """
     Generates landmark sets with flexible number of files per class.
 
@@ -565,7 +680,8 @@ def generate_landmark_sets_v2(class_label_and_data: dict,
                              dataset_to_use=dataset_to_use,
                              save_label_dir=f"{class_name}_L{percentage}",
                              add_optional_path = add_optional_path,
-                             experiment_name=experiment_name)
+                             experiment_name=experiment_name,
+                             protocol_bucket=protocol_bucket)
     print("Landmark selection complete!")
 
 def compute_barcode_statistics(diagram):
@@ -676,7 +792,9 @@ def compute_barcodes_from_multiple_landmarks(landmark_percentages: List[int | fl
                                              dim: int,
                                              label: Dict[int, str]) -> None:
     # Set parameters
-    os.makedirs(os.path.abspath(barcode_output_dir), exist_ok=True)  # Ensure the output directory exists
+    barcode_output_dir = str(win_long_path(barcode_output_dir))
+    landmark_dir = str(win_long_path(landmark_dir))
+    os.makedirs(barcode_output_dir, exist_ok=True)  # Ensure the output directory exists
 
     for percentage in landmark_percentages:
         for each_class, label_name in label.items():
@@ -758,7 +876,9 @@ def build_final_barcode_statistics_data(landmark_percentages: List[int | float],
                                         output_dir: str,
                                         label: Dict[int, str]):
 
-    os.makedirs(os.path.abspath(output_dir), exist_ok=True)
+    output_dir = str(win_long_path(output_dir))
+    barcode_dir = str(win_long_path(barcode_dir))
+    os.makedirs(output_dir, exist_ok=True)
     print("\n\nStarting barcode statistics generation...")
 
     for each_percentage in landmark_percentages:
@@ -3328,7 +3448,7 @@ def permutation_test_algorithm2(
 # Revised snapshot protocol helpers (Experiment 28+)
 # Fixed absolute t, no undersampling, formula vs reuse as separate concerns.
 # Full implementation lives in:
-#   5_Experiments/28_Revised_Snapshot_Protocol/protocol_lib.py
+#   5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/protocol_lib.py
 # =============================================================================
 def formula_l_from_t_b(t: int, b: float, log_base: str = "e") -> float:
     """Email rule: l ≈ (t / log t)^{2/b}. See Experiment 28 protocol_lib for details."""
@@ -3370,11 +3490,12 @@ def select_landmarks_fixed_t(
         raise ValueError(f"Requested t={t} landmarks from only {len(data)} rows")
     dataset_string = get_dataset_folder(dataset_to_use)
     if add_optional_path is None:
-        output_dir = f"../../../1_Data/Landmark_Sets/{dataset_string}/{experiment_name}/{save_label_dir}"
+        output_dir = str(
+            REPO_ROOT / "1_Data" / "Landmark_Sets" / dataset_string / experiment_name / save_label_dir
+        )
     else:
-        output_dir = (
-            f"../../../1_Data/Landmark_Sets/{dataset_string}/{experiment_name}/"
-            f"{add_optional_path}/{save_label_dir}"
+        output_dir = str(
+            REPO_ROOT / "1_Data" / "Landmark_Sets" / dataset_string / experiment_name / add_optional_path / save_label_dir
         )
     absolute_output_dir = os.path.abspath(output_dir)
     os.makedirs(absolute_output_dir, exist_ok=True)
@@ -3387,4 +3508,963 @@ def select_landmarks_fixed_t(
             print(f"Saved: {file_path}")
     print(f"Saved {n_files} fixed-t landmark files (t={t}) to {absolute_output_dir}")
     return absolute_output_dir
+
+
+# =============================================================================
+# Protocol-aware TDA pipeline (four active arms)
+# =============================================================================
+PKDD_DUMMY_COLUMNS = (
+    "frequency",
+    "type",
+    "sex",
+    "A2",
+    "A3",
+    "A12",
+    "A15",
+    "preloan_card_type",
+)
+PKDD_LOG_COLUMNS = ("amount", "payments", "tx_amount_sum", "tx_amount_mean")
+SOUTH_GERMAN_LOG_COLUMNS = ("hoehe", "laufzeit")
+
+DEFAULT_TDA_TUNED_MODEL_CONFIGS = {
+    "svm": {
+        "model": SVC(),
+        "params": {"C": [0.1, 1, 10], "kernel": ["linear", "rbf"], "gamma": ["scale", "auto"]},
+    },
+    "knn": {
+        "model": KNeighborsClassifier(),
+        "params": {"n_neighbors": [3, 5, 7], "weights": ["uniform", "distance"], "p": [1, 2]},
+    },
+    "xgb": {
+        "model": XGBClassifier(use_label_encoder=False, eval_metric="logloss"),
+        "params": {
+            "n_estimators": [50, 100, 200],
+            "learning_rate": [0.01, 0.1, 0.2],
+            "max_depth": [3, 5, 7],
+        },
+    },
+    "logistic": {
+        "model": LogisticRegression(max_iter=1000),
+        "params": {"C": [0.1, 1, 10], "solver": ["liblinear", "lbfgs"]},
+    },
+    "random_forest": {
+        "model": RandomForestClassifier(),
+        "params": {
+            "n_estimators": [50, 100, 200],
+            "max_depth": [3, 5, 10, None],
+            "min_samples_split": [2, 5, 10],
+        },
+    },
+}
+
+
+def dataset_landmark_percentages(dataset_key: str) -> List[float]:
+    cfg = get_dataset_config(dataset_key)
+    return [float(p) for p in cfg.landmark_percentages]
+
+
+def dataset_pca_rank(dataset_key: str) -> int:
+    cfg = get_dataset_config(dataset_key)
+    return int(cfg.notes["pca_n_components_exp3"])
+
+
+def dataset_n_files(dataset_key: str) -> int:
+    cfg = get_dataset_config(dataset_key)
+    return int(cfg.notes.get("n_files_per_percentage", 500))
+
+
+def _processed_table_path(cfg: DatasetConfig) -> Path:
+    folder = REPO_ROOT / "1_Data" / "Processed_Datasets" / cfg.folder_name
+    xlsx = folder / "processed_data.xlsx"
+    csv = folder / "processed_data.csv"
+    if xlsx.exists():
+        return xlsx
+    if csv.exists():
+        return csv
+    raise FileNotFoundError(
+        f"No processed table for {cfg.folder_name} under {folder} "
+        "(expected processed_data.xlsx or processed_data.csv)."
+    )
+
+
+def load_processed_features(dataset_key: str) -> Tuple[pd.DataFrame, pd.Series, DatasetConfig]:
+    """Load the shared processed table and apply Exp-3 encoding (not PCA)."""
+    cfg = get_dataset_config(dataset_key)
+    path = _processed_table_path(cfg)
+    if path.suffix.lower() in {".xlsx", ".xls"}:
+        data = pd.read_excel(path)
+    else:
+        data = pd.read_csv(path)
+
+    drop_unnamed = [c for c in data.columns if str(c).startswith("Unnamed")]
+    if drop_unnamed:
+        data = data.drop(columns=drop_unnamed)
+
+    target = cfg.target_column
+    if target not in data.columns:
+        raise KeyError(f"{cfg.folder_name} is missing target column '{target}'")
+
+    if cfg.key == "pkdd_czech":
+        for col in data.select_dtypes(include=[np.number]).columns:
+            if data[col].isnull().any():
+                data[col] = data[col].fillna(data[col].median())
+        for col in data.select_dtypes(include=["object"]).columns:
+            data[col] = data[col].fillna("missing").astype(str)
+        data = data_preprocessing_pipeline(
+            data,
+            log_col=list(PKDD_LOG_COLUMNS),
+            dummy_col=list(PKDD_DUMMY_COLUMNS),
+        )
+    elif cfg.key == "polish_bankruptcy":
+        for col in data.columns:
+            if col != target and data[col].isnull().any():
+                data[col] = data[col].fillna(data[col].median())
+        data = data_preprocessing_pipeline(data)
+    elif cfg.key == "taiwan_bankruptcy":
+        data = data_preprocessing_pipeline(data)
+    elif cfg.key == "south_german_credit":
+        data = data_preprocessing_pipeline(data, log_col=list(SOUTH_GERMAN_LOG_COLUMNS))
+    else:
+        for col in data.select_dtypes(include=[np.number]).columns:
+            if col != target and data[col].isnull().any():
+                data[col] = data[col].fillna(data[col].median())
+        leftover = [c for c in data.select_dtypes(include=["object"]).columns if c != target]
+        if leftover:
+            data = pd.get_dummies(data, columns=leftover, drop_first=True, dtype=np.int64)
+
+    y = data[target].astype(int)
+    X = data.drop(columns=[target])
+    X = X.select_dtypes(include=[np.number]).copy()
+    return X, y, cfg
+
+
+def class_pools_from_features(
+    features: pd.DataFrame,
+    labels: pd.Series,
+    undersample: bool,
+    positive_label: int = 1,
+    random_state: int = 42,
+) -> Dict[str, pd.DataFrame]:
+    """Build default / non-default clouds. Snapshot size t is later
+    ``floor(n_class * L / 100)`` on whichever pool is returned here."""
+    if undersample:
+        balanced = balance_binary_by_undersampling(
+            features, labels, positive_label=positive_label, random_state=random_state
+        )
+        pos = balanced[balanced["Class"] == positive_label].drop(columns=["Class"])
+        neg = balanced[balanced["Class"] != positive_label].drop(columns=["Class"])
+    else:
+        frame = features.copy()
+        frame["Class"] = labels.values
+        pos = frame[frame["Class"] == positive_label].drop(columns=["Class"]).reset_index(drop=True)
+        neg = frame[frame["Class"] != positive_label].drop(columns=["Class"]).reset_index(drop=True)
+    return {"default": pos, "non-default": neg}
+
+
+def protocol_tda_matrices_exist(
+    protocol_bucket: str,
+    dataset_folder: str,
+    percentages: List[float],
+    split_timing: str,
+    experiment_name: str = "1_PH_Default_Parameters",
+) -> bool:
+    if split_timing == "early":
+        needed = [
+            tda_artefact_dir(
+                "TDA_Datasets", protocol_bucket, experiment_name, dataset_folder, split, f"data_L{int(p) if float(p).is_integer() else p}.csv"
+            )
+            for split in ("train", "test")
+            for p in percentages
+        ]
+    else:
+        needed = [
+            tda_artefact_dir(
+                "TDA_Datasets",
+                protocol_bucket,
+                experiment_name,
+                dataset_folder,
+                f"data_L{int(p) if float(p).is_integer() else p}.csv",
+            )
+            for p in percentages
+        ]
+    return all(path.exists() for path in needed)
+
+
+def _percent_token(percent: float) -> str:
+    return str(int(percent)) if float(percent).is_integer() else str(percent)
+
+
+def late_split_barcode_paths(
+    protocol_bucket: str,
+    dataset_folder: str,
+    percentages: List[float],
+    experiment_name: str = "1_PH_Default_Parameters",
+) -> List[str]:
+    return [
+        str(
+            tda_artefact_dir(
+                "TDA_Datasets",
+                protocol_bucket,
+                experiment_name,
+                dataset_folder,
+                f"data_L{_percent_token(p)}.csv",
+            )
+        )
+        for p in percentages
+    ]
+
+
+def early_split_barcode_pairs(
+    protocol_bucket: str,
+    dataset_folder: str,
+    percentages: List[float],
+    experiment_name: str = "1_PH_Default_Parameters",
+) -> Dict[str, Dict[str, str]]:
+    pairs = {}
+    for p in percentages:
+        token = _percent_token(p)
+        pairs[f"data_L{token}"] = {
+            "train": str(
+                tda_artefact_dir(
+                    "TDA_Datasets",
+                    protocol_bucket,
+                    experiment_name,
+                    dataset_folder,
+                    "train",
+                    f"data_L{token}.csv",
+                )
+            ),
+            "test": str(
+                tda_artefact_dir(
+                    "TDA_Datasets",
+                    protocol_bucket,
+                    experiment_name,
+                    dataset_folder,
+                    "test",
+                    f"data_L{token}.csv",
+                )
+            ),
+        }
+    return pairs
+
+
+def _write_h0_slice(src: Path, dest: Path) -> Path:
+    df = pd.read_csv(src)
+    keep = [c for c in df.columns if c == "label" or c.endswith("_0") or "(Dim 0)" in c]
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    df[keep].to_csv(dest, index=False)
+    return dest
+
+
+def generate_protocol_barcodes(
+    dataset_key: str,
+    protocol_bucket: str,
+    n_files: Optional[int] = None,
+    skip_existing: bool = True,
+    homology_dim: int = 2,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """Build landmarks + Ripser barcodes for one protocol arm's experiment 1.
+
+    Does not train models. Reuses existing ``data_L*.csv`` when ``skip_existing``.
+    """
+    protocol = get_tda_protocol(protocol_bucket)
+    X, y, cfg = load_processed_features(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    pca_n = dataset_pca_rank(dataset_key)
+    n_files = int(n_files or dataset_n_files(dataset_key))
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    label_map = {1: "default", 0: "non-default"}
+
+    meta: Dict[str, Any] = {
+        "dataset": folder,
+        "protocol_bucket": protocol_bucket,
+        "split_timing": protocol["split_timing"],
+        "undersample": protocol["undersample"],
+        "pca_n_components": pca_n,
+        "landmark_percentages": percentages,
+        "n_files_per_percentage": n_files,
+        "homology_dim": homology_dim,
+        "t_rule": "t = floor(n_class * L / 100) on the pool after the protocol split (and after undersample when that knob is on)",
+        "skipped_existing": False,
+    }
+
+    if skip_existing and protocol_tda_matrices_exist(
+        protocol_bucket, folder, percentages, protocol["split_timing"], exp1
+    ):
+        meta["skipped_existing"] = True
+        print(f"[SKIP] {protocol_bucket}/{folder}: data_L*.csv already exist.")
+        return meta
+
+    def _emit(pools: Dict[str, pd.DataFrame], optional_path: Optional[str] = None) -> None:
+        class_sizes = {name: int(len(frame)) for name, frame in pools.items()}
+        print(f"  class pools{'' if optional_path is None else ' [' + optional_path + ']'}: {class_sizes}")
+        for name, frame in pools.items():
+            for pct in percentages:
+                t = max(2, int(len(frame) * pct / 100))
+                print(f"    {name} L{pct:g}: n={len(frame)} t={t} l={n_files}")
+        generate_landmark_sets(
+            class_label_and_data=pools,
+            landmark_percentages=percentages,
+            dataset_to_use=cfg.key,
+            experiment_name=exp1,
+            add_optional_path=optional_path,
+            n_files_per_percentage=n_files,
+            protocol_bucket=protocol_bucket,
+        )
+        extra = [optional_path] if optional_path else []
+        landmark_dir = tda_artefact_dir("Landmark_Sets", protocol_bucket, exp1, folder, *extra)
+        barcode_dir = tda_artefact_dir("Barcode_Statistics", protocol_bucket, exp1, folder, *extra)
+        tda_dir = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, *extra)
+        compute_barcodes_from_multiple_landmarks(
+            landmark_percentages=percentages,
+            landmark_dir=str(landmark_dir),
+            barcode_output_dir=str(barcode_dir),
+            dim=homology_dim,
+            label=label_map,
+        )
+        build_final_barcode_statistics_data(
+            landmark_percentages=percentages,
+            barcode_dir=str(barcode_dir),
+            output_dir=str(tda_dir),
+            label=label_map,
+        )
+
+    if protocol["split_timing"] == "late":
+        scaler = MinMaxScaler()
+        X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns, index=X.index)
+        pca = PCA(n_components=pca_n, random_state=random_state)
+        pca_cols = [f"PCA_{i}" for i in range(1, pca_n + 1)]
+        X_pca = pd.DataFrame(pca.fit_transform(X_scaled), columns=pca_cols, index=X.index)
+        meta["variance_retained"] = float(pca.explained_variance_ratio_.sum())
+        print(f"Variance retained (full-table PCA): {meta['variance_retained']:.2%}")
+        pools = class_pools_from_features(
+            X_pca, y, undersample=protocol["undersample"], random_state=random_state
+        )
+        meta["class_pool_sizes"] = {k: int(len(v)) for k, v in pools.items()}
+        _emit(pools)
+    else:
+        X_train, X_test, y_train, y_test = stratified_early_split(
+            X, y, test_size=0.2, random_state=random_state
+        )
+        X_train_pca, X_test_pca, _scaler, _pca, var_ratio = fit_scaler_pca_on_train(
+            X_train, X_test, n_components=pca_n, random_state=random_state
+        )
+        meta["variance_retained"] = float(var_ratio)
+        meta["n_train"] = int(len(X_train))
+        meta["n_test"] = int(len(X_test))
+        print(f"Variance retained (train-fit PCA): {var_ratio:.2%}")
+        train_pools = class_pools_from_features(
+            X_train_pca, y_train, undersample=protocol["undersample"], random_state=random_state
+        )
+        test_pools = class_pools_from_features(
+            X_test_pca, y_test, undersample=protocol["undersample"], random_state=random_state
+        )
+        meta["train_class_pool_sizes"] = {k: int(len(v)) for k, v in train_pools.items()}
+        meta["test_class_pool_sizes"] = {k: int(len(v)) for k, v in test_pools.items()}
+        _emit(train_pools, "train")
+        _emit(test_pools, "test")
+
+    results_dir = tda_results_dir(protocol_bucket, exp1, folder)
+    store_data_as_csv_or_json(
+        path=str(results_dir),
+        csv=False,
+        save_as=["protocol_metadata"],
+        data_object=[meta],
+    )
+    return meta
+
+
+def train_protocol_default_models(
+    dataset_key: str,
+    protocol_bucket: str,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    save_path = str(tda_results_dir(protocol_bucket, exp1, folder))
+    if protocol["split_timing"] == "early":
+        pairs = early_split_barcode_pairs(protocol_bucket, folder, percentages, exp1)
+        results = train_multiple_dataset_tda_presplit(
+            train_test_pairs=pairs,
+            y_col_name="label",
+            random_state=random_state,
+            xgb={"eval_metric": "logloss"},
+        )
+    else:
+        paths = late_split_barcode_paths(protocol_bucket, folder, percentages, exp1)
+        results = train_multiple_dataset_tda(
+            path_datasets=paths,
+            y_col_name="label",
+            test_size=0.2,
+            random_state=random_state,
+            xgb={"eval_metric": "logloss"},
+        )
+    store_results(path=save_path, save_name="model_results", result_object=results)
+    return results
+
+
+def train_protocol_tuned_models(
+    dataset_key: str,
+    protocol_bucket: str,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """Consumer: GridSearchCV on experiment-1 barcodes. No Ripser."""
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    exp2 = "2_PH_Tuned_Parameters"
+    save_path = str(tda_results_dir(protocol_bucket, exp2, folder))
+    if protocol["split_timing"] == "early":
+        pairs = early_split_barcode_pairs(protocol_bucket, folder, percentages, exp1)
+        results = train_models_on_multiple_presplit_datasets(
+            train_test_pairs=pairs,
+            model_configs=DEFAULT_TDA_TUNED_MODEL_CONFIGS,
+            target_column="label",
+            scoring_metric="f1",
+            scale_features=True,
+            random_state=random_state,
+            n_splits_kfold=5,
+        )
+    else:
+        paths = late_split_barcode_paths(protocol_bucket, folder, percentages, exp1)
+        results = train_models_on_multiple_datasets(
+            data_paths=paths,
+            model_configs=DEFAULT_TDA_TUNED_MODEL_CONFIGS,
+            target_column="label",
+            test_size=0.2,
+            scoring_metric="f1",
+            scale_features=True,
+            random_state=random_state,
+            n_splits_kfold=5,
+        )
+    store_results(path=save_path, save_name="model_results", result_object=results)
+    return results
+
+
+def train_protocol_h0_only_models(
+    dataset_key: str,
+    protocol_bucket: str,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """Consumer: keep H0 columns from experiment-1 matrices. No Ripser."""
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    exp3 = "3_H0_Only"
+    dest_root = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp3, folder)
+    if protocol["split_timing"] == "early":
+        pairs = {}
+        for p in percentages:
+            token = _percent_token(p)
+            src_train = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, "train", f"data_L{token}.csv")
+            src_test = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, "test", f"data_L{token}.csv")
+            dest_train = dest_root / "train" / f"data_L{token}.csv"
+            dest_test = dest_root / "test" / f"data_L{token}.csv"
+            _write_h0_slice(src_train, dest_train)
+            _write_h0_slice(src_test, dest_test)
+            pairs[f"data_L{token}"] = {"train": str(dest_train), "test": str(dest_test)}
+        results = train_multiple_dataset_tda_presplit(
+            train_test_pairs=pairs,
+            y_col_name="label",
+            random_state=random_state,
+            xgb={"eval_metric": "logloss"},
+        )
+    else:
+        paths = []
+        for p in percentages:
+            token = _percent_token(p)
+            src = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, f"data_L{token}.csv")
+            dest = dest_root / f"data_L{token}.csv"
+            _write_h0_slice(src, dest)
+            paths.append(str(dest))
+        results = train_multiple_dataset_tda(
+            path_datasets=paths,
+            y_col_name="label",
+            test_size=0.2,
+            random_state=random_state,
+            xgb={"eval_metric": "logloss"},
+        )
+    store_results(
+        path=str(tda_results_dir(protocol_bucket, exp3, folder)),
+        save_name="model_results",
+        result_object=results,
+    )
+    return results
+
+
+def train_protocol_drop_correlated(
+    dataset_key: str,
+    protocol_bucket: str,
+    threshold: float = 0.80,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """Consumer: drop correlated barcode columns from experiment-1 matrices."""
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    exp4 = "4_Dropping_Correlated_Barcode_Statistics_Columns"
+    save_path = str(tda_results_dir(protocol_bucket, exp4, folder))
+    var_dir = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp4, folder, "Using_High_Variance_For_Correlation")
+    target_dir = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp4, folder, "Using_Target_Variable_For_Correlation")
+
+    data_objects = {}
+    dropped_payload = []
+    dropped_names = []
+    if protocol["split_timing"] == "early":
+        pairs = early_split_barcode_pairs(protocol_bucket, folder, percentages, exp1)
+        for name, paths in pairs.items():
+            train_df = rename_barcode_statistics_columns(pd.read_csv(paths["train"]))
+            test_df = rename_barcode_statistics_columns(pd.read_csv(paths["test"]))
+            X_train = train_df.drop(columns=["label"])
+            y_train = train_df["label"]
+            X_test = test_df.drop(columns=["label"])
+            y_test = test_df["label"]
+            kept_target, dropped_target = drop_correlated_features(
+                X_train,
+                threshold=threshold,
+                feature_label=True,
+                strategy="target_corr",
+                target=y_train,
+            )
+            keep_cols = [c for c in kept_target.columns if c != "label"]
+            data_objects[name] = {
+                "data": kept_target,
+                "X_test": X_test[keep_cols],
+                "y_test": y_test,
+            }
+            dropped_payload.append(dropped_target)
+            dropped_names.append(f"{name}_target_drop")
+            kept_target.to_csv(target_dir / f"{name}_target.csv", index=False)
+    else:
+        for p in percentages:
+            token = _percent_token(p)
+            src = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, f"data_L{token}.csv")
+            df = rename_barcode_statistics_columns(pd.read_csv(src)).sample(
+                frac=1, random_state=random_state
+            ).reset_index(drop=True)
+            X = df.drop(columns=["label"])
+            y = df["label"]
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=random_state, stratify=y
+            )
+            kept_var, dropped_var = drop_correlated_features(
+                X_train,
+                threshold=threshold,
+                feature_label=True,
+                strategy="high_variance",
+                target=y_train,
+            )
+            kept_target, dropped_target = drop_correlated_features(
+                X_train,
+                threshold=threshold,
+                feature_label=True,
+                strategy="target_corr",
+                target=y_train,
+            )
+            keep_cols = [c for c in kept_target.columns if c != "label"]
+            name = f"data_L{token}"
+            data_objects[name] = {
+                "data": kept_target,
+                "X_test": X_test[keep_cols],
+                "y_test": y_test,
+            }
+            var_dir.mkdir(parents=True, exist_ok=True)
+            target_dir.mkdir(parents=True, exist_ok=True)
+            kept_var.to_csv(var_dir / f"{name}_var.csv", index=False)
+            kept_target.to_csv(target_dir / f"{name}_target.csv", index=False)
+            dropped_payload.extend([dropped_var, dropped_target])
+            dropped_names.extend([f"{name}_var_drop", f"{name}_target_drop"])
+
+    store_data_as_csv_or_json(
+        path=save_path,
+        csv=False,
+        save_as=dropped_names,
+        data_object=dropped_payload,
+    )
+    results = train_multiple_dataset_tda_drop_correlated(
+        data_objects=data_objects,
+        test_size=0.2,
+        random_state=random_state,
+        xgb={"eval_metric": "logloss"},
+    )
+    store_results(path=save_path, save_name="model_results", result_object=results)
+    return results
+
+
+def train_protocol_linear_regression(
+    dataset_key: str,
+    protocol_bucket: str,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """Consumer: linear regression on the H0 slice of experiment-1 barcodes."""
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    exp5 = "5_Linear_Regression_For_Prediction"
+    dest_root = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp5, folder)
+    if protocol["split_timing"] == "early":
+        # Concatenate train/test H0 slices so the existing late-split linear
+        # trainer can 80/20 the barcode rows of this arm's already-split matrices
+        # would leak the customer split. Train on train H0, evaluate on test H0
+        # by writing a combined file only for bookkeeping and scoring manually.
+        from sklearn.metrics import (
+            accuracy_score,
+            classification_report,
+            confusion_matrix,
+            f1_score,
+            precision_score,
+            recall_score,
+        )
+
+        results = {}
+        for p in percentages:
+            token = _percent_token(p)
+            train_src = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, "train", f"data_L{token}.csv")
+            test_src = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, "test", f"data_L{token}.csv")
+            dest_train = dest_root / "train" / f"data_L{token}.csv"
+            dest_test = dest_root / "test" / f"data_L{token}.csv"
+            _write_h0_slice(train_src, dest_train)
+            _write_h0_slice(test_src, dest_test)
+            train_df = pd.read_csv(dest_train)
+            test_df = pd.read_csv(dest_test)
+            feature_cols = [c for c in train_df.columns if c != "label"]
+            model = LinearRegression()
+            model.fit(train_df[feature_cols], train_df["label"])
+            scores = model.predict(test_df[feature_cols])
+            y_pred = (scores >= 0.5).astype(int)
+            y_test = test_df["label"].astype(int)
+            results[f"data_L{token}"] = {
+                "linear_regression": {
+                    "model": model,
+                    "accuracy": accuracy_score(y_test, y_pred),
+                    "precision": precision_score(y_test, y_pred, zero_division=0),
+                    "recall": recall_score(y_test, y_pred, zero_division=0),
+                    "f1_score": f1_score(y_test, y_pred, zero_division=0),
+                    "classification_report": classification_report(y_test, y_pred, zero_division=0),
+                    "confusion_matrix": confusion_matrix(y_test, y_pred),
+                }
+            }
+            print(f"[OK] Linear regression (presplit) data_L{token}")
+    else:
+        paths = []
+        for p in percentages:
+            token = _percent_token(p)
+            src = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp1, folder, f"data_L{token}.csv")
+            dest = dest_root / f"data_L{token}.csv"
+            _write_h0_slice(src, dest)
+            paths.append(str(dest))
+        results = train_multiple_dataset_tda_linear_regression(
+            path_datasets=paths,
+            y_col_name="label",
+            test_size=0.2,
+            random_state=random_state,
+        )
+    store_results(
+        path=str(tda_results_dir(protocol_bucket, exp5, folder)),
+        save_name="model_results",
+        result_object=results,
+    )
+    return results
+
+
+def run_protocol_sampling_ratio_audit(
+    dataset_key: str,
+    protocol_bucket: str,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Audit t/l reuse from class pools after the protocol's split step. No Ripser."""
+    import math
+
+    protocol = get_tda_protocol(protocol_bucket)
+    X, y, cfg = load_processed_features(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    n_files = dataset_n_files(dataset_key)
+    folder = cfg.folder_name
+    exp6 = "6_Sampling_Ratio_Audit"
+    save_path = tda_results_dir(protocol_bucket, exp6, folder)
+
+    def _pool_counts(labels: pd.Series, undersample: bool) -> Tuple[int, int, int, int]:
+        n_pos = int((labels == cfg.positive_label).sum())
+        n_neg = int((labels != cfg.positive_label).sum())
+        if undersample:
+            n1 = n2 = min(n_pos, n_neg)
+        else:
+            n1, n2 = n_pos, n_neg
+        return n_pos, n_neg, n1, n2
+
+    rows = []
+    payload: Dict[str, Any] = {
+        "dataset": folder,
+        "protocol_bucket": protocol_bucket,
+        "split_timing": protocol["split_timing"],
+        "undersample": protocol["undersample"],
+        "t_rule": "t = floor(n_class * L / 100) on the available pool after the protocol split",
+        "l": n_files,
+        "landmarks": {},
+    }
+
+    if protocol["split_timing"] == "early":
+        _X_train, _X_test, y_train, y_test = stratified_early_split(
+            X, y, test_size=0.2, random_state=random_state
+        )
+        splits = {"train": y_train, "test": y_test}
+    else:
+        splits = {"full": y}
+
+    for split_name, labels in splits.items():
+        raw_pos, raw_neg, n1, n2 = _pool_counts(labels, protocol["undersample"])
+        payload[f"{split_name}_raw_n_pos"] = raw_pos
+        payload[f"{split_name}_raw_n_neg"] = raw_neg
+        payload[f"{split_name}_n1"] = n1
+        payload[f"{split_name}_n2"] = n2
+        for pct in percentages:
+            t1 = max(2, int(n1 * pct / 100))
+            t2 = max(2, int(n2 * pct / 100))
+            # Audit uses the class-specific snapshot size. When balanced,
+            # t1 == t2. When not, report both and score reuse per class.
+            for class_name, n_class, t in (("class1", n1, t1), ("class2", n2, t2)):
+                revised_l = max(2, int(math.ceil(n_class / t))) if t else 1
+                for rule, l_value in (("historical_l500", n_files), ("revised_ceil_n_over_t", revised_l)):
+                    audit = compute_sampling_ratio_audit(
+                        n1=n1, n2=n2, t=t, l=l_value, landmark_percent=pct
+                    )
+                    audit.update(
+                        {
+                            "dataset": folder,
+                            "protocol_bucket": protocol_bucket,
+                            "split": split_name,
+                            "class": class_name,
+                            "n_class": n_class,
+                            "t_class": t,
+                            "l_rule": rule,
+                            "undersample": protocol["undersample"],
+                        }
+                    )
+                    rows.append(audit)
+                    payload["landmarks"][f"{split_name}_L{pct:g}_{class_name}_{rule}"] = audit
+
+    save_path.mkdir(parents=True, exist_ok=True)
+    frame = pd.DataFrame(rows)
+    frame.to_csv(save_path / "sampling_ratio_audit.csv", index=False)
+    store_results(path=str(save_path), save_name="sampling_ratio_audit", result_object=payload)
+    print(f"Saved {save_path / 'sampling_ratio_audit.csv'}")
+    return frame
+
+
+def run_protocol_snapshot_mean_variance(
+    dataset_key: str,
+    protocol_bucket: str,
+) -> Dict[str, Any]:
+    """Consumer: mean/variance of experiment-1 barcode columns."""
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    exp7 = "7_Snapshot_Mean_Variance"
+    save_path = tda_results_dir(protocol_bucket, exp7, folder)
+    sources: List[Path] = []
+    if protocol["split_timing"] == "early":
+        for split in ("train", "test"):
+            for p in percentages:
+                sources.append(
+                    tda_artefact_dir(
+                        "TDA_Datasets",
+                        protocol_bucket,
+                        exp1,
+                        folder,
+                        split,
+                        f"data_L{_percent_token(p)}.csv",
+                    )
+                )
+    else:
+        for p in percentages:
+            sources.append(
+                tda_artefact_dir(
+                    "TDA_Datasets",
+                    protocol_bucket,
+                    exp1,
+                    folder,
+                    f"data_L{_percent_token(p)}.csv",
+                )
+            )
+
+    all_summaries = {}
+    flat_rows = []
+    missing = []
+    for path in sources:
+        if not path.exists():
+            missing.append(str(path))
+            print(f"Missing (run this arm's experiment 1 first): {path}")
+            continue
+        summary = summarize_snapshot_statistics(str(path))
+        key = f"{protocol_bucket}/{exp1}/{folder}/{path.name}"
+        if "train" in path.parts or "test" in path.parts:
+            key = f"{protocol_bucket}/{exp1}/{folder}/{path.parent.name}/{path.name}"
+        all_summaries[key] = summary
+        for feat, mean_v in summary["global_mean"].items():
+            flat_rows.append(
+                {
+                    "source": key,
+                    "feature": feat,
+                    "mean": mean_v,
+                    "variance": summary["global_variance"][feat],
+                    "n_snapshots": summary["n_snapshots"],
+                }
+            )
+        print(f"OK {path.name}: n={summary['n_snapshots']}")
+
+    if not flat_rows:
+        raise FileNotFoundError(
+            f"No experiment-1 barcode files for {protocol_bucket}/{folder}. Missing: {missing}"
+        )
+    save_path.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(flat_rows).to_csv(save_path / "snapshot_mean_variance.csv", index=False)
+    store_results(
+        path=str(save_path),
+        save_name="snapshot_mean_variance_full",
+        result_object=all_summaries,
+    )
+    return all_summaries
+
+
+def run_protocol_algorithm2(
+    dataset_key: str,
+    protocol_bucket: str,
+    max_per_group: int = 100,
+    n_perm: int = 200,
+) -> pd.DataFrame:
+    """Consumer: Robinson–Turner Algorithm 2 on experiment-1 barcode matrices."""
+    protocol = get_tda_protocol(protocol_bucket)
+    cfg = get_dataset_config(dataset_key)
+    percentages = dataset_landmark_percentages(dataset_key)
+    folder = cfg.folder_name
+    exp1 = "1_PH_Default_Parameters"
+    exp8 = "8_Null_Hypothesis_Algorithm2"
+    save_path = tda_results_dir(protocol_bucket, exp8, folder)
+    sources: List[Path] = []
+    if protocol["split_timing"] == "early":
+        for split in ("train", "test"):
+            for p in percentages:
+                sources.append(
+                    tda_artefact_dir(
+                        "TDA_Datasets",
+                        protocol_bucket,
+                        exp1,
+                        folder,
+                        split,
+                        f"data_L{_percent_token(p)}.csv",
+                    )
+                )
+    else:
+        for p in percentages:
+            sources.append(
+                tda_artefact_dir(
+                    "TDA_Datasets",
+                    protocol_bucket,
+                    exp1,
+                    folder,
+                    f"data_L{_percent_token(p)}.csv",
+                )
+            )
+
+    rows = []
+    payload = {}
+    rng = np.random.default_rng(42)
+    for path in sources:
+        if not path.exists():
+            print(f"Missing (run this arm's experiment 1 first): {path}")
+            continue
+        df = pd.read_csv(path)
+        feats = [c for c in df.columns if c != "label"]
+        g1 = df[df["label"] == cfg.positive_label][feats].to_numpy()
+        g2 = df[df["label"] != cfg.positive_label][feats].to_numpy()
+        if len(g1) > max_per_group:
+            g1 = g1[rng.choice(len(g1), max_per_group, replace=False)]
+        if len(g2) > max_per_group:
+            g2 = g2[rng.choice(len(g2), max_per_group, replace=False)]
+        rel = f"{path.parent.name}/{path.name}" if path.parent.name in {"train", "test"} else path.name
+        key = f"{folder}/{rel}"
+        payload[key] = {"barcode_vector_proxy": True, "tests": {}}
+        for p, q in ((2, 2), (1, 1), (2, 1)):
+            result = permutation_test_algorithm2(
+                g1, g2, n_permutations=n_perm, p=p, q=q, random_state=42
+            )
+            payload[key]["tests"][f"F_{p}_{q}"] = result
+            rows.append(
+                {
+                    "source": key,
+                    "protocol_bucket": protocol_bucket,
+                    "p": p,
+                    "q": q,
+                    "observed_F_pq": result["observed_F_pq"],
+                    "p_value": result["p_value"],
+                    "n1": result["n1"],
+                    "n2": result["n2"],
+                    "null_mean": result["null_mean"],
+                    "barcode_vector_proxy": True,
+                }
+            )
+            print(f"{rel} F_{p},{q}: observed={result['observed_F_pq']:.4f}, p={result['p_value']:.4f}")
+
+    if not rows:
+        raise FileNotFoundError(
+            f"No experiment-1 barcode files for Algorithm 2 on {protocol_bucket}/{folder}."
+        )
+    save_path.mkdir(parents=True, exist_ok=True)
+    frame = pd.DataFrame(rows)
+    frame.to_csv(save_path / "algorithm2_permutation_results.csv", index=False)
+    store_results(
+        path=str(save_path),
+        save_name="algorithm2_permutation_results",
+        result_object=payload,
+    )
+    return frame
+
+
+def run_protocol_experiment(
+    dataset_key: str,
+    protocol_bucket: str,
+    experiment: str,
+    skip_existing_barcodes: bool = True,
+    n_files: Optional[int] = None,
+) -> Any:
+    """Dispatch one numbered experiment inside a protocol bucket."""
+    if experiment == "1_PH_Default_Parameters":
+        meta = generate_protocol_barcodes(
+            dataset_key,
+            protocol_bucket,
+            n_files=n_files,
+            skip_existing=skip_existing_barcodes,
+        )
+        models = train_protocol_default_models(dataset_key, protocol_bucket)
+        return {"metadata": meta, "model_results": models}
+    if experiment == "2_PH_Tuned_Parameters":
+        return train_protocol_tuned_models(dataset_key, protocol_bucket)
+    if experiment == "3_H0_Only":
+        return train_protocol_h0_only_models(dataset_key, protocol_bucket)
+    if experiment == "4_Dropping_Correlated_Barcode_Statistics_Columns":
+        return train_protocol_drop_correlated(dataset_key, protocol_bucket)
+    if experiment == "5_Linear_Regression_For_Prediction":
+        return train_protocol_linear_regression(dataset_key, protocol_bucket)
+    if experiment == "6_Sampling_Ratio_Audit":
+        return run_protocol_sampling_ratio_audit(dataset_key, protocol_bucket)
+    if experiment == "7_Snapshot_Mean_Variance":
+        return run_protocol_snapshot_mean_variance(dataset_key, protocol_bucket)
+    if experiment == "8_Null_Hypothesis_Algorithm2":
+        return run_protocol_algorithm2(dataset_key, protocol_bucket)
+    raise ValueError(f"Unknown active TDA experiment: {experiment}")
 

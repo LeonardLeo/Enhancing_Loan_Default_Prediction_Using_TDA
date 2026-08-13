@@ -3,7 +3,7 @@
 Stage order (when we do what) is in `docs/Statistical_Approach_Flow.md`.
 Why landmark percents and PCA rank differ is in `docs/Design_Decisions.md`.
 
-Scripts live in `5_Experiments/24_*` … `27_*`. Formulas are in `utils.py`.
+Scripts live under each TDA arm as experiments 6–8 (`6_Sampling_Ratio_Audit`, `7_Snapshot_Mean_Variance`, `8_Null_Hypothesis_Algorithm2`). Intrinsic dimension (old Exp 26) is `5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/`. Formulas are in `utils.py`.
 
 | Symbol | Meaning |
 |--------|---------|
@@ -94,7 +94,7 @@ l_star = ceil(76 / 7) = 11
 
 None of the historical `l = 500` rows pass. Experiment 28 is the protocol that stops this.
 
-Files: `6_Results/24_Sampling_Ratio_Audit/{Folder}/sampling_ratio_audit.csv`
+Files: `6_Results/Historical_Late_Split_Balanced_TDA/6_Sampling_Ratio_Audit/{Folder}/sampling_ratio_audit.csv`
 
 ---
 
@@ -130,7 +130,7 @@ The vector of 24 means is stored as `lambda_bar_proxy` — **not** a full persis
 
 PKDD variances are an order of magnitude larger than DCCCD — 7-point snapshots on a 76-person class wiggle. Polish H1 persistences are tiny (the cloud is very connected after PCA). Larger `L` generally **shrinks** variance: successive snapshots agree more, which is the stability we want, at the cost of even more reuse (Exp 24).
 
-Files: `6_Results/25_Snapshot_Mean_Variance/{Folder}/snapshot_mean_variance.csv`
+Files: `6_Results/Historical_Late_Split_Balanced_TDA/7_Snapshot_Mean_Variance/{Folder}/snapshot_mean_variance.csv`
 
 ---
 
@@ -206,7 +206,7 @@ Robinson & Turner Algorithm 2 (arXiv:1310.7467) on **24-D barcode vectors** (pro
 
 **Caveat:** distances are on barcode-statistic **vectors**, not bottleneck/Wasserstein on raw diagrams.
 
-Files: `6_Results/27_Null_Hypothesis_Algorithm2/{Folder}/algorithm2_permutation_results.csv`
+Files: `6_Results/Historical_Late_Split_Balanced_TDA/8_Null_Hypothesis_Algorithm2/{Folder}/algorithm2_permutation_results.csv`
 
 ---
 

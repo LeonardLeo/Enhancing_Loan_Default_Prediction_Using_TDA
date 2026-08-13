@@ -45,7 +45,7 @@ They form the basis for:
 
 **Goal.** Explore whether default vs non-default customers form connected structure under filter functions (PCA lens) and cover parameters (resolution, overlap, clustering).
 
-**Method.** Kepler Mapper grids over resolution / overlap / KMeans `k`, producing interactive HTML graphs under `5_Experiments/5_Mapper/...` and mirrored results.
+**Method.** Kepler Mapper grids over resolution / overlap / KMeans `k`, producing interactive HTML graphs under `5_Experiments/Archives/5_Mapper/...` and mirrored results.
 
 **Why it matters.** Supports the claim that topology is a *plausible* lens on credit data before committing to PH + ML. It does **not** produce a production classifier; it informs intuition and figure design.
 
@@ -57,7 +57,7 @@ They form the basis for:
 
 **Goal.** Characterise the barcode-statistic feature space (H₀+H₁ and H₀-only) after Exp 3 / Exp 6.
 
-**Method.** `eda(..., graphs=True)` on per-class and full barcode CSVs; stored as pickles under `6_Results/7_EDA_Barcode_Statistics/`.
+**Method.** `eda(..., graphs=True)` on per-class and full barcode CSVs; stored as pickles under `6_Results/Archives/7_EDA_Barcode_Statistics/`.
 
 **Why it matters.** Shows which barcode columns are skewed, sparse, or class-associated before we trust ML metrics. Feeds Experiment 11 (correlation dropping) conceptually.
 
@@ -77,7 +77,7 @@ They form the basis for:
 
 **Goal.** Probe whether barcode clouds for the two classes are geometrically distinguishable via mean / farthest / random centroids.
 
-**Method.** Distance matrices and centroid-based summaries saved under `6_Results/10_Covariance_Matrix_And_Distances/` (L5/L15 and L30/L60).
+**Method.** Distance matrices and centroid-based summaries saved under `6_Results/Archives/10_Covariance_Matrix_And_Distances/` (L5/L15 and L30/L60).
 
 **Why it matters.** Complements black-box ML scores with a geometric story: if centroids are far in barcode space, topological summaries carry class signal.
 
