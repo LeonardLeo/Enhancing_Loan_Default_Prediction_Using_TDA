@@ -9,6 +9,7 @@ Generated from existing `6_Results/**/CV_results.pkl` files only (no new CV runs
 - **TDA experiments:** `perform_cross_validation_tda` splits each barcode CSV 80/20, then runs 10-fold CV on the train portion using the stored estimators.
 - **Primary CV metric:** sklearn `cross_val_score` default (**accuracy**).
 - **Caveat:** For TDA experiments, barcode features were built under the historical full-data PCA/landmark pipeline (see `docs/Pipeline_Issues_And_Leakage.md`). CV therefore reflects that protocol.
+- **Note:** Legacy CV scripts previously stored `mean_accracy` (typo). Source now writes `mean_accuracy`; visualisation helpers accept either key when reading older pickles. The tables below were generated from existing pickles and are unchanged.
 
 ## Summary table (mean ± std)
 

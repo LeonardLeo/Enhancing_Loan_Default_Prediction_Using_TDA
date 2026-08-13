@@ -1,8 +1,16 @@
 # Experiment 23 Results — Early Train/Test Split
 
-Protocol: 80/20 stratified split on processed tabular data → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes.
+**Protocol:** 80/20 stratified split on processed tabular data → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes.
 
-## Metrics
+**Code / results layout:**
+- Legacy: `5_Experiments/23_Early_Train_Test_Split/{Default_Of_Credit_Card_Client_Data,Statlog_German_Credit_Data}/`
+- Registry (clean-protocol barcodes also namespaced here):  
+  `6_Results/23_Early_Train_Test_Split/{PKDD_Czech_Financial,Polish_Bankruptcy_3Year,Taiwan_Bankruptcy,South_German_Credit}/`  
+  plus matching barcode trees under `1_Data/TDA_Datasets/{Folder}/23_Early_Train_Test_Split/`.
+
+---
+
+## Legacy hold-out metrics (DCCCD + Statlog)
 
 | Dataset | Mode | Sampling | Model | Accuracy | Precision | Recall | F1 |
 |---|---|---|---|---:|---:|---:|---:|
@@ -47,9 +55,13 @@ Protocol: 80/20 stratified split on processed tabular data → PCA fit on train 
 | Statlog German Credit | tuned | L60 | logistic | 0.5 | 0.5 | 1.0 | 0.6667 |
 | Statlog German Credit | tuned | L60 | random_forest | 0.5 | 0.5 | 1.0 | 0.6667 |
 
+---
+
 ## Notes
 
 - Most Statlog models sit near 0.50 accuracy with recall ≈ 1.0 (predicting the positive class).
 - This differs sharply from older full-data (leaky) barcode experiments and is an important early-split finding.
+- Registry clean-protocol TDA metrics for the four additional datasets are stored as `tda_results.csv` under each Exp 23 dataset folder (sourced from the Exp 3 clean Protocol B runs).
+- For the meeting-driven fixed-`t` redesign across all six datasets, see Experiment **28** and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 Artefacts: `6_Results/23_Early_Train_Test_Split/`

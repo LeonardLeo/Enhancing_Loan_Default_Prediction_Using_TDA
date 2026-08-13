@@ -61,6 +61,20 @@ try:
 except ImportError:
     HAS_UMAP = False
 
+
+def _ensure_dir(path) -> Path:
+    """Create ``path`` (and parents). Returns an absolute Path.
+
+    Always resolve relative folders against the current working directory so
+    ``savefig`` / Mapper HTML writes do not depend on mixed slash tricks.
+    """
+    p = Path(path).expanduser()
+    if not p.is_absolute():
+        p = Path.cwd() / p
+    p = p.resolve()
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
 # =============================================================================
 # Barcode Statistics Column Descriptions (for Dimensions 0 and 1)
 # =============================================================================
@@ -107,7 +121,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 # =============================================================================
 @dataclass(frozen=True)
 class DatasetConfig:
-    """Canonical metadata used by both legacy and registry-driven pipelines."""
+    """Canonical metadata used by both legacy and registry-driven pipelines.
+
+    ``pca_variance`` (default 0.90) is the *target* for new tables, not a
+    guarantee of Exp 3. ``notes["pca_n_components_exp3"]`` is the rank Exp 3
+    actually used (7 / 15 / 10). ``landmark_percentages`` are dataset-specific
+    on purpose — see ``notes["landmark_reason"]`` and docs/Design_Decisions.md.
+    """
 
     key: str
     display_name: str
@@ -160,7 +180,12 @@ for _dataset_config in (
         folder_name="Statlog_German_Credit_Data",
         aliases=("dataset1", "sgcd", "statlog", "german", "statloggerman"),
         target_column="Class",
+        pca_variance=0.90,
         landmark_percentages=(30.0, 60.0),
+        notes={
+            "pca_n_components_exp3": 15,
+            "landmark_reason": "Original paper percents. n1=300, so 30%/60% are required to get t=90/180 points.",
+        },
     ),
     DatasetConfig(
         key="credit_card_default",
@@ -168,7 +193,12 @@ for _dataset_config in (
         folder_name="Default_Of_Credit_Card_Client_Data",
         aliases=("dataset2", "dccdd", "default", "defaultofcreditcard", "defaultofcreditcardclientdata"),
         target_column="default payment next month",
+        pca_variance=0.90,
         landmark_percentages=(5.0, 15.0),
+        notes={
+            "pca_n_components_exp3": 7,
+            "landmark_reason": "Original paper percents. n1=6630, so 5% already gives t=331 points.",
+        },
     ),
     DatasetConfig(
         key="pkdd_czech",
@@ -176,7 +206,13 @@ for _dataset_config in (
         folder_name="PKDD_Czech_Financial",
         aliases=("pkdd", "czech", "berka"),
         target_column="target",
-        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/03_pkdd_czech",
+        raw_relative_path="1_Data/Datasets/PKDD_Czech_Financial",
+        pca_variance=0.90,
+        landmark_percentages=(10.0, 20.0),
+        notes={
+            "pca_n_components_exp3": 10,
+            "landmark_reason": "Shared new-table percents. 5% would give t=3 on n1=76 (too small for PH); 30% would over-reuse.",
+        },
     ),
     DatasetConfig(
         key="polish_bankruptcy",
@@ -184,8 +220,14 @@ for _dataset_config in (
         folder_name="Polish_Bankruptcy_3Year",
         aliases=("polish", "3year", "polish3year"),
         target_column="target",
-        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/07_polish_bankruptcy/3year.arff",
-        notes={"missing_indicators": True},
+        raw_relative_path="1_Data/Datasets/Polish_Bankruptcy_3Year/3year.arff",
+        pca_variance=0.90,
+        landmark_percentages=(10.0, 20.0),
+        notes={
+            "pca_n_components_exp3": 10,
+            "missing_indicators": True,
+            "landmark_reason": "Shared new-table percents so PKDD/Polish/Taiwan/South German stay comparable.",
+        },
     ),
     DatasetConfig(
         key="taiwan_bankruptcy",
@@ -193,8 +235,14 @@ for _dataset_config in (
         folder_name="Taiwan_Bankruptcy",
         aliases=("taiwan", "taiwanese"),
         target_column="target",
-        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/08_taiwan_bankruptcy/data.csv",
-        notes={"train_only_winsor_quantiles": (0.005, 0.995)},
+        raw_relative_path="1_Data/Datasets/Taiwan_Bankruptcy/data.csv",
+        pca_variance=0.90,
+        landmark_percentages=(10.0, 20.0),
+        notes={
+            "pca_n_components_exp3": 10,
+            "train_only_winsor_quantiles": (0.005, 0.995),
+            "landmark_reason": "Shared new-table percents so PKDD/Polish/Taiwan/South German stay comparable.",
+        },
     ),
     DatasetConfig(
         key="south_german_credit",
@@ -202,8 +250,15 @@ for _dataset_config in (
         folder_name="South_German_Credit",
         aliases=("southgerman", "sgc", "updatedgerman"),
         target_column="target",
-        raw_relative_path="raw_data_extracted/loan_default_datasets/loan_default_datasets/09_south_german_credit/SouthGermanCredit.asc",
-        notes={"target_mapping": {"0_bad": 1, "1_good": 0}, "sensitivity_analysis": True},
+        raw_relative_path="1_Data/Datasets/South_German_Credit/SouthGermanCredit.asc",
+        pca_variance=0.90,
+        landmark_percentages=(10.0, 20.0),
+        notes={
+            "pca_n_components_exp3": 10,
+            "landmark_reason": "Shared new-table percents. Not Statlog's 30/60: this is a sensitivity table, kept on the same L10/L20 grid as the other new sets.",
+            "target_mapping": {"0_bad": 1, "1_good": 0},
+            "sensitivity_analysis": True,
+        },
     ),
 ):
     register_dataset(_dataset_config)
@@ -437,7 +492,7 @@ def select_landmarks(data: pd.DataFrame,
 
     # Check if the directory was successfully created
     if not os.path.exists(absolute_output_dir):
-        print(f"❌ Directory does not exist: {absolute_output_dir}")
+        print(f"[ERR] Directory does not exist: {absolute_output_dir}")
 
     # Saving landmarks
     for i in range(n_files):
@@ -455,7 +510,7 @@ def select_landmarks(data: pd.DataFrame,
         try:
             landmarks.to_csv(file_path, index=False)
             if verbose:
-                print(f"✅ Complete for landmarks_{percentage}_{i}")
+                print(f"[OK] Complete for landmarks_{percentage}_{i}")
         except Exception as e:
             raise RuntimeError(f"Error saving landmarks_{percentage}_{i}: {e}") from e
     print(
@@ -660,12 +715,12 @@ def create_barcode_statistics(landmark_dir: str,
             row.append(label)
             rows.append(row)
         except Exception as e:
-            print(f"⚠️ Error processing file {file_path}: {e}")
+            print(f"[WARN] Error processing file {file_path}: {e}")
             continue
 
     columns = [f"g{i}_{j}" for j in range(dim) for i in range(1, 13)] + ["label"]
     pd.DataFrame(rows, columns=columns).to_csv(output_file, index=False)
-    print(f"✅ Processed {len(rows)} valid files in {landmark_dir}. \nResults saved to {output_file}")
+    print(f"Processed {len(rows)} valid files in {landmark_dir}. \nResults saved to {output_file}")
 
 def combine_barcode_statistics_per_group(barcode_dir: str, 
                                          percentage: int,
@@ -707,7 +762,7 @@ def build_final_barcode_statistics_data(landmark_percentages: List[int | float],
     print("\n\nStarting barcode statistics generation...")
 
     for each_percentage in landmark_percentages:
-        print(f"\n🔹 Processing {each_percentage}% landmarks...")
+        print(f"\nProcessing {each_percentage}% landmarks...")
 
         start_time = time.time()
 
@@ -721,16 +776,16 @@ def build_final_barcode_statistics_data(landmark_percentages: List[int | float],
             os.path.abspath(os.path.join(output_dir, f"data_L{each_percentage}.csv")),  # Ensure the file path is absolute
             index=False
         )
-        print(f"✅ Saved: data_L{each_percentage}.csv | Shape: {barcode_stats_full_data.shape}")
+        print(f"Saved: data_L{each_percentage}.csv | Shape: {barcode_stats_full_data.shape}")
 
         # Time per iteration
         end_time = time.time()
         elapsed_seconds = int(end_time - start_time)
         hours, remainder = divmod(elapsed_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
-        print(f"⏱️ Time taken for {each_percentage}%: {hours}h {minutes}m {seconds}s")
+        print(f"[TIME] Time taken for {each_percentage}%: {hours}h {minutes}m {seconds}s")
 
-    print("\n✅ All barcode statistics generation completed.")
+    print("\nAll barcode statistics generation completed.")
 
 def train_dataset_tda(data: str,
                       y_col_name: str,
@@ -739,7 +794,7 @@ def train_dataset_tda(data: str,
                       **kwargs):
     # Convert to absolute path
     abs_data_path = os.path.abspath(data)
-    print(f"📄 Loading dataset from: {abs_data_path}")
+    print(f"[LOAD] Loading dataset from: {abs_data_path}")
     
     dataset = pd.read_csv(abs_data_path)
     
@@ -779,7 +834,7 @@ def train_dataset_tda(data: str,
             "classification_report": classification_report(y_test, y_pred),
             "confusion_matrix": confusion_matrix(y_test, y_pred)
         }
-        print(f"✅ Trained {model_name}")
+        print(f"[OK] Trained {model_name}")
     
     return results
 
@@ -831,11 +886,11 @@ def train_dataset_tda_drop_correlated(X_train: pd.DataFrame,
             else:
                 result["feature_importance"] = None
         except Exception as e:
-            print(f"⚠️ Could not extract feature importance for {model_name}: {e}")
+            print(f"[WARN] Could not extract feature importance for {model_name}: {e}")
             result["feature_importance"] = None
 
         results[model_name] = result
-        print(f"✅ Trained {model_name}")
+        print(f"[OK] Trained {model_name}")
     
     return results
 
@@ -846,7 +901,7 @@ def train_dataset_tda_linear_regression(data: str,
                                         **kwargs):
     # Convert to absolute path
     abs_data_path = os.path.abspath(data)
-    print(f"📄 Loading dataset from: {abs_data_path}")
+    print(f"[LOAD] Loading dataset from: {abs_data_path}")
     
     dataset = pd.read_csv(abs_data_path)
     
@@ -871,7 +926,9 @@ def train_dataset_tda_linear_regression(data: str,
     results = {}
     for model_name, model in models.items():
         model.fit(X_train, y_train)
-        y_pred = np.abs(np.round(model.predict(X_test)).astype(int))
+        # LinearRegression can predict outside {0,1}. Clip after rounding so
+        # sklearn binary metrics do not see a spurious third class.
+        y_pred = np.clip(np.round(model.predict(X_test)), 0, 1).astype(int)
         
         results[model_name] = {
             "model": model,
@@ -882,7 +939,7 @@ def train_dataset_tda_linear_regression(data: str,
             "classification_report": classification_report(y_test, y_pred),
             "confusion_matrix": confusion_matrix(y_test, y_pred)
         }
-        print(f"✅ Trained {model_name}")
+        print(f"[OK] Trained {model_name}")
     
     return results
 
@@ -897,7 +954,7 @@ def train_knn_with_grid_search(data: str,
     # Convert to absolute path
     output_path = Path(os.path.abspath(output_path))
     abs_data_path = os.path.abspath(data)
-    print(f"📄 Loading dataset from: {abs_data_path}")
+    print(f"[LOAD] Loading dataset from: {abs_data_path}")
     dataset = pd.read_csv(abs_data_path)
 
     # Shuffle
@@ -920,7 +977,7 @@ def train_knn_with_grid_search(data: str,
     grid_search.fit(X_train, y_train)
 
     best_k = grid_search.best_params_['n_neighbors']
-    print(f"🏆 Best k found: {best_k}")
+    print(f"[BEST] Best k found: {best_k}")
 
     # Plot elbow diagram
     scores = []
@@ -938,7 +995,7 @@ def train_knn_with_grid_search(data: str,
     plt.grid(True)
     elbow_path = os.path.join(output_path, "elbow_curve.png")
     plt.savefig(elbow_path)
-    print(f"📈 Elbow curve saved to: {elbow_path}")
+    print(f"[PLOT] Elbow curve saved to: {elbow_path}")
 
     # Evaluate best model
     best_model = KNeighborsClassifier(n_neighbors=best_k)
@@ -961,11 +1018,11 @@ def train_knn_with_grid_search(data: str,
     results_path = os.path.join(output_path, "results.json")
     with open(results_path, "w") as f:
         json.dump(results, f, indent=4)
-    print(f"📊 Results saved to: {results_path}")
+    print(f"[SAVE] Results saved to: {results_path}")
 
     model_path = os.path.join(output_path, "best_knn_model.pkl")
     joblib.dump(best_model, model_path)
-    print(f"🧠 Trained KNN model saved to: {model_path}")
+    print(f"[MODEL] Trained KNN model saved to: {model_path}")
 
     return results
 
@@ -979,7 +1036,7 @@ def train_multiple_dataset_tda(path_datasets: list,
 
     for count, path in enumerate(path_datasets, 1):
         abs_path = os.path.abspath(path)
-        print(f"\n\n🔄 Training on dataset {count}: {abs_path}")
+        print(f"\n\n[RUN] Training on dataset {count}: {abs_path}")
         
         start = time.time()
         results = train_dataset_tda(abs_path,
@@ -989,13 +1046,13 @@ def train_multiple_dataset_tda(path_datasets: list,
                                     **kwargs)
         elapsed = int(time.time() - start)
         h, m, s = divmod(elapsed, 60), *divmod(elapsed % 60, 60)
-        print(f"⏱️ Finished in {h}h {m}m {s}s")
+        print(f"[TIME] Finished in {h}h {m}m {s}s")
 
         model_results[os.path.basename(path)] = results
 
     total_time = int(time.time() - overall_start)
     t_h, t_m, t_s = divmod(total_time, 60), *divmod(total_time % 60, 60)
-    print(f"\n✅ All datasets completed in {t_h}h {t_m}m {t_s}s")
+    print(f"\n[OK] All datasets completed in {t_h}h {t_m}m {t_s}s")
     return model_results
 
 def train_multiple_dataset_tda_drop_correlated(data_objects: dict,
@@ -1013,7 +1070,7 @@ def train_multiple_dataset_tda_drop_correlated(data_objects: dict,
         X_test = each_data_object["X_test"]
         y_test = each_data_object["y_test"]
         
-        print(f"\n\n🔄 Training on dataset {data}")        
+        print(f"\n\n[RUN] Training on dataset {data}")        
         
         start = time.time()
         results = train_dataset_tda_drop_correlated(X_train=X_train,
@@ -1025,13 +1082,13 @@ def train_multiple_dataset_tda_drop_correlated(data_objects: dict,
                                                     **kwargs)
         elapsed = int(time.time() - start)
         h, m, s = divmod(elapsed, 60), *divmod(elapsed % 60, 60)
-        print(f"⏱️ Finished in {h}h {m}m {s}s")
+        print(f"[TIME] Finished in {h}h {m}m {s}s")
 
         model_results[data] = results
 
     total_time = int(time.time() - overall_start)
     t_h, t_m, t_s = divmod(total_time, 60), *divmod(total_time % 60, 60)
-    print(f"\n✅ All datasets completed in {t_h}h {t_m}m {t_s}s")
+    print(f"\n[OK] All datasets completed in {t_h}h {t_m}m {t_s}s")
     return model_results
 
 def train_multiple_dataset_tda_linear_regression(path_datasets: list,
@@ -1044,7 +1101,7 @@ def train_multiple_dataset_tda_linear_regression(path_datasets: list,
 
     for count, path in enumerate(path_datasets, 1):
         abs_path = os.path.abspath(path)
-        print(f"\n\n🔄 Training on dataset {count}: {abs_path}")
+        print(f"\n\n[RUN] Training on dataset {count}: {abs_path}")
         
         start = time.time()
         results = train_dataset_tda_linear_regression(abs_path,
@@ -1054,13 +1111,13 @@ def train_multiple_dataset_tda_linear_regression(path_datasets: list,
                                                       **kwargs)
         elapsed = int(time.time() - start)
         h, m, s = divmod(elapsed, 60), *divmod(elapsed % 60, 60)
-        print(f"⏱️ Finished in {h}h {m}m {s}s")
+        print(f"[TIME] Finished in {h}h {m}m {s}s")
 
         model_results[os.path.basename(path)] = results
 
     total_time = int(time.time() - overall_start)
     t_h, t_m, t_s = divmod(total_time, 60), *divmod(total_time % 60, 60)
-    print(f"\n✅ All datasets completed in {t_h}h {t_m}m {t_s}s")
+    print(f"\n[OK] All datasets completed in {t_h}h {t_m}m {t_s}s")
     return model_results
 
 def train_multiple_knn_datasets(path_datasets: list,
@@ -1078,7 +1135,7 @@ def train_multiple_knn_datasets(path_datasets: list,
         output_path = os.path.join(base_output_path, dataset_name)
         os.makedirs(output_path, exist_ok=True)
 
-        print(f"\n\n🔄 Training on dataset {count}: {abs_path}")
+        print(f"\n\n[RUN] Training on dataset {count}: {abs_path}")
         start = time.time()
 
         results = train_knn_with_grid_search(
@@ -1092,13 +1149,13 @@ def train_multiple_knn_datasets(path_datasets: list,
 
         elapsed = int(time.time() - start)
         h, m, s = divmod(elapsed, 60), *divmod(elapsed % 60, 60)
-        print(f"⏱️ Finished in {h}h {m}m {s}s")
+        print(f"[TIME] Finished in {h}h {m}m {s}s")
 
         model_results[dataset_name] = results
 
     total_time = int(time.time() - overall_start)
     t_h, t_m, t_s = divmod(total_time, 60), *divmod(total_time % 60, 60)
-    print(f"\n✅ All datasets completed in {t_h}h {t_m}m {t_s}s")
+    print(f"\n[OK] All datasets completed in {t_h}h {t_m}m {t_s}s")
 
     return model_results
 
@@ -1110,7 +1167,7 @@ def store_results(path: str, save_name: str, result_object: dict):
     save_file = abs_save_dir / f"{save_name}.pkl"
     joblib.dump(result_object, save_file)
     
-    print(f"✅ Results saved to: {save_file}")
+    print(f"Results saved to: {save_file}")
 
 def store_data_as_csv_or_json(
     path: str,
@@ -1135,7 +1192,7 @@ def store_data_as_csv_or_json(
         
         elif isinstance(obj, dict):
             if csv:
-                raise TypeError(f"❌ Cannot save a dict as CSV: {name}")
+                raise TypeError(f"[ERR] Cannot save a dict as CSV: {name}")
             else:
                 with open(save_file, "w") as f:
                     json.dump(obj, f, indent=4)
@@ -1282,7 +1339,7 @@ def train_models_on_dataset(data_path,
             "confusion_matrix": confusion_matrix(y_test, y_pred)
         }
 
-        print(f"✅ Trained: {model_name}")
+        print(f"[OK] Trained: {model_name}")
 
     return results
 
@@ -1329,7 +1386,7 @@ def train_models_on_multiple_datasets(data_paths: list,
         elapsed = int(end_time - start_time)
         hrs, rem = divmod(elapsed, 3600)
         mins, secs = divmod(rem, 60)
-        print(f"⏱️ Dataset {idx} finished in {hrs}h {mins}m {secs}s")
+        print(f"[TIME] Dataset {idx} finished in {hrs}h {mins}m {secs}s")
         
         file_key = os.path.basename(data_path)
         all_results[file_key] = results
@@ -1337,7 +1394,7 @@ def train_models_on_multiple_datasets(data_paths: list,
     total_time = int(time.time() - overall_start)
     t_hrs, t_rem = divmod(total_time, 3600)
     t_mins, t_secs = divmod(t_rem, 60)
-    print(f"\n✅ All datasets completed in {t_hrs}h {t_mins}m {t_secs}s")
+    print(f"\n[OK] All datasets completed in {t_hrs}h {t_mins}m {t_secs}s")
     
     return all_results
 
@@ -1491,7 +1548,7 @@ def run_experiments_with_pca_components(data_path: str,
         pca = PCA(n_components = n_components)
         X_reduced = pd.DataFrame(pca.fit_transform(X_normalized), columns=[f"PCA_{i+1}" for i in range(n_components)])
         variance_ratio = pca.explained_variance_ratio_.sum()
-        print(f"✅ Variance retained: {variance_ratio:.2%}")
+        print(f"[OK] Variance retained: {variance_ratio:.2%}")
         print("PCA Computed")
 
         # Reattach target
@@ -1619,7 +1676,7 @@ def plot_all_metrics_vs_pca_components(
     if separate_plots:
         for dataset_name in next(iter(metrics_by_dataset.values())).keys():
             fig, axs = plt.subplots(2, 2, figsize=(14, 10))
-            fig.suptitle(f"📊 {model_key.upper()} Performance vs PCA Components ({dataset_name})", fontsize=16)
+            fig.suptitle(f"[SAVE] {model_key.upper()} Performance vs PCA Components ({dataset_name})", fontsize=16)
 
             for idx, ax in enumerate(axs.flat):
                 metric = metric_keys[idx]
@@ -1647,7 +1704,7 @@ def plot_all_metrics_vs_pca_components(
     else:
         # Combined plot (each line is a dataset)
         fig, axs = plt.subplots(2, 2, figsize=(14, 10))
-        fig.suptitle(f"📊 {model_key.upper()} Performance vs PCA Components (All Datasets)", fontsize=16)
+        fig.suptitle(f"[SAVE] {model_key.upper()} Performance vs PCA Components (All Datasets)", fontsize=16)
 
         for idx, ax in enumerate(axs.flat):
             metric = metric_keys[idx]
@@ -1748,23 +1805,23 @@ def create_3d_rotation_animation(
             try:
                 writer = FFMpegWriter(fps=fps, extra_args=["-vcodec", "libx264"])
                 ani.save(filename, writer=writer)
-                print(f"🎞️ MP4 animation saved to: {filename}")
+                print(f"[MP4] MP4 animation saved to: {filename}")
             except Exception as e:
-                print(f"❌ MP4 export failed: {e}")
+                print(f"[ERR] MP4 export failed: {e}")
 
         if save_gif:
             filename = os.path.join(save_path, f"{dataset_name}_{method_name}_3d_rotation.gif")
             try:
                 writer = PillowWriter(fps=fps)
                 ani.save(filename, writer=writer)
-                print(f"🖼️ GIF animation saved to: {filename}")
+                print(f"[GIF] GIF animation saved to: {filename}")
             except Exception as e:
-                print(f"❌ GIF export failed: {e}")
+                print(f"[ERR] GIF export failed: {e}")
 
         plt.close()
-        print(f"🎞️ 3D animation saved to: {filename}")
+        print(f"[MP4] 3D animation saved to: {filename}")
     else:
-        print("⚠️ No save_path provided. Skipping 3D animation export.")
+        print("[WARN] No save_path provided. Skipping 3D animation export.")
         plt.close()
 
 def visualize_class_separability(
@@ -1909,11 +1966,11 @@ def visualize_class_separability(
         plt.tight_layout()
 
         if save_path:
-            os.makedirs(save_path, exist_ok=True)
+            save_dir = _ensure_dir(save_path)
             suffix = "3d" if plot_3d else "2d"
-            out_path = os.path.join(save_path, f"{dataset_name}_{method}_{suffix}.png")
+            out_path = save_dir / f"{dataset_name}_{method}_{suffix}.png"
             plt.savefig(out_path, bbox_inches="tight")
-            print(f"✅ Saved: {out_path}")
+            print(f"[OK] Saved: {out_path}")
             plt.close()
         else:
             plt.show()
@@ -1935,8 +1992,7 @@ def build_mapper_viz(
     if lens_params is None:
         lens_params = {}
 
-    dir_output = os.path.abspath(output_dir)
-    os.makedirs(dir_output, exist_ok=True)
+    dir_output = str(_ensure_dir(output_dir))
     results_log = []
 
     def format_params(param_dict):
@@ -1976,10 +2032,10 @@ def build_mapper_viz(
         )
 
         # === Output Directory
-        param_str = format_params(cluster_args)
-        experiment_name = f"{lens_name.upper()}_Res{res}_Ovl{overlap}_Clust{cluster_type}_{param_str}"
-        experiment_path = os.path.join(dir_output, experiment_name)
-        os.makedirs(experiment_path, exist_ok=True)
+        ovl_tag = str(int(round(float(overlap) * 100)))
+        n_cl = cluster_args.get("n_clusters", "")
+        experiment_name = f"{lens_name}_r{res}_o{ovl_tag}_{cluster_type}{n_cl}"
+        experiment_path = str(_ensure_dir(os.path.join(dir_output, experiment_name)))
 
         # === Save Parameters
         with open(os.path.join(experiment_path, "parameters.txt"), "w") as f:
@@ -2030,7 +2086,7 @@ def build_mapper_viz(
         return meta_data
 
     # === Run Experiments SEQUENTIALLY
-    print("🔄 Running experiments sequentially (no parallel processing)...")
+    print("[RUN] Running experiments sequentially (no parallel processing)...")
     for res, overlap, lens_name in product(resolution, percentage_overlap, lens_methods):
         for cluster_type, cluster_list in clustering_grid.items():
             for cluster_args in cluster_list:
@@ -2045,7 +2101,7 @@ def build_mapper_viz(
     with open(os.path.join(dir_output, "mapper_experiments.json"), "w") as f:
         json.dump(results_log, f, indent=4)
 
-    print(f"✅ Saved {len(results_log)} experiments to CSV and JSON.")
+    print(f"[OK] Saved {len(results_log)} experiments to CSV and JSON.")
 
 def drop_correlated_features(features: pd.DataFrame,
                              threshold: float = 0.75,
@@ -2528,7 +2584,7 @@ def visualize_cross_validation_detailed(
                 ax = axs[idx]
                 stats = models_data[model_name]
                 scores = stats.get("cross_val_scores", [])
-                mean_score = stats.get("mean_accuracy", 0)
+                mean_score = stats.get("mean_accuracy", stats.get("mean_accracy", 0))
                 std_score = stats.get("std_accuracy", 0)
 
                 bars = ax.bar([f"Fold {i+1}" for i in range(len(scores))], scores,
@@ -2561,7 +2617,7 @@ def visualize_cross_validation_detailed(
             # Individual detailed plots
             for model_idx, (model_name, stats) in enumerate(models_data.items()):
                 scores = stats.get("cross_val_scores", [])
-                mean_score = stats.get("mean_accuracy", 0)
+                mean_score = stats.get("mean_accuracy", stats.get("mean_accracy", 0))
                 std_score = stats.get("std_accuracy", 0)
 
                 fig, axs = plt.subplots(2, 1, figsize=(10, 8), gridspec_kw={'height_ratios': [3, 2]})
@@ -2798,7 +2854,7 @@ def train_dataset_tda_presplit(
             "classification_report": classification_report(y_test, y_pred, zero_division=0),
             "confusion_matrix": confusion_matrix(y_test, y_pred),
         }
-        print(f"✅ Trained {model_name} (presplit)")
+        print(f"[OK] Trained {model_name} (presplit)")
     return results
 
 
@@ -2818,7 +2874,7 @@ def train_multiple_dataset_tda_presplit(
     model_results = {}
     overall_start = time.time()
     for name, paths in train_test_pairs.items():
-        print(f"\n\n🔄 Presplit training on: {name}")
+        print(f"\n\n[RUN] Presplit training on: {name}")
         start = time.time()
         model_results[name] = train_dataset_tda_presplit(
             train_data=paths["train"],
@@ -2829,9 +2885,9 @@ def train_multiple_dataset_tda_presplit(
             **kwargs,
         )
         elapsed = int(time.time() - start)
-        print(f"⏱️ Finished {name} in {elapsed}s")
+        print(f"[TIME] Finished {name} in {elapsed}s")
     total = int(time.time() - overall_start)
-    print(f"\n✅ All presplit datasets completed in {total}s")
+    print(f"\n[OK] All presplit datasets completed in {total}s")
     return model_results
 
 
@@ -2888,7 +2944,7 @@ def train_models_on_presplit_dataset(
             "classification_report": classification_report(y_test, y_pred, zero_division=0),
             "confusion_matrix": confusion_matrix(y_test, y_pred),
         }
-        print(f"✅ Tuned (presplit): {model_name}")
+        print(f"[OK] Tuned (presplit): {model_name}")
     return results
 
 
@@ -2903,7 +2959,7 @@ def train_models_on_multiple_presplit_datasets(
 ):
     model_results = {}
     for name, paths in train_test_pairs.items():
-        print(f"\n\n🔄 Presplit tuned training on: {name}")
+        print(f"\n\n[RUN] Presplit tuned training on: {name}")
         model_results[name] = train_models_on_presplit_dataset(
             train_path=paths["train"],
             test_path=paths["test"],
@@ -3072,6 +3128,131 @@ def estimate_intrinsic_dimension_levina_bickel(
         "k": float(k),
         "n_points_used": float(len(dims)),
         "std_local_dims": float(np.nanstd(dims)),
+    }
+
+
+def n_components_for_target_variance(
+    X: np.ndarray,
+    target: float = 0.90,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """Smallest PCA rank that keeps at least ``target`` of total variance."""
+    X = np.asarray(X, dtype=float)
+    max_comp = min(X.shape[0] - 1, X.shape[1])
+    pca = PCA(n_components=max_comp, random_state=random_state).fit(X)
+    cum = np.cumsum(pca.explained_variance_ratio_)
+    n = int(np.searchsorted(cum, target) + 1)
+    n = min(max(n, 1), max_comp)
+    return {
+        "n_components": n,
+        "variance_at_n": float(cum[n - 1]),
+        "target": float(target),
+        "max_components": int(max_comp),
+    }
+
+
+def estimate_intrinsic_dimension_skdim(
+    X: np.ndarray,
+    n_samples: int = None,
+    random_state: int = 42,
+) -> Dict[str, Any]:
+    """scikit-dimension estimators (Bac et al., arXiv:2109.02596).
+
+    TwoNN, MLE (Levina–Bickel), MiND_ML, and lPCA. DANCo is skipped here
+    (slow); Experiment 28 already runs it on modest samples.
+    """
+    rng = check_random_state(random_state)
+    X = np.asarray(X, dtype=float)
+    if n_samples is not None and n_samples < len(X):
+        idx = rng.choice(len(X), size=n_samples, replace=False)
+        X = X[idx]
+    out: Dict[str, Any] = {
+        "package": "scikit-dimension",
+        "n_points_used": int(len(X)),
+        "estimators": {},
+    }
+    try:
+        import skdim
+    except ImportError:
+        out["package"] = "skdim_not_installed"
+        return out
+
+    def _fit(name, ctor):
+        try:
+            est = ctor().fit(X)
+            dim = getattr(est, "dimension_", None)
+            if dim is None:
+                out["estimators"][name] = "error:no_dimension_"
+                return
+            dim = np.asarray(dim, dtype=float).ravel()
+            finite = dim[np.isfinite(dim)]
+            if finite.size == 0:
+                out["estimators"][name] = "error:non_finite_dimension"
+                return
+            out["estimators"][name] = float(np.mean(finite))
+        except Exception as exc:
+            out["estimators"][name] = f"error:{type(exc).__name__}:{exc}"
+
+    _fit("TwoNN", skdim.id.TwoNN)
+    _fit("MLE_LevinaBickel", lambda: skdim.id.MLE(K=20))
+    if hasattr(skdim.id, "MiND_ML"):
+        _fit("MiND_ML", skdim.id.MiND_ML)
+    _fit("lPCA", skdim.id.lPCA)
+    return out
+
+
+def estimate_intrinsic_dimension_suite(
+    X_scaled: np.ndarray,
+    pca_components: int,
+    n_samples: int = 5000,
+    random_state: int = 42,
+    variance_target: float = 0.90,
+) -> Dict[str, Any]:
+    """Intrinsic dimension **before** PCA and **after** the Exp 3 PCA rank.
+
+    Also reports how many components would be needed to keep
+    ``variance_target`` (the ~90% design rule for the new tables).
+    """
+    X_scaled = np.asarray(X_scaled, dtype=float)
+    var_info = n_components_for_target_variance(
+        X_scaled, target=variance_target, random_state=random_state
+    )
+    n_comp = min(int(pca_components), X_scaled.shape[1], max(1, X_scaled.shape[0] - 1))
+    pca = PCA(n_components=n_comp, random_state=random_state)
+    X_pca = pca.fit_transform(X_scaled)
+
+    # Headline Two-NN / LB can use the full cap. skdim (especially MiND_ML)
+    # is O(n²) per estimator — keep a tighter cap so six datasets stay runnable.
+    skdim_n = n_samples if n_samples is None else min(int(n_samples), 2000)
+    before = {
+        "handcoded_two_nn": estimate_intrinsic_dimension_two_nn(
+            X_scaled, n_samples=n_samples, random_state=random_state
+        ),
+        "handcoded_levina_bickel": estimate_intrinsic_dimension_levina_bickel(
+            X_scaled, k=10, n_samples=n_samples, random_state=random_state
+        ),
+        "skdim": estimate_intrinsic_dimension_skdim(
+            X_scaled, n_samples=skdim_n, random_state=random_state
+        ),
+    }
+    after = {
+        "handcoded_two_nn": estimate_intrinsic_dimension_two_nn(
+            X_pca, n_samples=n_samples, random_state=random_state
+        ),
+        "handcoded_levina_bickel": estimate_intrinsic_dimension_levina_bickel(
+            X_pca, k=10, n_samples=n_samples, random_state=random_state
+        ),
+        "skdim": estimate_intrinsic_dimension_skdim(
+            X_pca, n_samples=skdim_n, random_state=random_state
+        ),
+    }
+    return {
+        "n_features": int(X_scaled.shape[1]),
+        "pca_components_used_in_TDA": int(pca.n_components_),
+        "variance_retained_pca": float(pca.explained_variance_ratio_.sum()),
+        "n_components_for_target_variance": var_info,
+        "before_pca": before,
+        "after_pca": after,
     }
 
 

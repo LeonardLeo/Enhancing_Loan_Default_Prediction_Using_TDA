@@ -55,6 +55,9 @@ balanced_non_default = non_default_data.sample(n = n_samples, random_state = 42)
 # =============================================================================
 # SET SAMPLING PERCENTAGE
 # =============================================================================
+# Original paper percents. n1=6630, so 5% already gives t=331. Do not "align"
+# this table to L10/L20 — that would throw away the paper comparison.
+# docs/Design_Decisions.md
 percentages = [5, 15]
 
 # =============================================================================

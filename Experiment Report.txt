@@ -157,8 +157,6 @@ Not silently claimed:
   counts (with zero waiting/failed units) are in experiment_coverage.csv.
 - Experiment 20 remains excluded.
 
-Runner: run_new_datasets.py
-Extended runner: run_remaining_experiments.py
-Manifest: 6_Results/New_Datasets/run_manifest.json
-Extended manifest: 6_Results/New_Datasets/extended_manifest.json
-Final reports: docs/new_datasets/
+Layout: mirrored 5_Experiments/{N}/{Folder}/*.py and 6_Results/{N}/{Folder}/
+Shared helpers: 5_Experiments/common/pipeline.py
+Docs: docs/Pipeline_Issues_And_Leakage.md, docs/Revised_Snapshot_Protocol_Deep_Report.md, etc.

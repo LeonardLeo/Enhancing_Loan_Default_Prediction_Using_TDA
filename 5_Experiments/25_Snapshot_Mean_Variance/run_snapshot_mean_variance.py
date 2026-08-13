@@ -1,72 +1,49 @@
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
 # -*- coding: utf-8 -*-
 """
-Experiment 25 — Snapshot mean / variance of barcode statistics.
+Experiment 25 — run every dataset folder.
 
-For each existing TDA barcode matrix (from paper Exp 3 by default), record:
-  - per-feature mean and variance across snapshots
-  - per-class summaries
-  - lambda_bar_proxy = empirical mean barcode-statistic vector
-    (feature-space proxy for the landscape average \\bar\\lambda in Chazal et al.
-     arXiv:1406.1901 / Frontiers TDA survey §6.3.1)
+Debugging: open the script inside the dataset folder, not this file.
 
-Full persistence-landscape \\bar\\lambda remains optional/costly; this experiment
-locks down the statistics already available from our snapshot pipeline.
+    5_Experiments/25_Snapshot_Mean_Variance/<Dataset>/run_snapshot_mean_variance.py
+
+Needs Experiment 3 `data_L*.csv` for that dataset.
 """
 
-import warnings
+from __future__ import annotations
+
+import subprocess
+import sys
 from pathlib import Path
 
-import pandas as pd
-
-from utils import summarize_snapshot_statistics, store_data_as_csv_or_json
-
-warnings.filterwarnings("ignore")
-
-ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "6_Results" / "25_Snapshot_Mean_Variance"
-OUT.mkdir(parents=True, exist_ok=True)
-
-SOURCES = [
-    ROOT / "1_Data/TDA_Datasets/Default_Of_Credit_Card_Client_Data/3_PH_Default_Parameters/data_L5.csv",
-    ROOT / "1_Data/TDA_Datasets/Default_Of_Credit_Card_Client_Data/3_PH_Default_Parameters/data_L15.csv",
-    ROOT / "1_Data/TDA_Datasets/Statlog_German_Credit_Data/3_PH_Default_Parameters/data_L30.csv",
-    ROOT / "1_Data/TDA_Datasets/Statlog_German_Credit_Data/3_PH_Default_Parameters/data_L60.csv",
+HERE = Path(__file__).resolve().parent
+DATASETS = [
+    "Default_Of_Credit_Card_Client_Data",
+    "Statlog_German_Credit_Data",
+    "PKDD_Czech_Financial",
+    "Polish_Bankruptcy_3Year",
+    "Taiwan_Bankruptcy",
+    "South_German_Credit",
 ]
 
-all_summaries = {}
-flat_rows = []
 
-for path in SOURCES:
-    if not path.exists():
-        print(f"⚠️ Missing (skip): {path}")
-        continue
-    key = f"{path.parent.parent.name}/{path.parent.name}/{path.name}"
-    summary = summarize_snapshot_statistics(str(path))
-    all_summaries[key] = summary
+def main() -> int:
+    failed = []
+    for folder in DATASETS:
+        script = HERE / folder / "run_snapshot_mean_variance.py"
+        print("=" * 72)
+        print(f"Experiment 25 — {folder}")
+        print(script)
+        print("=" * 72)
+        code = subprocess.call([sys.executable, str(script)], cwd=str(script.parent))
+        if code != 0:
+            failed.append(folder)
+            print(f"[FAIL] {folder} exit {code}")
+    if failed:
+        print("Failed:", ", ".join(failed))
+        return 1
+    print("Experiment 25 finished for all six datasets.")
+    return 0
 
-    for feat, mean_v in summary["global_mean"].items():
-        flat_rows.append(
-            {
-                "source": key,
-                "feature": feat,
-                "mean": mean_v,
-                "variance": summary["global_variance"][feat],
-                "n_snapshots": summary["n_snapshots"],
-            }
-        )
-    print(f"✅ {key}: n={summary['n_snapshots']} features={len(summary['feature_columns'])}")
 
-if flat_rows:
-    pd.DataFrame(flat_rows).to_csv(OUT / "snapshot_mean_variance.csv", index=False)
-
-store_data_as_csv_or_json(
-    path=str(OUT),
-    csv=False,
-    save_as=["snapshot_mean_variance_full"],
-    data_object=[all_summaries],
-)
-print(f"\nSaved to {OUT}")
+if __name__ == "__main__":
+    raise SystemExit(main())

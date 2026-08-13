@@ -1,5 +1,0 @@
-Parameters for this Mapper graph:
-Lens: Isolation Forest and L2 Norm
-Resolution (n_cubes): 50
-Percentage Overlap: 0.1
-KMeans Clusters: 4

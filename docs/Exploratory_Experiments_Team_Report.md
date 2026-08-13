@@ -3,7 +3,8 @@
 **Project:** Enhancing Loan Default Prediction Using Topological Data Analysis  
 **Audience:** Research team  
 **Scope:** Exploratory experiments that are **not** in the main paper tables, but that shaped what is considered sensible for this project.  
-**Excluded from this report (out of project scope):** Experiment 20 (deep learning placeholder); Experiment 5 Statlog Mapper stubs.
+**Excluded from this report (out of project scope):** Experiment 20 (deep learning placeholder); Experiment 5 Statlog `Full_Feature_Set` / `Balanced_Dataset` Mapper placeholders (`NotImplementedError`).  
+**Layout note:** exploratory arms for the four registry datasets also live under the same mirrored `5_Experiments/{N}/{Folder}/` folders as DCCCD/Statlog.
 
 ---
 
@@ -24,17 +25,17 @@ They form the basis for:
 
 | Exp | Folder | Role in the research narrative | Status |
 |-----|--------|--------------------------------|--------|
-| 5 | `5_Mapper` | Shape of **original** features via Kepler Mapper | DCCCD implemented; Statlog stubs ignored |
-| 7 | `7_EDA_Barcode_Statistics` | EDA of barcode matrices from Exp 3/6 | Complete artefacts in results |
+| 5 | `5_Mapper` | Shape of **original** features via Kepler Mapper | DCCCD + registry scripts; Statlog Feature_Selection exists; other Statlog arms are placeholders |
+| 7 | `7_EDA_Barcode_Statistics` | EDA of barcode matrices from Exp 3/6 | Complete artefacts in results (incl. registry folders) |
 | 8 | `8_Dimensionality_Reduction_On_Barcode_Statistics` | PCA view of barcode space | Complete |
 | 9 | `9_Dimensionality_Reduction_On_Original_Dataset` | PCA view of original processed data | Complete |
 | 10 | `10_Covariance_Matrix_And_Distances` | Centroid / distance geometry of barcode clouds | Complete |
 | 15 | `15_Working_With_K_in_KNN` | Sensitivity of KNN to `k` on barcodes | Complete |
-| 16 | `16_Variance_Retained_..._Default_...` | PCA component sweep (DCCCD) | Complete |
+| 16 | `16_Variance_Retained_..._Default_...` | PCA component sweep (DCCCD + registry) | Complete |
 | 17 | `17_Distribution_For_Each_Class` | PCA / t-SNE / UMAP class separability | Complete |
-| 18 | `18_Variance_Retained_..._Statlog_...` | PCA component sweep (SGCD) | Complete |
+| 18 | `18_Variance_Retained_..._Statlog_...` | PCA component sweep (SGCD + registry) | Complete |
 | 21 | `21_Visualizing_Data_Shape_..._Using_TDA` | Mapper on **barcode** statistics | Complete (HTML outputs) |
-| 22 | `22_Visualizing_Persistence_Diagrams` | Persistence diagrams per class | Present; verify Statlog path |
+| 22 | `22_Visualizing_Persistence_Diagrams` | Persistence diagrams per class | Complete — Statlog path fixed |
 
 ---
 
@@ -128,7 +129,7 @@ They form the basis for:
 
 **Method.** Direct diagram visualisation (not barcode aggregation).
 
-**Why it matters.** Pedagogical and diagnostic: confirms that PH is computing non-trivial structure. **Action item:** verify the Statlog script is not accidentally loading DCCCD paths.
+**Why it matters.** Pedagogical and diagnostic: confirms that PH is computing non-trivial structure. Statlog `viz.py` loads `Statlog_German_Credit_Data/processed_data.xlsx` with PCA(15).
 
 ---
 
@@ -148,10 +149,9 @@ They form the basis for:
 
 1. Read `docs/Pipeline_Issues_And_Leakage.md` alongside this report.  
 2. Review CV numbers in `docs/CV_Results.md` (paper experiments).  
-3. Run Exp **24** and **26** first (fast feedback on ratios and `b`).  
-4. Run Exp **25** / **27** on existing Exp-3 barcode CSVs.  
-5. Schedule Exp **23** when compute time for landmarks is available.  
-6. Cite Robinson & Turner (arXiv:1310.7467) and Chazal et al. (arXiv:1406.1901) in the write-up; reference Frontiers TDA survey §6.3.1 for snapshot statistics.
+3. Review `docs/Experiment_23_Results.md` and `docs/Statistical_Experiments_24_27_Results.md`.  
+4. For the fixed-`t` redesign across all six datasets, read `docs/Revised_Snapshot_Protocol_Deep_Report.md` (Exp 28).  
+5. Cite Robinson & Turner (arXiv:1310.7467) and Chazal et al. (arXiv:1406.1901) in the write-up; reference Frontiers TDA survey §6.3.1 for snapshot statistics.
 
 ---
 
@@ -162,7 +162,3 @@ They form the basis for:
 - Frontiers survey: *An Introduction to Topological Data Analysis* — Section 6.3.1 (snapshot mean/variance; predictive use of estimators).  
 - Facco et al. — Two-NN intrinsic dimension.  
 - Levina & Bickel — MLE intrinsic dimension.
-
----
-
-*Generated for internal team circulation. Update after Exp 23–27 results land in `6_Results/`.*

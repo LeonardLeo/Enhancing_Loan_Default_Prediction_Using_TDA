@@ -80,10 +80,10 @@ for model_name, model in all_models.items():
     # Store results
     results[model_name] = {
         "cross_val_scores": cross_val,
-        "mean_accracy": np.mean(cross_val),
+        "mean_accuracy": np.mean(cross_val),
         "std_accuracy": np.std(cross_val)
     }
-    print(f"{model_name}: Mean Accuracy = {results[model_name]['mean_accracy']:.4f}, Std Accuracy = {results[model_name]['std_accuracy']:.4f}")
+    print(f"{model_name}: Mean Accuracy = {results[model_name]['mean_accuracy']:.4f}, Std Accuracy = {results[model_name]['std_accuracy']:.4f}")
 
 # =============================================================================
 # STORE MODEL RESULTS

@@ -80,23 +80,31 @@ Exploratory experiments (Mapper, PCA/t-SNE/UMAP visualizations, KNN sweeps, cova
 
 ## Datasets
 
-Two UCI credit default datasets are used throughout:
+Six datasets share the mirrored folder names across `1_Data/`, `5_Experiments/`, and `6_Results/`:
 
-| Dataset | Folder | Raw source | Default target | Landmark sizes |
-|---------|--------|------------|----------------|----------------|
-| **Default of Credit Card Client** (DCCCD) | `1_Data/Datasets/Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **L5**, **L15** (5%, 15% of class size) |
-| **Statlog German Credit** (SGCD) | `1_Data/Datasets/Statlog_German_Credit_Data/` | `german.data-numeric` | Class label (1 = good, 2 = bad → mapped to binary) | **L30**, **L60** (30%, 60%) |
+| Dataset | Folder | Raw source | Default target | Landmark sizes | Why those percents |
+|---------|--------|------------|----------------|----------------|--------------------|
+| **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **L5**, **L15** | Original paper. `n1=6630`, so 5% is already `t=331`. |
+| **Statlog German Credit** (SGCD) | `Statlog_German_Credit_Data/` | `german.data-numeric` | Class label (mapped to binary) | **L30**, **L60** | Original paper. `n1=300`, so large percents are required for a usable cloud. |
+| **PKDD'99 Czech Financial** | `PKDD_Czech_Financial/` | `*.asc` (loan/trans/…) | `target` | **L10**, **L20** | Shared new-table grid. 5% of `n1=76` is `t=3` (PH dies). |
+| **Polish Bankruptcy (3-year)** | `Polish_Bankruptcy_3Year/` | `3year.arff` | `target` | **L10**, **L20** | Same grid so the four new tables stay comparable. |
+| **Taiwan Bankruptcy** | `Taiwan_Bankruptcy/` | `data.csv` | `target` | **L10**, **L20** | Same grid. L20 is the 2× companion (as Statlog 30→60). |
+| **South German Credit** | `South_German_Credit/` | `SouthGermanCredit.asc` | `target` | **L10**, **L20** | Coding-sensitivity table — *not* Statlog’s 30/60, so coding is not confounded with landmark size. |
+
+Why L10/L20 is not a copy of either paper grid: `docs/Design_Decisions.md`.
+
+Raw files live under `1_Data/Datasets/{Folder}/`.
 
 ### Dataset-specific preprocessing defaults
 
-| Setting | DCCCD | SGCD |
-|---------|-------|------|
-| PCA components | 7 | 15 (~89% variance retained) |
-| Landmark files per percentage | 500 (balanced across classes) | 500 (balanced across classes) |
-| Homology dimensions | H₀ + H₁ (`dim=2`) unless noted | H₀ + H₁ (`dim=2`) unless noted |
-| Class balancing (TDA stage) | Undersample non-default to match default count | Undersample non-default to match default count |
+| Setting | DCCCD | SGCD | Four new tables |
+|---------|-------|------|-----------------|
+| PCA components in Exp 3 | 7 (~94% variance) | 15 (~89% variance) | **10** (shared Ripser box; target was ~90%, Taiwan ~88%, others miss — see `docs/Design_Decisions.md`) |
+| Landmark files per percentage | 500 (balanced across classes) | 500 | 500 |
+| Homology dimensions | H₀ + H₁ (`dim=2`) unless noted | H₀ + H₁ | H₀ + H₁ |
+| Class balancing (TDA stage) | Undersample majority to minority count | Same | Same |
 
-Processed splits (`X_train`, `X_test`, `y_*`, `processed_data.xlsx`) are written to `1_Data/Processed_Datasets/` by **Experiment 1** and consumed by later experiments.
+Processed tables (`processed_data.xlsx` for legacy; `processed_data.csv` for registry datasets) live under `1_Data/Processed_Datasets/{Folder}/` and are consumed by later experiments.
 
 ---
 
@@ -359,19 +367,17 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 
 ## Documentation for the Team
 
-| Document | Formats | Contents |
-|----------|---------|----------|
-| `docs/Pipeline_Issues_And_Leakage.md` | MD | Leakage analysis + statistical gaps |
-| `docs/CV_Results.md` | MD + DOCX + PDF | K-fold means, fold scores, vs hold-out |
-| `docs/Exploratory_Experiments_Team_Report.md` | MD + DOCX + PDF | Exploratory exp narrative for the team |
-| `docs/Statistical_Experiments_24_27_Results.md` | MD | First-pass results for Exp 24–27 |
-
-Regenerate CV / exploratory packs:
-
-```powershell
-python docs/generate_cv_results_doc.py
-python docs/generate_exploratory_report.py
-```
+| Document | Contents |
+|----------|----------|
+| `docs/Design_Decisions.md` | **Why** L10/L20, why PCA 7 vs 15 vs 10, why ID before *and* after PCA |
+| `docs/Statistical_Approach_Flow.md` | Stage-by-stage: Exp 3 → 24 → 26 → 25 → 27 → 28 (when we do what) |
+| `docs/Statistical_Experiments_24_27_Results.md` | Sampling / ID / NHST worked numbers (all six datasets) |
+| `docs/Methodology_Checklist_06_08_2026.md` | scikit-dimension / dadapy / H0-split / snapshots — done vs skipped |
+| `docs/Pipeline_Issues_And_Leakage.md` | Leakage analysis, statistical gaps, engineering status |
+| `docs/CV_Results.md` | K-fold means, fold scores, vs hold-out |
+| `docs/Exploratory_Experiments_Team_Report.md` | Exploratory experiment narrative |
+| `docs/Experiment_23_Results.md` | Early train/test split results (legacy + registry pointers) |
+| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Experiment 28 protocol report (all six datasets) |
 
 ---
 
@@ -382,7 +388,7 @@ python docs/generate_exploratory_report.py
 | **Preprocessing / EDA** | `eda`, `data_preprocessing_pipeline`, `fix_string` |
 | **Landmarks & persistence homology** | `select_landmarks`, `generate_landmark_sets`, `generate_landmark_sets_v2`, `compute_barcode_statistics`, `compute_barcodes_from_multiple_landmarks`, `create_barcode_statistics`, `build_final_barcode_statistics_data` |
 | **ML training** | `train_dataset`, `train_dataset_tda`, `train_multiple_dataset_tda`, `train_models_on_dataset`, `train_models_on_multiple_datasets`, `train_multiple_dataset_tda_drop_correlated`, `train_multiple_dataset_tda_linear_regression`, `train_multiple_knn_datasets`, `train_dataset_tda_presplit`, `train_models_on_presplit_dataset` |
-| **Early-split / stats** | `stratified_early_split`, `fit_scaler_pca_on_train`, `balance_binary_by_undersampling`, `compute_sampling_ratio_audit`, `summarize_snapshot_statistics`, `estimate_intrinsic_dimension_two_nn`, `estimate_intrinsic_dimension_levina_bickel`, `permutation_test_algorithm2` |
+| **Early-split / stats** | `stratified_early_split`, `fit_scaler_pca_on_train`, `balance_binary_by_undersampling`, `compute_sampling_ratio_audit`, `summarize_snapshot_statistics`, `estimate_intrinsic_dimension_two_nn`, `estimate_intrinsic_dimension_levina_bickel`, `estimate_intrinsic_dimension_skdim`, `estimate_intrinsic_dimension_suite`, `n_components_for_target_variance`, `permutation_test_algorithm2` |
 | **Cross-validation** | `perform_cross_validation_tda` |
 | **Analysis sweeps** | `run_experiments_with_pca_components`, `plot_all_metrics_vs_pca_components` |
 | **Feature engineering** | `drop_correlated_features`, `rename_barcode_statistics_columns` |
@@ -395,10 +401,11 @@ python docs/generate_exploratory_report.py
 
 | Item | Detail |
 |------|--------|
-| **Experiment 20** | Deep learning experiment is a placeholder. Scripts duplicate Experiment 14 logic; no TensorFlow/PyTorch/Keras code exists. `6_Results/results.py` notes it as incomplete. |
-| **Experiment 5 (Statlog)** | `Full_Feature_Set_With_Mapper` and `Balanced_Dataset_With_Mapper` scripts for SGCD are empty stubs. |
-| **Experiment 22 (Statlog)** | `viz.py` appears to load the DCCCD processed data path instead of Statlog—likely a copy-paste error. |
+| **Experiment 20** | Deep learning placeholder (no TensorFlow/PyTorch/Keras). Out of scope. |
+| **Experiment 5 (Statlog)** | `Full_Feature_Set_With_Mapper` and `Balanced_Dataset_With_Mapper` raise `NotImplementedError` placeholders. Feature_Selection arm exists; DCCCD + registry Mapper scripts are the working references. |
 | **Generated data not in Git** | Landmark sets, barcode CSVs, pickles, and HTML outputs are gitignored. Clone + run experiments to reproduce. |
+
+See also `docs/Pipeline_Issues_And_Leakage.md` for leakage / statistical caveats.
 
 ---
 
@@ -410,7 +417,8 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 - `1_Data/Landmark_Sets/`, `Barcode_Statistics/`, `TDA_Datasets/`, `Processed_Datasets/`
 - `2_Pandas_Profiling_Report/`, `3_Python_Objects/`
 - `*.pkl`, `*.joblib`, `*.html` (experiment outputs)
-- Most generated plots/CSVs under `6_Results/` (except `clean_experiment_results.csv`)
+- Most generated plots/CSVs/JSON under `6_Results/` (except `clean_experiment_results.csv`)
+- KeplerMapper `parameters.txt` dumps and `6_Results/5_Mapper/`
 - `4_Visualization/Visualization/` bulk figure exports
 - `7_Paper/Datasets/` and literature PDFs
 
@@ -420,39 +428,38 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 
 ## Four-dataset extension (2026)
 
-The registry-driven runner `run_new_datasets.py` adds four independently
-configured datasets without replacing either canonical legacy dataset:
+Four additional datasets share the same mirrored layout as the legacy pair
+(`5_Experiments/{N}/{Folder}/` ↔ `6_Results/{N}/{Folder}/` ↔ `1_Data/.../{Folder}/`):
 
-- PKDD'99 Czech Financial (loan-level, strict pre-origination transaction aggregates)
-- Polish Companies Bankruptcy (`3year.arff` only, train-fit median imputation and missing indicators)
-- Taiwanese Bankruptcy Prediction (train-fit 0.5%/99.5% winsorization and constant removal)
-- South German Credit (updated-German sensitivity analysis; bad=1, good=0)
+| Dataset | Folder under `1_Data/Datasets/` |
+|---------|----------------------------------|
+| PKDD'99 Czech Financial | `PKDD_Czech_Financial/` |
+| Polish Companies Bankruptcy (3-year) | `Polish_Bankruptcy_3Year/` |
+| Taiwanese Bankruptcy Prediction | `Taiwan_Bankruptcy/` |
+| South German Credit | `South_German_Credit/` |
 
-Every dataset is run under both the historical comparability protocol and clean
-Protocol B. TDA outputs distinguish the historical 500-snapshot setting from
-the Experiment 24 revised count, `l = ceil(n_class / t)`. The historical
-protocol is explicitly labelled leakage-prone; Protocol B splits before any
-fitted transform and creates independent train/test snapshots.
+Processed tables live in `1_Data/Processed_Datasets/{Folder}/`.
 
-```powershell
-.\tda_env\Scripts\python.exe run_new_datasets.py --stages ingest baseline tda report
-.\tda_env\Scripts\python.exe run_remaining_experiments.py
+Each experiment folder contains **real per-dataset scripts** (same pattern as
+the legacy Statlog / DCCCD scripts), for example:
+
+```
+5_Experiments/1_ML_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial.py
+5_Experiments/3_PH_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial_PH.py
+6_Results/1_ML_Default_Parameters/PKDD_Czech_Financial/baseline_results.csv
 ```
 
-The command is resumable via `6_Results/New_Datasets/run_manifest.json`.
-Generated audits, model tables, sampling ratios and statistical outputs are
-under `6_Results/New_Datasets/`; publication-format reports are under
-`docs/new_datasets/`. The second runner covers bounded tuned-model grids,
-H0/correlation/imbalance ablations, matched controls, PCA/KNN sweeps,
-EDA/dimensionality reduction/covariance, Mapper, persistence plots, and
-historical500 statistical follow-ups. Its status is persisted separately in
-`6_Results/New_Datasets/extended_manifest.json`. Focused checks can be run with:
+Shared helpers are the same **`utils.py`** used by Statlog / DCCCD.
+Raw→processed ingestion for the four registry datasets is
+`1_Data/ingest_registry_datasets.py`.
 
 ```powershell
-.\tda_env\Scripts\python.exe -m pytest test_new_datasets.py -q
+.\tda_env\Scripts\python.exe 1_Data\ingest_registry_datasets.py
+.\tda_env\Scripts\python.exe 5_Experiments\1_ML_Default_Parameters\PKDD_Czech_Financial\pkdd_czech_financial.py
+.\tda_env\Scripts\python.exe -m pytest test_datasets.py -q
 ```
 
-Mirror checksums are verified against `raw_data_extracted/MANIFEST.csv`, but
+Mirror checksums are verified against `1_Data/Datasets/MANIFEST.csv`;
 primary-source and licence verification remain required before publication.
 
 ---

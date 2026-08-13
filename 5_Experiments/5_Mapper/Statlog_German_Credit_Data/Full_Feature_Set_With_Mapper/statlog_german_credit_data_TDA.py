@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Oct 12 22:59:58 2024
+PLACEHOLDER — Experiment 5 Mapper (Statlog / full feature set).
 
-@author: lEO
+Not implemented. Use the DCCCD Mapper scripts under
+`5_Experiments/5_Mapper/Default_Of_Credit_Card_Client_Data/` as the reference
+implementation, or the registry Mapper scripts under
+`5_Experiments/5_Mapper/{PKDD,Polish,Taiwan,South_German}/`.
 """
 
+raise NotImplementedError(
+    "Exp 5 Statlog Full_Feature_Set_With_Mapper is an intentional placeholder "
+    "(see docs/Pipeline_Issues_And_Leakage.md)."
+)

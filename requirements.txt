@@ -1,3 +1,11 @@
+# Python dependencies for this research repo.
+# Install into the project interpreter with:
+#   python -m pip install -r requirements.txt
+#
+# `import utils` needs the TDA / viz stack below (seaborn, kmapper, pyvis,
+# ydata-profiling, ripser, persim, umap-learn). Missing any of those will
+# fail at import time even if you only wanted a small helper.
+
 numpy
 pandas
 scipy

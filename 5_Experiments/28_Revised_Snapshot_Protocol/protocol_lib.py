@@ -497,7 +497,7 @@ def estimate_intrinsic_dimensions(
         except Exception as exc:  # pragma: no cover
             out["estimators"]["TwoNN"] = f"error:{exc}"
         try:
-            mle = skdim.id.MLE(k=20).fit(Xs)
+            mle = skdim.id.MLE(K=20).fit(Xs)
             out["estimators"]["MLE_LevinaBickel"] = float(mle.dimension_)
         except Exception as exc:  # pragma: no cover
             out["estimators"]["MLE_LevinaBickel"] = f"error:{exc}"
@@ -506,6 +506,12 @@ def estimate_intrinsic_dimensions(
             out["estimators"]["lPCA"] = float(lpca.dimension_)
         except Exception as exc:  # pragma: no cover
             out["estimators"]["lPCA"] = f"error:{exc}"
+        if hasattr(skdim.id, "MiND_ML"):
+            try:
+                mind = skdim.id.MiND_ML().fit(Xs)
+                out["estimators"]["MiND_ML"] = float(mind.dimension_)
+            except Exception as exc:  # pragma: no cover
+                out["estimators"]["MiND_ML"] = f"error:{exc}"
         # DANCo is slower; only on modest samples
         if len(Xs) <= 800:
             try:

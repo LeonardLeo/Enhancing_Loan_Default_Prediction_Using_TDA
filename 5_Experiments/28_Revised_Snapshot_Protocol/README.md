@@ -23,5 +23,4 @@ Meeting-driven redesign of landmark sampling.
 ## Reports
 
 - Deep narrative: `docs/Revised_Snapshot_Protocol_Deep_Report.md`
-- Prior four-dataset deep narrative: `docs/new_datasets/New_Datasets_Deep_Explanation_Report.md`
 - Numeric outputs: `6_Results/28_Revised_Snapshot_Protocol/`

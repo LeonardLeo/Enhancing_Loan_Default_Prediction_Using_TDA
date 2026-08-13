@@ -95,6 +95,14 @@ desktop.ini
 docs/new_datasets/report_metadata.json
 
 # =============================================================================
+# KeplerMapper run dumps (thousands of tiny regeneratable files)
+# =============================================================================
+**/parameters.txt
+6_Results/5_Mapper/
+6_Results/21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA/
+6_Results/**/*.json
+
+# =============================================================================
 # Bulk matplotlib figure exports (curated figures kept elsewhere)
 # =============================================================================
 4_Visualization/Visualization/

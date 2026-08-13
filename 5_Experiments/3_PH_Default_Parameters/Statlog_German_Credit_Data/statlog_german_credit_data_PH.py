@@ -56,6 +56,8 @@ balanced_non_default = non_default_data.sample(n = n_samples, random_state = 42)
 # =============================================================================
 # SET SAMPLING PERCENTAGE
 # =============================================================================
+# Original paper percents. n1=300, so 30%/60% are required to get t=90/180.
+# Do not copy L10/L20 onto this table. docs/Design_Decisions.md
 percentages = [30, 60]
 
 # =============================================================================
