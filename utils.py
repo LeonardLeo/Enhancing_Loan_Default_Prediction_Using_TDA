@@ -73,6 +73,11 @@ def win_long_path(path) -> Path:
     return Path(raw)
 
 
+def _percent_token(percent: float) -> str:
+    """Canonical landmark-percent filename token: 10.0 → '10', 1.36 → '1.36'."""
+    return str(int(percent)) if float(percent).is_integer() else str(percent)
+
+
 def _ensure_dir(path) -> Path:
     """Create ``path`` (and parents). Returns an absolute Path.
 
@@ -193,11 +198,11 @@ def tda_artefact_dir(
     for part in extra:
         if part:
             path = path / part
-    return path
+    return win_long_path(path)
 
 
 def tda_results_dir(protocol_bucket: str, experiment_name: str, dataset_folder: str) -> Path:
-    return REPO_ROOT / "6_Results" / protocol_bucket / experiment_name / dataset_folder
+    return win_long_path(REPO_ROOT / "6_Results" / protocol_bucket / experiment_name / dataset_folder)
 
 
 def get_tda_protocol(protocol_bucket: str) -> Dict[str, Any]:
@@ -616,7 +621,7 @@ def select_landmarks(data: pd.DataFrame,
         
         # Print the file path to debug
         if verbose:
-            print(f"📁 Saving to: {file_path}")
+            print(f"Saving to: {file_path}")
         
         # Save the landmarks to a CSV file
         try:
@@ -678,7 +683,7 @@ def generate_landmark_sets_v2(class_label_and_data: dict,
                              percentage=percentage,
                              n_files=n_files,
                              dataset_to_use=dataset_to_use,
-                             save_label_dir=f"{class_name}_L{percentage}",
+                             save_label_dir=f"{class_name}_L{_percent_token(percentage)}",
                              add_optional_path = add_optional_path,
                              experiment_name=experiment_name,
                              protocol_bucket=protocol_bucket)
@@ -800,8 +805,8 @@ def compute_barcodes_from_multiple_landmarks(landmark_percentages: List[int | fl
         for each_class, label_name in label.items():
             print(f"\n\nComputing Barcode Statistics for L{percentage} - Label ({label_name})")
             create_barcode_statistics(
-                landmark_dir = os.path.abspath(os.path.join(landmark_dir, f"{label_name}_L{percentage}")),  # Use abspath for landmark_dir
-                output_file = os.path.abspath(os.path.join(barcode_output_dir, f"barcode_stats_{label_name}_L{percentage}.csv")),  # Ensure the file path is absolute
+                landmark_dir = os.path.abspath(os.path.join(landmark_dir, f"{label_name}_L{_percent_token(percentage)}")),  # Use abspath for landmark_dir
+                output_file = os.path.abspath(os.path.join(barcode_output_dir, f"barcode_stats_{label_name}_L{_percent_token(percentage)}.csv")),  # Ensure the file path is absolute
                 label = each_class,
                 dim = dim
             )
@@ -855,8 +860,10 @@ def combine_barcode_statistics_per_group(barcode_dir: str,
     
     for each_class, label_name in label.items():
         # Construct absolute path for the barcode files
-        pattern = os.path.join(barcode_dir_abs, f"barcode_stats_{label_name}_L{percentage}.csv")
-        files = glob.glob(pattern)
+        token = _percent_token(percentage)
+        files = glob.glob(os.path.join(barcode_dir_abs, f"barcode_stats_{label_name}_L{token}.csv"))
+        if not files:
+            files = glob.glob(os.path.join(barcode_dir_abs, f"barcode_stats_{label_name}_L{percentage}.csv"))
         file_storage.extend(files)
     
     print(f"Number of files found: {len(file_storage)}\n\n")
@@ -892,11 +899,12 @@ def build_final_barcode_statistics_data(landmark_percentages: List[int | float],
             percentage=each_percentage,
             label=label
         )
+        token = _percent_token(each_percentage)
         barcode_stats_full_data.to_csv(
-            os.path.abspath(os.path.join(output_dir, f"data_L{each_percentage}.csv")),  # Ensure the file path is absolute
+            os.path.abspath(os.path.join(output_dir, f"data_L{token}.csv")),
             index=False
         )
-        print(f"Saved: data_L{each_percentage}.csv | Shape: {barcode_stats_full_data.shape}")
+        print(f"Saved: data_L{token}.csv | Shape: {barcode_stats_full_data.shape}")
 
         # Time per iteration
         end_time = time.time()
@@ -1486,7 +1494,7 @@ def train_models_on_multiple_datasets(data_paths: list,
     overall_start = time.time()
     
     for idx, data_path in enumerate(data_paths, start=1):
-        print(f"\n📂 Training on Dataset {idx}: {os.path.basename(data_path)}")
+        print(f"\nTraining on Dataset {idx}: {os.path.basename(data_path)}")
 
         start_time = time.time()
         
@@ -1818,7 +1826,7 @@ def plot_all_metrics_vs_pca_components(
                 os.makedirs(save_path, exist_ok = True)
                 dataset_name = dataset_name.split(".")[0]
                 plt.savefig(f"{save_path}/{dataset_name}_{model_key}.png", bbox_inches="tight")
-                print(f"📁 Plot saved to: {save_path}_{dataset_name}.png")
+                print(f"Plot saved to: {save_path}_{dataset_name}.png")
             else:
                 plt.show()
     else:
@@ -1847,7 +1855,7 @@ def plot_all_metrics_vs_pca_components(
             save_path = os.path.abspath(save_path)
             os.makedirs(save_path, exist_ok = True)
             plt.savefig(f"{save_path}/viz_{model_key}.png", bbox_inches="tight")
-            print(f"📁 Plot saved to: {save_path}")
+            print(f"Plot saved to: {save_path}")
         else:
             plt.show()
 
@@ -2320,7 +2328,7 @@ def drop_correlated_features(features: pd.DataFrame,
     
     if target is not None:
         df_reduced = df_reduced.copy()
-        df_reduced["label"] = target.reset_index(drop=True)
+        df_reduced["label"] = np.asarray(target)
 
 
     return df_reduced, drop_map
@@ -3690,10 +3698,6 @@ def protocol_tda_matrices_exist(
     return all(path.exists() for path in needed)
 
 
-def _percent_token(percent: float) -> str:
-    return str(int(percent)) if float(percent).is_integer() else str(percent)
-
-
 def late_split_barcode_paths(
     protocol_bucket: str,
     dataset_folder: str,
@@ -4017,6 +4021,8 @@ def train_protocol_drop_correlated(
     save_path = str(tda_results_dir(protocol_bucket, exp4, folder))
     var_dir = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp4, folder, "Using_High_Variance_For_Correlation")
     target_dir = tda_artefact_dir("TDA_Datasets", protocol_bucket, exp4, folder, "Using_Target_Variable_For_Correlation")
+    var_dir.mkdir(parents=True, exist_ok=True)
+    target_dir.mkdir(parents=True, exist_ok=True)
 
     data_objects = {}
     dropped_payload = []
