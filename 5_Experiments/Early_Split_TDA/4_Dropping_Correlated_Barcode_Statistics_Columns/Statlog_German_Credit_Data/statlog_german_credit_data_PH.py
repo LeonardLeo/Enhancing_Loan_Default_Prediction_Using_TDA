@@ -1,124 +1,122 @@
 # -*- coding: utf-8 -*-
 """
-Early_Split_TDA / 4_Dropping_Correlated_Barcode_Statistics_Columns
+Early Split TDA / 4_Dropping_Correlated_Barcode_Statistics_Columns
 Dataset: Statlog German Credit
 
-This file is the method document for this dataset. Heavy Ripser / IO helpers
-live in utils.py; the pipeline itself is written here in order.
-
-Protocol
---------
-- Split timing : early
-- Undersample  : True
-- PCA rank     : 15  (historical Exp 3 rank for this table)
-- Snapshot size percents : [30.0, 60.0]
-- Number of snapshots    : 500
-This experiment does not run Ripser. It loads Experiment 1 barcode tables,
-drops correlated barcode-statistic columns (threshold 0.80), then trains.
+This experiment does not run Ripser. It drops correlated barcode-statistic columns (threshold 0.80), then trains.
 """
 
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
 import warnings
-from pathlib import Path
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
 
 from utils import (
     drop_correlated_features,
     rename_barcode_statistics_columns,
     store_data_as_csv_or_json,
     store_results,
-    tda_artefact_dir,
-    tda_results_dir,
     train_multiple_dataset_tda_drop_correlated,
-    early_split_barcode_pairs,
+    win_long_path,
 )
 
+# =============================================================================
+# Deal with Warnings
+# =============================================================================
 warnings.filterwarnings("ignore")
 
-# =============================================================================
-# Protocol knobs (this arm, this dataset)
-# =============================================================================
-DATASET_KEY = 'statlog_german'
-PROTOCOL_BUCKET = 'Early_Split_TDA'
+PROTOCOL_BUCKET = "Early_Split_TDA"
 EXPERIMENT = "4_Dropping_Correlated_Barcode_Statistics_Columns"
 SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
-FOLDER = 'Statlog_German_Credit_Data'
-
-SPLIT_TIMING = 'early'
-UNDERSAMPLE = True
-LANDMARK_PERCENTAGES = [30.0, 60.0]
+FOLDER = "Statlog_German_Credit_Data"
 CORR_THRESHOLD = 0.80
-RANDOM_STATE = 42
-TEST_SIZE = 0.2
 
-save_path = str(tda_results_dir(PROTOCOL_BUCKET, EXPERIMENT, FOLDER))
-var_dir = tda_artefact_dir(
-    "TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER, "Using_High_Variance_For_Correlation"
-)
-target_dir = tda_artefact_dir(
-    "TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER, "Using_Target_Variable_For_Correlation"
-)
-var_dir.mkdir(parents=True, exist_ok=True)
-target_dir.mkdir(parents=True, exist_ok=True)
+src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER)
+save_path = str(win_long_path(os.path.join(REPO_ROOT, "6_Results", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)))
+target_dir = str(win_long_path(os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER, "Using_Target_Variable_For_Correlation")))
 
-# =============================================================================
-# Load barcode tables, drop correlated columns (fit on train only)
-# =============================================================================
-pairs = early_split_barcode_pairs(
-    PROTOCOL_BUCKET, FOLDER, LANDMARK_PERCENTAGES, SOURCE_EXPERIMENT
-)
 data_objects = {}
 dropped_payload = []
 dropped_names = []
-for name, paths in pairs.items():
-    train_df = rename_barcode_statistics_columns(pd.read_csv(paths["train"]))
-    test_df = rename_barcode_statistics_columns(pd.read_csv(paths["test"]))
-    X_train = train_df.drop(columns=["label"])
-    y_train = train_df["label"]
-    X_test = test_df.drop(columns=["label"])
-    y_test = test_df["label"]
-    kept_target, dropped_target = drop_correlated_features(
-        X_train,
-        threshold=CORR_THRESHOLD,
-        feature_label=True,
-        strategy="target_corr",
-        target=y_train,
-    )
-    keep_cols = [c for c in kept_target.columns if c != "label"]
-    data_objects[name] = {
-        "data": kept_target,
-        "X_test": X_test[keep_cols],
-        "y_test": y_test,
-    }
-    dropped_payload.append(dropped_target)
-    dropped_names.append(f"{name}_target_drop")
-    kept_target.to_csv(target_dir / f"{name}_target.csv", index=False)
-    print(f"Kept {len(keep_cols)} columns from {name} (target-correlation drop)")
 
-store_data_as_csv_or_json(
-    path=save_path, csv=False, save_as=dropped_names, data_object=dropped_payload
+# =============================================================================
+# Drop correlated columns - L30 (fit on TRAIN rows only)
+# =============================================================================
+train_L30 = rename_barcode_statistics_columns(pd.read_csv(os.path.join(src_dir, "train", "data_L30.csv")))
+test_L30 = rename_barcode_statistics_columns(pd.read_csv(os.path.join(src_dir, "test", "data_L30.csv")))
+X_train_L30 = train_L30.drop(columns=["label"])
+y_train_L30 = train_L30["label"]
+X_test_L30 = test_L30.drop(columns=["label"])
+y_test_L30 = test_L30["label"]
+kept_target_L30, dropped_target_L30 = drop_correlated_features(
+    X_train_L30,
+    threshold=CORR_THRESHOLD,
+    feature_label=True,
+    strategy="target_corr",
+    target=y_train_L30,
 )
+keep_cols_L30 = [c for c in kept_target_L30.columns if c != "label"]
+data_objects["data_L30"] = {
+    "data": kept_target_L30,
+    "X_test": X_test_L30[keep_cols_L30],
+    "y_test": y_test_L30,
+}
+dropped_payload.append(dropped_target_L30)
+dropped_names.append("data_L30_target_drop")
+os.makedirs(target_dir, exist_ok=True)
+kept_target_L30.to_csv(os.path.join(target_dir, "data_L30_target.csv"), index=False)
+print("Kept", len(keep_cols_L30), "columns from data_L30")
+
+# =============================================================================
+# Drop correlated columns - L60 (fit on TRAIN rows only)
+# =============================================================================
+train_L60 = rename_barcode_statistics_columns(pd.read_csv(os.path.join(src_dir, "train", "data_L60.csv")))
+test_L60 = rename_barcode_statistics_columns(pd.read_csv(os.path.join(src_dir, "test", "data_L60.csv")))
+X_train_L60 = train_L60.drop(columns=["label"])
+y_train_L60 = train_L60["label"]
+X_test_L60 = test_L60.drop(columns=["label"])
+y_test_L60 = test_L60["label"]
+kept_target_L60, dropped_target_L60 = drop_correlated_features(
+    X_train_L60,
+    threshold=CORR_THRESHOLD,
+    feature_label=True,
+    strategy="target_corr",
+    target=y_train_L60,
+)
+keep_cols_L60 = [c for c in kept_target_L60.columns if c != "label"]
+data_objects["data_L60"] = {
+    "data": kept_target_L60,
+    "X_test": X_test_L60[keep_cols_L60],
+    "y_test": y_test_L60,
+}
+dropped_payload.append(dropped_target_L60)
+dropped_names.append("data_L60_target_drop")
+os.makedirs(target_dir, exist_ok=True)
+kept_target_L60.to_csv(os.path.join(target_dir, "data_L60_target.csv"), index=False)
+print("Kept", len(keep_cols_L60), "columns from data_L60")
+
+store_data_as_csv_or_json(path=save_path, csv=False, save_as=dropped_names, data_object=dropped_payload)
 
 # =============================================================================
 # Train models
 # =============================================================================
 model_results = train_multiple_dataset_tda_drop_correlated(
     data_objects=data_objects,
-    test_size=TEST_SIZE,
-    random_state=RANDOM_STATE,
+    test_size=0.2,
+    random_state=42,
     xgb={"eval_metric": "logloss"},
 )
 print(model_results)
 
 # =============================================================================
-# Store results
+# Store model results
 # =============================================================================
 store_results(path=save_path, save_name="model_results", result_object=model_results)

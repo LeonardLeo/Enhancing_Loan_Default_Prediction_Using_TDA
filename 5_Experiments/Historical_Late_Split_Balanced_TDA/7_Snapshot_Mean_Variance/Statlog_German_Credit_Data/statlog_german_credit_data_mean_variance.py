@@ -1,106 +1,73 @@
 # -*- coding: utf-8 -*-
 """
-Historical_Late_Split_Balanced_TDA / 7_Snapshot_Mean_Variance
+Historical Late Split, Balanced TDA / 7_Snapshot_Mean_Variance
 Dataset: Statlog German Credit
 
-This file is the method document for this dataset. Heavy Ripser / IO helpers
-live in utils.py; the pipeline itself is written here in order.
-
-Protocol
---------
-- Split timing : late
-- Undersample  : True
-- PCA rank     : 15  (historical Exp 3 rank for this table)
-- Snapshot size percents : [30.0, 60.0]
-- Number of snapshots    : 500
-This experiment does not run Ripser. It loads Experiment 1 barcode tables
-and records the mean and variance of each barcode-statistic column.
+This experiment does not run Ripser. It records the mean and variance of each barcode-statistic column.
 """
 
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
 import warnings
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
 
 from utils import (
-    _percent_token,
     store_results,
     summarize_snapshot_statistics,
-    tda_artefact_dir,
-    tda_results_dir,
+    flatten_snapshot_mean_variance,
 )
 
+# =============================================================================
+# Deal with Warnings
+# =============================================================================
 warnings.filterwarnings("ignore")
 
-# =============================================================================
-# Protocol knobs (this arm, this dataset)
-# =============================================================================
-DATASET_KEY = 'statlog_german'
-PROTOCOL_BUCKET = 'Historical_Late_Split_Balanced_TDA'
+PROTOCOL_BUCKET = "Historical_Late_Split_Balanced_TDA"
 EXPERIMENT = "7_Snapshot_Mean_Variance"
 SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
-FOLDER = 'Statlog_German_Credit_Data'
+FOLDER = "Statlog_German_Credit_Data"
 
-SPLIT_TIMING = 'late'
-UNDERSAMPLE = True
-LANDMARK_PERCENTAGES = [30.0, 60.0]
+src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER)
+save_path = os.path.join(REPO_ROOT, "6_Results", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
+os.makedirs(save_path, exist_ok=True)
 
-# =============================================================================
-# Load barcode tables
-# =============================================================================
-sources = []
-for pct in LANDMARK_PERCENTAGES:
-    sources.append(
-        tda_artefact_dir(
-            "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER,
-            f"data_L{_percent_token(pct)}.csv",
-        )
-    )
-
-# =============================================================================
-# Mean and variance across snapshots
-# =============================================================================
 all_summaries = {}
 flat_rows = []
-missing = []
-for path in sources:
-    if not path.exists():
-        missing.append(str(path))
-        print(f"Missing (run this arm's experiment 1 first): {path}")
-        continue
-    summary = summarize_snapshot_statistics(str(path))
-    key = f"{PROTOCOL_BUCKET}/{SOURCE_EXPERIMENT}/{FOLDER}/{path.name}"
-    if path.parent.name in {"train", "test"}:
-        key = f"{PROTOCOL_BUCKET}/{SOURCE_EXPERIMENT}/{FOLDER}/{path.parent.name}/{path.name}"
-    all_summaries[key] = summary
-    for feat, mean_v in summary["global_mean"].items():
-        flat_rows.append(
-            {
-                "source": key,
-                "feature": feat,
-                "mean": mean_v,
-                "variance": summary["global_variance"][feat],
-                "n_snapshots": summary["n_snapshots"],
-            }
-        )
-    print(f"OK {path.name}: n={summary['n_snapshots']}")
 
+# =============================================================================
+# Mean and variance - L30
+# =============================================================================
+path_L30 = os.path.join(src_dir, "data_L30.csv")
+if os.path.exists(path_L30):
+    summary_path_L30 = summarize_snapshot_statistics(path_L30)
+    key_path_L30 = path_L30.replace(os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets") + os.sep, "")
+    all_summaries[key_path_L30] = summary_path_L30
+    flat_rows.extend(flatten_snapshot_mean_variance(summary_path_L30, key_path_L30))
+    print("OK", os.path.basename(path_L30), "n=", summary_path_L30["n_snapshots"])
+else:
+    print("Missing (run this arm's experiment 1 first):", path_L30)
+# =============================================================================
+# Mean and variance - L60
+# =============================================================================
+path_L60 = os.path.join(src_dir, "data_L60.csv")
+if os.path.exists(path_L60):
+    summary_path_L60 = summarize_snapshot_statistics(path_L60)
+    key_path_L60 = path_L60.replace(os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets") + os.sep, "")
+    all_summaries[key_path_L60] = summary_path_L60
+    flat_rows.extend(flatten_snapshot_mean_variance(summary_path_L60, key_path_L60))
+    print("OK", os.path.basename(path_L60), "n=", summary_path_L60["n_snapshots"])
+else:
+    print("Missing (run this arm's experiment 1 first):", path_L60)
 if not flat_rows:
-    raise FileNotFoundError(
-        f"No experiment-1 barcode files for {PROTOCOL_BUCKET}/{FOLDER}. Missing: {missing}"
-    )
+    raise FileNotFoundError("No Experiment 1 barcode files for " + PROTOCOL_BUCKET + "/" + FOLDER)
 
-# =============================================================================
-# Store results
-# =============================================================================
-save_path = tda_results_dir(PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
-save_path.mkdir(parents=True, exist_ok=True)
-pd.DataFrame(flat_rows).to_csv(save_path / "snapshot_mean_variance.csv", index=False)
-store_results(path=str(save_path), save_name="snapshot_mean_variance_full", result_object=all_summaries)
+pd.DataFrame(flat_rows).to_csv(os.path.join(save_path, "snapshot_mean_variance.csv"), index=False)
+store_results(path=save_path, save_name="snapshot_mean_variance_full", result_object=all_summaries)

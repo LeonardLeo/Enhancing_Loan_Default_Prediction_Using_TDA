@@ -1,86 +1,140 @@
 # -*- coding: utf-8 -*-
 """
-No_Undersampling / 5_Linear_Regression_For_Prediction
+No Undersampling / 5_Linear_Regression_For_Prediction
 Dataset: Taiwanese Bankruptcy Prediction
 
-This file is the method document for this dataset. Heavy Ripser / IO helpers
-live in utils.py; the pipeline itself is written here in order.
-
-Protocol
---------
-- Split timing : late
-- Undersample  : False
-- PCA rank     : 10  (historical Exp 3 rank for this table)
-- Snapshot size percents : [10.0, 20.0]
-- Number of snapshots    : 500
-This experiment does not run Ripser. It loads Experiment 1 barcode tables,
-keeps the H0 slice, and fits linear regression as a classifier (threshold 0.5).
+This experiment does not run Ripser. It keeps H0 columns and fits linear regression as a classifier (threshold 0.5).
 """
 
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
 import warnings
-from pathlib import Path
 
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
+from sklearn.model_selection import train_test_split
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
 
 from utils import (
-    _percent_token,
-    _write_h0_slice,
     store_results,
-    tda_artefact_dir,
-    tda_results_dir,
-    train_multiple_dataset_tda_linear_regression,
 )
 
+# =============================================================================
+# Deal with Warnings
+# =============================================================================
 warnings.filterwarnings("ignore")
 
-# =============================================================================
-# Protocol knobs (this arm, this dataset)
-# =============================================================================
-DATASET_KEY = 'taiwan_bankruptcy'
-PROTOCOL_BUCKET = 'No_Undersampling'
+PROTOCOL_BUCKET = "No_Undersampling"
 EXPERIMENT = "5_Linear_Regression_For_Prediction"
 SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
-FOLDER = 'Taiwan_Bankruptcy'
+FOLDER = "Taiwan_Bankruptcy"
 
-SPLIT_TIMING = 'late'
-UNDERSAMPLE = False
-LANDMARK_PERCENTAGES = [10.0, 20.0]
-RANDOM_STATE = 42
-TEST_SIZE = 0.2
-DECISION_THRESHOLD = 0.5
+src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER)
+dest_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
+save_path = os.path.join(REPO_ROOT, "6_Results", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
+model_results = {}
 
 # =============================================================================
-# Load H0 barcode tables and fit linear regression (80/20 on barcode rows)
+# Get Data - L10
 # =============================================================================
-paths = []
-dest_root = tda_artefact_dir("TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
-for pct in LANDMARK_PERCENTAGES:
-    token = _percent_token(pct)
-    src = tda_artefact_dir(
-        "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER, f"data_L{token}.csv"
-    )
-    dest = dest_root / f"data_L{token}.csv"
-    _write_h0_slice(src, dest)
-    paths.append(str(dest))
+src_L10 = os.path.join(src_dir, "data_L10.csv")
+dest_L10 = os.path.join(dest_dir, "data_L10.csv")
+os.makedirs(dest_dir, exist_ok=True)
+data_L10 = pd.read_csv(src_L10)
+h0_columns_L10 = [c for c in data_L10.columns if c == "label" or str(c).endswith("_0") or "(Dim 0)" in str(c)]
+data_L10 = data_L10[h0_columns_L10]
+data_L10.to_csv(dest_L10, index=False)
 
-model_results = train_multiple_dataset_tda_linear_regression(
-    path_datasets=paths,
-    y_col_name="label",
-    test_size=TEST_SIZE,
-    random_state=RANDOM_STATE,
+features_L10 = data_L10.drop(columns=["label"])
+label_L10 = data_L10["label"]
+
+# =============================================================================
+# Train / test split on barcode rows - L10
+# =============================================================================
+X_train_L10, X_test_L10, y_train_L10, y_test_L10 = train_test_split(
+    features_L10, label_L10, test_size=0.2, random_state=42, stratify=label_L10
 )
+
+# =============================================================================
+# Linear Regression as a classifier (threshold 0.5) - L10
+# =============================================================================
+model_L10 = LinearRegression()
+model_L10.fit(X_train_L10, y_train_L10)
+scores_L10 = model_L10.predict(X_test_L10)
+y_pred_L10 = (scores_L10 >= 0.5).astype(int)
+y_true_L10 = y_test_L10.astype(int)
+model_results[f"data_L10"] = {
+    "linear_regression": {
+        "model": model_L10,
+        "accuracy": accuracy_score(y_true_L10, y_pred_L10),
+        "precision": precision_score(y_true_L10, y_pred_L10, zero_division=0),
+        "recall": recall_score(y_true_L10, y_pred_L10, zero_division=0),
+        "f1_score": f1_score(y_true_L10, y_pred_L10, zero_division=0),
+        "classification_report": classification_report(y_true_L10, y_pred_L10, zero_division=0),
+        "confusion_matrix": confusion_matrix(y_true_L10, y_pred_L10),
+    }
+}
+print("Linear regression data_L10")
+
+# =============================================================================
+# Get Data - L20
+# =============================================================================
+src_L20 = os.path.join(src_dir, "data_L20.csv")
+dest_L20 = os.path.join(dest_dir, "data_L20.csv")
+os.makedirs(dest_dir, exist_ok=True)
+data_L20 = pd.read_csv(src_L20)
+h0_columns_L20 = [c for c in data_L20.columns if c == "label" or str(c).endswith("_0") or "(Dim 0)" in str(c)]
+data_L20 = data_L20[h0_columns_L20]
+data_L20.to_csv(dest_L20, index=False)
+
+features_L20 = data_L20.drop(columns=["label"])
+label_L20 = data_L20["label"]
+
+# =============================================================================
+# Train / test split on barcode rows - L20
+# =============================================================================
+X_train_L20, X_test_L20, y_train_L20, y_test_L20 = train_test_split(
+    features_L20, label_L20, test_size=0.2, random_state=42, stratify=label_L20
+)
+
+# =============================================================================
+# Linear Regression as a classifier (threshold 0.5) - L20
+# =============================================================================
+model_L20 = LinearRegression()
+model_L20.fit(X_train_L20, y_train_L20)
+scores_L20 = model_L20.predict(X_test_L20)
+y_pred_L20 = (scores_L20 >= 0.5).astype(int)
+y_true_L20 = y_test_L20.astype(int)
+model_results[f"data_L20"] = {
+    "linear_regression": {
+        "model": model_L20,
+        "accuracy": accuracy_score(y_true_L20, y_pred_L20),
+        "precision": precision_score(y_true_L20, y_pred_L20, zero_division=0),
+        "recall": recall_score(y_true_L20, y_pred_L20, zero_division=0),
+        "f1_score": f1_score(y_true_L20, y_pred_L20, zero_division=0),
+        "classification_report": classification_report(y_true_L20, y_pred_L20, zero_division=0),
+        "confusion_matrix": confusion_matrix(y_true_L20, y_pred_L20),
+    }
+}
+print("Linear regression data_L20")
 
 print(model_results)
 
 # =============================================================================
-# Store results
+# Store model results
 # =============================================================================
-save_path = tda_results_dir(PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
-store_results(path=str(save_path), save_name="model_results", result_object=model_results)
+store_results(path=save_path, save_name="model_results", result_object=model_results)

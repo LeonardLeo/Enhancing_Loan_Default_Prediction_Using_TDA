@@ -174,7 +174,7 @@ Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Paramet
 
 Numbered experiments live **inside** protocol buckets under `5_Experiments/` (mirrored in `6_Results/`). See `5_Experiments/README.md`.
 
-Each dataset folder contains the method script (for PH default that is `*_PH.py`; tuned uses `*_PH_tuned.py`; H0-only uses `*_H0_only.py`). `run.py` is an optional launcher. Every **active** experiment folder also has `visualize_results.py` at the experiment root.
+Each dataset folder contains the method script (for PH default that is `*_PH.py`; tuned uses `*_PH_tuned.py`; H0-only uses `*_H0_only.py`). Every **active** experiment folder also has `visualize_results.py` at the experiment root.
 
 ### Experiments used in the research paper
 

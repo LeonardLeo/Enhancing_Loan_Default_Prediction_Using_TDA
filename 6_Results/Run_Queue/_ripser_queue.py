@@ -34,10 +34,19 @@ EXP9_DATASETS = [
     "polish_bankruptcy",
     "credit_card_default",
 ]
+PROTOCOL_SCRIPTS = {
+    "pkdd_czech": ("PKDD_Czech_Financial", "pkdd_czech_financial_protocol.py"),
+    "south_german_credit": ("South_German_Credit", "south_german_credit_protocol.py"),
+    "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_protocol.py"),
+    "taiwan_bankruptcy": ("Taiwan_Bankruptcy", "taiwan_bankruptcy_protocol.py"),
+    "polish_bankruptcy": ("Polish_Bankruptcy_3Year", "polish_bankruptcy_3year_protocol.py"),
+    "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_protocol.py"),
+}
 for arm in EXP9_ARMS:
-    script = ROOT / "5_Experiments" / arm / "9_Revised_Snapshot_Protocol" / "run_protocol.py"
     for ds in EXP9_DATASETS:
-        run([str(PY), str(script), "--stage", "split_ml", "--no-sweep", "--datasets", ds])
+        folder, fname = PROTOCOL_SCRIPTS[ds]
+        script = ROOT / "5_Experiments" / arm / "9_Revised_Snapshot_Protocol" / folder / fname
+        run([str(PY), str(script)])
 
 # --- Exp 1 historical L / l=500 for missing arms ---
 EXP1 = [
@@ -67,22 +76,42 @@ CONSUMERS = [
     "7_Snapshot_Mean_Variance",
     "8_Null_Hypothesis_Algorithm2",
 ]
+PH_SCRIPTS = {
+    "pkdd_czech": ("PKDD_Czech_Financial", "pkdd_czech_financial"),
+    "south_german_credit": ("South_German_Credit", "south_german_credit"),
+    "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_data"),
+    "taiwan_bankruptcy": ("Taiwan_Bankruptcy", "taiwan_bankruptcy"),
+    "polish_bankruptcy": ("Polish_Bankruptcy_3Year", "polish_bankruptcy_3year"),
+    "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_cards_client"),
+}
+CONSUMER_SUFFIX = {
+    "1_PH_Default_Parameters": "_PH.py",
+    "2_PH_Tuned_Parameters": "_PH_tuned.py",
+    "3_H0_Only": "_H0_only.py",
+    "4_Dropping_Correlated_Barcode_Statistics_Columns": "_PH.py",
+    "5_Linear_Regression_For_Prediction": "_PH.py",
+    "6_Sampling_Ratio_Audit": "_audit.py",
+    "7_Snapshot_Mean_Variance": "_mean_variance.py",
+    "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+}
+
+
+def dataset_script(arm, dataset_key, experiment):
+    folder, stem = PH_SCRIPTS[dataset_key]
+    return ROOT / "5_Experiments" / arm / experiment / folder / (stem + CONSUMER_SUFFIX[experiment])
+
+
 for ds, arm in EXP1:
-    run([str(PY), "-c",
-         f"from utils import run_protocol_experiment; run_protocol_experiment({ds!r}, {arm!r}, '1_PH_Default_Parameters', skip_existing_barcodes=True)"])
+    run([str(PY), str(dataset_script(arm, ds, "1_PH_Default_Parameters"))])
     for exp in CONSUMERS:
-        run([str(PY), "-c",
-             f"from utils import run_protocol_experiment; run_protocol_experiment({ds!r}, {arm!r}, {exp!r})"])
+        run([str(PY), str(dataset_script(arm, ds, exp))])
 
 # Historical consumers already have Exp 1; run remaining cheap/consumer jobs if missing
 for ds in ("pkdd_czech", "south_german_credit", "statlog_german", "taiwan_bankruptcy", "polish_bankruptcy", "credit_card_default"):
     for exp in CONSUMERS:
-        run([str(PY), "-c",
-             f"from utils import run_protocol_experiment; run_protocol_experiment({ds!r}, 'Historical_Late_Split_Balanced_TDA', {exp!r})"])
-    # Early_Split DCCCD + Statlog already have Exp 1
+        run([str(PY), str(dataset_script("Historical_Late_Split_Balanced_TDA", ds, exp))])
     if ds in ("credit_card_default", "statlog_german"):
         for exp in CONSUMERS:
-            run([str(PY), "-c",
-                 f"from utils import run_protocol_experiment; run_protocol_experiment({ds!r}, 'Early_Split_TDA', {exp!r})"])
+            run([str(PY), str(dataset_script("Early_Split_TDA", ds, exp))])
 
 log("QUEUE FINISHED")

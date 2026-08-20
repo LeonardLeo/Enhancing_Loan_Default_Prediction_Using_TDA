@@ -3,110 +3,581 @@
 Snapshot sample size / 2_Points_Per_Snapshot_Sweep
 Dataset: South German Credit
 
-x-axis = points per snapshot {15, 30, 45, 60 where they fit}. Number of
-snapshots is held fixed at 60. This is item 2, not item 1 (which instead holds
-the default cloud size and moves snapshot count).
+This figure holds the number of snapshots at 60. The x-axis is points per snapshot (every surviving value in 15, 30, 45, 60).
 
-I report F1 as the headline metric because several tables are class-imbalanced;
-accuracy is shown as well. Items 1, 2, and 4 share one compute grid. The shared
-pool builder for this dataset is:
+The four protocol arms are written one after another in this file so you can
+read load -> scale -> PCA -> class split -> snapshots -> Ripser -> train
+without jumping into another module. Ripser on 60+15 snapshots (repeated 10
+times) is the mechanical part and lives in utils.py, same as generate_landmark_sets
+in the original PH scripts.
 
-    5_Experiments/Snapshot_Sample_Size/0_Shared_Pools/South_German_Credit/south_german_credit_shared_pools.py
 """
+
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
-from pathlib import Path
+import warnings
 
-ROOT = Path(__file__).resolve().parents[4]
-BUCKET = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(BUCKET))
+import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
-from sample_size_lib import (
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
+
+from utils import (
+    data_preprocessing_pipeline,
     CANDIDATE_POINTS_PER_SNAPSHOT,
-    CUSTOMER_SPLIT_SEED,
     N_REPEATS,
+    N_SNAPSHOTS_GRID,
     N_TEST_SNAPSHOTS,
     N_TRAIN_POOL,
-    PROTOCOLS,
-    evaluate_nested_prefixes,
+    assemble_split_matrix,
+    attach_design_columns,
+    compute_barcodes_for_pool,
+    draw_snapshot_pool,
     export_experiment_tables,
-    resolve_grid,
-    reuse_ratio,
-    surviving_points_per_snapshot,
+    pool_dir,
+    repeat_metrics_path,
+    train_on_prefix,
+    write_repeat_metrics,
 )
 
 # =============================================================================
-# Protocol knobs
+# Deal with Warnings
 # =============================================================================
-DATASET_KEY = 'south_german_credit'
-FOLDER = 'South_German_Credit'
-ITEM = '2'
-ITEM_FOLDER = '2_Points_Per_Snapshot_Sweep'
+warnings.filterwarnings("ignore")
 
+DATASET_KEY = "south_german_credit"
+FOLDER = "South_German_Credit"
+ITEM = "2"
+ITEM_FOLDER = "2_Points_Per_Snapshot_Sweep"
 PCA_N_COMPONENTS = 10
 CANDIDATES = list(CANDIDATE_POINTS_PER_SNAPSHOT)   # 15, 30, 45, 60
-N_SNAPSHOTS_TRAIN_POOL = N_TRAIN_POOL              # draw 60 training snapshots
-N_SNAPSHOTS_TEST = N_TEST_SNAPSHOTS                # 15 held-out test snapshots
-NESTED_PREFIXES = (15, 30, 45, 60)                 # 15 subset 30 subset 45 subset 60
+N_SNAPSHOTS_TRAIN_POOL = N_TRAIN_POOL              # 60
+N_SNAPSHOTS_TEST = N_TEST_SNAPSHOTS                # 15
+NESTED_PREFIXES = tuple(N_SNAPSHOTS_GRID)          # 15 subset 30 subset 45 subset 60
 N_REPEATS_SNAPSHOT_DRAWS = N_REPEATS               # 10
-CUSTOMER_SPLIT_RANDOM_STATE = CUSTOMER_SPLIT_SEED  # 0
 SKIP_EXISTING = True
-CLASSIFIERS = ("svm", "knn", "xgb", "logistic", "random_forest")
-# 95% CI = mean +/- 1.96 * SE across the 10 snapshot-draw repeats
-# (snapshot-sampling uncertainty, not customer-split uncertainty).
-
-PROTOCOL_ARMS = list(PROTOCOLS.keys())
 
 # =============================================================================
-# Consume / build the shared pool, then slice it for this figure
+# Get Dataset
 # =============================================================================
-for protocol_bucket in PROTOCOL_ARMS:
-    spec = PROTOCOLS[protocol_bucket]
-    print("=" * 72)
-    print(f"{ITEM_FOLDER}  /  {FOLDER}  /  {protocol_bucket}")
-    print(f"  split timing : {spec['split_timing']}")
-    print(f"  undersample  : {spec['undersample']}")
-    print(f"  PCA rank     : {PCA_N_COMPONENTS}")
-    print("=" * 72)
+data = pd.read_csv(os.path.join(REPO_ROOT, "1_Data", "Processed_Datasets", "South_German_Credit", "processed_data.csv"))
+if "Unnamed: 0" in data.columns:
+    data = data.drop(columns=["Unnamed: 0"])
+data = data_preprocessing_pipeline(data, log_col=["hoehe", "laufzeit"])
+X = data.drop(columns=["target"])
+y = data["target"].astype(int)
+X = X.select_dtypes(include=[np.number]).copy()
 
-    # 1. Customer split (early arms) or full-table pool (late arms)
-    # 2. PCA fit (train-only if early, full table if late)
-    # 3. Optional undersample
-    design, pools = resolve_grid(DATASET_KEY, protocol_bucket)
-    grid = surviving_points_per_snapshot(design["binding_class_count"], CANDIDATES)
-    surviving = grid["surviving"]
-    dropped = [d["points_per_snapshot"] for d in grid["dropped"]]
-    default_pps = grid["default_points_per_snapshot"]
-    print(f"  surviving points per snapshot = {surviving}  dropped = {dropped}")
-    print(f"  default points per snapshot   = {default_pps}")
-    print(
-        f"  reuse ratio at 60 snapshots   = "
-        f"{reuse_ratio(default_pps, N_SNAPSHOTS_TRAIN_POOL, pools['train_minority_count']):.3f}"
-    )
+print("Loaded", FOLDER, "rows:", len(X), "PCA rank:", PCA_N_COMPONENTS)
 
-    # 4. Draw 60 snapshots, Ripser each, nested prefixes 15 subset 30 subset 45 subset 60
-    # 5. Train five classifiers; record F1 and accuracy
-    # 6. Repeat snapshot draws 10 times; CI is mean +/- 1.96 SE across repeats
-    if ITEM == "1":
-        pps_values = [default_pps]
+# =============================================================================
+# PROTOCOL: Historical Late Split, Balanced TDA
+# split timing = late    undersample = True
+# =============================================================================
+print("=" * 72)
+print("Historical Late Split, Balanced TDA")
+print("=" * 72)
+features = X.copy()
+labels = y.copy()
+
+scaler = MinMaxScaler()
+X_normalized = pd.DataFrame(scaler.fit_transform(features), columns=features.columns, index=features.index)
+pca = PCA(n_components=10, random_state=42)
+reduced = pd.DataFrame(
+    pca.fit_transform(X_normalized),
+    columns=[f"PCA_{i}" for i in range(1, 10 + 1)],
+    index=features.index,
+)
+print("  variance retained (full-table PCA):", f"{pca.explained_variance_ratio_.sum():.2%}")
+
+reduced["Class"] = labels.values
+default_data = reduced[reduced["Class"] == 1].reset_index(drop=True)
+non_default_data = reduced[reduced["Class"] == 0].reset_index(drop=True)
+n_samples = min(len(default_data), len(non_default_data))
+default_data = default_data.sample(n=n_samples, random_state=0).reset_index(drop=True)
+non_default_data = non_default_data.sample(n=n_samples, random_state=0).reset_index(drop=True)
+train_classes = {
+    "default": default_data.drop(columns=["Class"]),
+    "non-default": non_default_data.drop(columns=["Class"]),
+}
+test_classes = train_classes
+
+print("  train default / non-default:", len(train_classes["default"]), len(train_classes["non-default"]))
+print("  test  default / non-default:", len(test_classes["default"]), len(test_classes["non-default"]))
+binding = min(len(train_classes['default']), len(train_classes['non-default']))
+print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
+
+# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+surviving = []
+for points_per_snapshot in CANDIDATES:
+    if points_per_snapshot >= binding:
+        print(f"    drop {points_per_snapshot} points per snapshot: class pool has only {binding} people")
     else:
-        pps_values = surviving
-    for points_per_snapshot in pps_values:
-        for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
-            evaluate_nested_prefixes(
-                DATASET_KEY,
-                protocol_bucket,
-                points_per_snapshot,
-                repeat,
-                pools=pools,
-                skip_existing=SKIP_EXISTING,
-            )
+        surviving.append(points_per_snapshot)
+if not surviving:
+    surviving = [max(5, binding - 1)]
+    print("    documented clip: every candidate was too big, so use class count minus one =", surviving[0])
+default_pps = max(surviving)
+print("  surviving points per snapshot:", surviving)
+print("  item-1 default points per snapshot (largest surviving):", default_pps)
 
-# Item 1 keeps rows at the default points per snapshot.
-# Item 2 keeps rows at 60 training snapshots.
-# Item 4 keeps every surviving (points per snapshot, n snapshots) cell.
-export_experiment_tables(ITEM)
-print(f"Exported {ITEM_FOLDER} for {FOLDER}.")
+protocol_bucket = "Historical_Late_Split_Balanced_TDA"
+for points_per_snapshot in surviving:
+    for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
+        out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        if SKIP_EXISTING and os.path.exists(out_path):
+            print(f"[skip] metrics {os.path.basename(str(out_path))}")
+            continue
+
+        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        index_sets, prefix_order, seeds = draw_snapshot_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+            skip_existing=SKIP_EXISTING,
+        )
+        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        meta = compute_barcodes_for_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            index_sets=index_sets,
+            prefix_order=prefix_order,
+            seeds=seeds,
+            dataset_key=DATASET_KEY,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+            majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+            skip_existing=SKIP_EXISTING,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+        )
+        cache = pool_dir(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        prefix_order = meta["nested_prefix_order"]
+        test_df = assemble_split_matrix(cache, "test", list(range(N_SNAPSHOTS_TEST)))
+        rows = []
+        for n_snapshots in NESTED_PREFIXES:
+            train_df = assemble_split_matrix(cache, "train", prefix_order, n_keep=n_snapshots)
+            for metrics in train_on_prefix(train_df, test_df):
+                rows.append(
+                    attach_design_columns(
+                        metrics,
+                        dataset_key=DATASET_KEY,
+                        display_name="South German Credit",
+                        folder_name=FOLDER,
+                        protocol_bucket=protocol_bucket,
+                        points_per_snapshot=points_per_snapshot,
+                        n_snapshots=n_snapshots,
+                        repeat=repeat,
+                        minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+                        majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+                        binding=binding,
+                        default_points_per_snapshot=default_pps,
+                        n_train_barcode_rows=len(train_df),
+                        n_test_barcode_rows=len(test_df),
+                    )
+                )
+        write_repeat_metrics(out_path, rows, skip_existing=False)
+
+# =============================================================================
+# PROTOCOL: Early Split TDA
+# split timing = early    undersample = True
+# =============================================================================
+print("=" * 72)
+print("Early Split TDA")
+print("=" * 72)
+features = X.copy()
+labels = y.copy()
+
+X_train, X_test, y_train, y_test = train_test_split(
+    features, labels, test_size=0.2, random_state=0, stratify=labels
+)
+scaler = MinMaxScaler()
+X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+pca = PCA(n_components=10, random_state=42)
+X_train_pca = pd.DataFrame(
+    pca.fit_transform(X_train_scaled),
+    columns=[f"PCA_{i}" for i in range(1, 10 + 1)],
+    index=X_train.index,
+)
+X_test_pca = pd.DataFrame(
+    pca.transform(X_test_scaled),
+    columns=[f"PCA_{i}" for i in range(1, 10 + 1)],
+    index=X_test.index,
+)
+print("  variance retained (train-fit PCA):", f"{pca.explained_variance_ratio_.sum():.2%}")
+
+train_frame = X_train_pca.copy()
+train_frame["Class"] = y_train.values
+default_train = train_frame[train_frame["Class"] == 1].reset_index(drop=True)
+non_default_train = train_frame[train_frame["Class"] == 0].reset_index(drop=True)
+n_tr = min(len(default_train), len(non_default_train))
+default_train = default_train.sample(n=n_tr, random_state=0).reset_index(drop=True)
+non_default_train = non_default_train.sample(n=n_tr, random_state=0).reset_index(drop=True)
+
+test_frame = X_test_pca.copy()
+test_frame["Class"] = y_test.values
+default_test = test_frame[test_frame["Class"] == 1].reset_index(drop=True)
+non_default_test = test_frame[test_frame["Class"] == 0].reset_index(drop=True)
+n_te = min(len(default_test), len(non_default_test))
+default_test = default_test.sample(n=n_te, random_state=0).reset_index(drop=True)
+non_default_test = non_default_test.sample(n=n_te, random_state=0).reset_index(drop=True)
+
+train_classes = {
+    "default": default_train.drop(columns=["Class"]),
+    "non-default": non_default_train.drop(columns=["Class"]),
+}
+test_classes = {
+    "default": default_test.drop(columns=["Class"]),
+    "non-default": non_default_test.drop(columns=["Class"]),
+}
+
+print("  train default / non-default:", len(train_classes["default"]), len(train_classes["non-default"]))
+print("  test  default / non-default:", len(test_classes["default"]), len(test_classes["non-default"]))
+binding = min(len(train_classes['default']), len(train_classes['non-default']), len(test_classes['default']), len(test_classes['non-default']))
+print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
+
+# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+surviving = []
+for points_per_snapshot in CANDIDATES:
+    if points_per_snapshot >= binding:
+        print(f"    drop {points_per_snapshot} points per snapshot: class pool has only {binding} people")
+    else:
+        surviving.append(points_per_snapshot)
+if not surviving:
+    surviving = [max(5, binding - 1)]
+    print("    documented clip: every candidate was too big, so use class count minus one =", surviving[0])
+default_pps = max(surviving)
+print("  surviving points per snapshot:", surviving)
+print("  item-1 default points per snapshot (largest surviving):", default_pps)
+
+protocol_bucket = "Early_Split_TDA"
+for points_per_snapshot in surviving:
+    for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
+        out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        if SKIP_EXISTING and os.path.exists(out_path):
+            print(f"[skip] metrics {os.path.basename(str(out_path))}")
+            continue
+
+        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        index_sets, prefix_order, seeds = draw_snapshot_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+            skip_existing=SKIP_EXISTING,
+        )
+        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        meta = compute_barcodes_for_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            index_sets=index_sets,
+            prefix_order=prefix_order,
+            seeds=seeds,
+            dataset_key=DATASET_KEY,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+            majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+            skip_existing=SKIP_EXISTING,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+        )
+        cache = pool_dir(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        prefix_order = meta["nested_prefix_order"]
+        test_df = assemble_split_matrix(cache, "test", list(range(N_SNAPSHOTS_TEST)))
+        rows = []
+        for n_snapshots in NESTED_PREFIXES:
+            train_df = assemble_split_matrix(cache, "train", prefix_order, n_keep=n_snapshots)
+            for metrics in train_on_prefix(train_df, test_df):
+                rows.append(
+                    attach_design_columns(
+                        metrics,
+                        dataset_key=DATASET_KEY,
+                        display_name="South German Credit",
+                        folder_name=FOLDER,
+                        protocol_bucket=protocol_bucket,
+                        points_per_snapshot=points_per_snapshot,
+                        n_snapshots=n_snapshots,
+                        repeat=repeat,
+                        minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+                        majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+                        binding=binding,
+                        default_points_per_snapshot=default_pps,
+                        n_train_barcode_rows=len(train_df),
+                        n_test_barcode_rows=len(test_df),
+                    )
+                )
+        write_repeat_metrics(out_path, rows, skip_existing=False)
+
+# =============================================================================
+# PROTOCOL: No Undersampling
+# split timing = late    undersample = False
+# =============================================================================
+print("=" * 72)
+print("No Undersampling")
+print("=" * 72)
+features = X.copy()
+labels = y.copy()
+
+scaler = MinMaxScaler()
+X_normalized = pd.DataFrame(scaler.fit_transform(features), columns=features.columns, index=features.index)
+pca = PCA(n_components=10, random_state=42)
+reduced = pd.DataFrame(
+    pca.fit_transform(X_normalized),
+    columns=[f"PCA_{i}" for i in range(1, 10 + 1)],
+    index=features.index,
+)
+print("  variance retained (full-table PCA):", f"{pca.explained_variance_ratio_.sum():.2%}")
+
+reduced["Class"] = labels.values
+default_data = reduced[reduced["Class"] == 1].reset_index(drop=True)
+non_default_data = reduced[reduced["Class"] == 0].reset_index(drop=True)
+train_classes = {
+    "default": default_data.drop(columns=["Class"]),
+    "non-default": non_default_data.drop(columns=["Class"]),
+}
+test_classes = train_classes
+
+print("  train default / non-default:", len(train_classes["default"]), len(train_classes["non-default"]))
+print("  test  default / non-default:", len(test_classes["default"]), len(test_classes["non-default"]))
+binding = min(len(train_classes['default']), len(train_classes['non-default']))
+print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
+
+# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+surviving = []
+for points_per_snapshot in CANDIDATES:
+    if points_per_snapshot >= binding:
+        print(f"    drop {points_per_snapshot} points per snapshot: class pool has only {binding} people")
+    else:
+        surviving.append(points_per_snapshot)
+if not surviving:
+    surviving = [max(5, binding - 1)]
+    print("    documented clip: every candidate was too big, so use class count minus one =", surviving[0])
+default_pps = max(surviving)
+print("  surviving points per snapshot:", surviving)
+print("  item-1 default points per snapshot (largest surviving):", default_pps)
+
+protocol_bucket = "No_Undersampling"
+for points_per_snapshot in surviving:
+    for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
+        out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        if SKIP_EXISTING and os.path.exists(out_path):
+            print(f"[skip] metrics {os.path.basename(str(out_path))}")
+            continue
+
+        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        index_sets, prefix_order, seeds = draw_snapshot_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+            skip_existing=SKIP_EXISTING,
+        )
+        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        meta = compute_barcodes_for_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            index_sets=index_sets,
+            prefix_order=prefix_order,
+            seeds=seeds,
+            dataset_key=DATASET_KEY,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+            majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+            skip_existing=SKIP_EXISTING,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+        )
+        cache = pool_dir(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        prefix_order = meta["nested_prefix_order"]
+        test_df = assemble_split_matrix(cache, "test", list(range(N_SNAPSHOTS_TEST)))
+        rows = []
+        for n_snapshots in NESTED_PREFIXES:
+            train_df = assemble_split_matrix(cache, "train", prefix_order, n_keep=n_snapshots)
+            for metrics in train_on_prefix(train_df, test_df):
+                rows.append(
+                    attach_design_columns(
+                        metrics,
+                        dataset_key=DATASET_KEY,
+                        display_name="South German Credit",
+                        folder_name=FOLDER,
+                        protocol_bucket=protocol_bucket,
+                        points_per_snapshot=points_per_snapshot,
+                        n_snapshots=n_snapshots,
+                        repeat=repeat,
+                        minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+                        majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+                        binding=binding,
+                        default_points_per_snapshot=default_pps,
+                        n_train_barcode_rows=len(train_df),
+                        n_test_barcode_rows=len(test_df),
+                    )
+                )
+        write_repeat_metrics(out_path, rows, skip_existing=False)
+
+# =============================================================================
+# PROTOCOL: Early Split TDA And No Undersampling
+# split timing = early    undersample = False
+# =============================================================================
+print("=" * 72)
+print("Early Split TDA And No Undersampling")
+print("=" * 72)
+features = X.copy()
+labels = y.copy()
+
+X_train, X_test, y_train, y_test = train_test_split(
+    features, labels, test_size=0.2, random_state=0, stratify=labels
+)
+scaler = MinMaxScaler()
+X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+pca = PCA(n_components=10, random_state=42)
+X_train_pca = pd.DataFrame(
+    pca.fit_transform(X_train_scaled),
+    columns=[f"PCA_{i}" for i in range(1, 10 + 1)],
+    index=X_train.index,
+)
+X_test_pca = pd.DataFrame(
+    pca.transform(X_test_scaled),
+    columns=[f"PCA_{i}" for i in range(1, 10 + 1)],
+    index=X_test.index,
+)
+print("  variance retained (train-fit PCA):", f"{pca.explained_variance_ratio_.sum():.2%}")
+
+train_frame = X_train_pca.copy()
+train_frame["Class"] = y_train.values
+default_train = train_frame[train_frame["Class"] == 1].reset_index(drop=True)
+non_default_train = train_frame[train_frame["Class"] == 0].reset_index(drop=True)
+test_frame = X_test_pca.copy()
+test_frame["Class"] = y_test.values
+default_test = test_frame[test_frame["Class"] == 1].reset_index(drop=True)
+non_default_test = test_frame[test_frame["Class"] == 0].reset_index(drop=True)
+
+train_classes = {
+    "default": default_train.drop(columns=["Class"]),
+    "non-default": non_default_train.drop(columns=["Class"]),
+}
+test_classes = {
+    "default": default_test.drop(columns=["Class"]),
+    "non-default": non_default_test.drop(columns=["Class"]),
+}
+
+print("  train default / non-default:", len(train_classes["default"]), len(train_classes["non-default"]))
+print("  test  default / non-default:", len(test_classes["default"]), len(test_classes["non-default"]))
+binding = min(len(train_classes['default']), len(train_classes['non-default']), len(test_classes['default']), len(test_classes['non-default']))
+print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
+
+# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+surviving = []
+for points_per_snapshot in CANDIDATES:
+    if points_per_snapshot >= binding:
+        print(f"    drop {points_per_snapshot} points per snapshot: class pool has only {binding} people")
+    else:
+        surviving.append(points_per_snapshot)
+if not surviving:
+    surviving = [max(5, binding - 1)]
+    print("    documented clip: every candidate was too big, so use class count minus one =", surviving[0])
+default_pps = max(surviving)
+print("  surviving points per snapshot:", surviving)
+print("  item-1 default points per snapshot (largest surviving):", default_pps)
+
+protocol_bucket = "Early_Split_TDA_And_No_Undersampling"
+for points_per_snapshot in surviving:
+    for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
+        out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        if SKIP_EXISTING and os.path.exists(out_path):
+            print(f"[skip] metrics {os.path.basename(str(out_path))}")
+            continue
+
+        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        index_sets, prefix_order, seeds = draw_snapshot_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+            skip_existing=SKIP_EXISTING,
+        )
+        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        meta = compute_barcodes_for_pool(
+            train_classes=train_classes,
+            test_classes=test_classes,
+            index_sets=index_sets,
+            prefix_order=prefix_order,
+            seeds=seeds,
+            dataset_key=DATASET_KEY,
+            protocol_bucket=protocol_bucket,
+            dataset_folder=FOLDER,
+            points_per_snapshot=points_per_snapshot,
+            repeat=repeat,
+            minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+            majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+            skip_existing=SKIP_EXISTING,
+            n_train_snapshots=N_SNAPSHOTS_TRAIN_POOL,
+            n_test_snapshots=N_SNAPSHOTS_TEST,
+        )
+        cache = pool_dir(protocol_bucket, FOLDER, points_per_snapshot, repeat)
+        prefix_order = meta["nested_prefix_order"]
+        test_df = assemble_split_matrix(cache, "test", list(range(N_SNAPSHOTS_TEST)))
+        rows = []
+        for n_snapshots in NESTED_PREFIXES:
+            train_df = assemble_split_matrix(cache, "train", prefix_order, n_keep=n_snapshots)
+            for metrics in train_on_prefix(train_df, test_df):
+                rows.append(
+                    attach_design_columns(
+                        metrics,
+                        dataset_key=DATASET_KEY,
+                        display_name="South German Credit",
+                        folder_name=FOLDER,
+                        protocol_bucket=protocol_bucket,
+                        points_per_snapshot=points_per_snapshot,
+                        n_snapshots=n_snapshots,
+                        repeat=repeat,
+                        minority_count=min(len(train_classes["default"]), len(train_classes["non-default"])),
+                        majority_count=max(len(train_classes["default"]), len(train_classes["non-default"])),
+                        binding=binding,
+                        default_points_per_snapshot=default_pps,
+                        n_train_barcode_rows=len(train_df),
+                        n_test_barcode_rows=len(test_df),
+                    )
+                )
+        write_repeat_metrics(out_path, rows, skip_existing=False)
+
+# =============================================================================
+# Keep the rows this figure needs, then write the CSV tables
+# =============================================================================
+export_experiment_tables("2")
+print("Exported", ITEM_FOLDER, "for", FOLDER)

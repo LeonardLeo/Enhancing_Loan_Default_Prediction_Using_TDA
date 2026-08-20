@@ -34,7 +34,7 @@ Root shims `6_Results/_ripser_queue.py` and `6_Results/_consumer_queue.py` forwa
 
 ## Where the method is written
 
-Every dataset folder contains a readable pipeline script. That file is the method document. `run.py` is an optional launcher.
+Every dataset folder contains a readable pipeline script. That file is the method document. There is no wrapper launcher: open and run the named dataset script.
 
 | Kind of experiment | Typical script name |
 |--------------------|---------------------|
@@ -47,15 +47,16 @@ Every dataset folder contains a readable pipeline script. That file is the metho
 | Algorithm 2 | `*_algorithm2.py` |
 | Revised snapshot protocol | `*_protocol.py` |
 | Intrinsic dimension | `run_intrinsic_dimension.py` |
-| Snapshot sample size | `*_sample_size.py` / `*_shared_pools.py` |
+| Snapshot sample size | Each numbered folder's `*_sample_size.py` is the method for that figure (load, PCA, snapshots, Ripser, train). |
 
 Example:
 
 ```
 5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py
+5_Experiments/Snapshot_Sample_Size/0_Shared_Pools/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_shared_pools.py
 ```
 
-Heavy Ripser and IO helpers live in `utils.py`. The sample-size study uses `5_Experiments/Snapshot_Sample_Size/sample_size_lib.py` the same way.
+Heavy Ripser and IO helpers live in `utils.py`. The sample-size study uses `5_Experiments/Snapshot_Sample_Size/utils.py` the same way. To see how barcodes were built for the sample-size study, open `0_Shared_Pools`. The numbered experiment scripts only select which rows go on which figure.
 
 Active TDA experiments 1–9 inside every arm: PH default, PH tuned, H0-only, drop correlated, linear regression, sampling-ratio audit, snapshot mean/variance, Algorithm 2, revised snapshot protocol.
 

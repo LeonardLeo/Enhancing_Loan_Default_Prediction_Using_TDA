@@ -1,93 +1,67 @@
 # -*- coding: utf-8 -*-
 """
-No_Undersampling / 2_PH_Tuned_Parameters
+No Undersampling / 2_PH_Tuned_Parameters
 Dataset: Taiwanese Bankruptcy Prediction
 
-This file is the method document for this dataset. Heavy Ripser / IO helpers
-live in utils.py; the pipeline itself is written here in order.
-
-Protocol
---------
-- Split timing : late
-- Undersample  : False
-- PCA rank     : 10  (historical Exp 3 rank for this table)
-- Snapshot size percents : [10.0, 20.0]
-- Number of snapshots    : 500
-This experiment does not run Ripser. It loads Experiment 1 barcode tables
-and retrains the five classifiers with GridSearchCV (F1 scoring).
+This experiment does not run Ripser. It reloads Experiment 1 barcode tables and retunes the five classifiers.
 """
 
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
 import warnings
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
+import pandas as pd
+
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
 
 from utils import (
     DEFAULT_TDA_TUNED_MODEL_CONFIGS,
     store_results,
-    tda_results_dir,
-    late_split_barcode_paths,
     train_models_on_multiple_datasets,
 )
 
+# =============================================================================
+# Deal with Warnings
+# =============================================================================
 warnings.filterwarnings("ignore")
 
-# =============================================================================
-# Protocol knobs (this arm, this dataset)
-# =============================================================================
-DATASET_KEY = 'taiwan_bankruptcy'
-PROTOCOL_BUCKET = 'No_Undersampling'
+PROTOCOL_BUCKET = "No_Undersampling"
 EXPERIMENT = "2_PH_Tuned_Parameters"
 SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
-FOLDER = 'Taiwan_Bankruptcy'
+FOLDER = "Taiwan_Bankruptcy"
 
-SPLIT_TIMING = 'late'
-UNDERSAMPLE = False
-LANDMARK_PERCENTAGES = [10.0, 20.0]
-RANDOM_STATE = 42
-TEST_SIZE = 0.2
-SCORING = "f1"
-N_SPLITS_KFOLD = 5
-
-# GridSearchCV grids (utils.DEFAULT_TDA_TUNED_MODEL_CONFIGS):
-#   SVM            C in {0.1, 1, 10}, kernel in {linear, rbf}, gamma in {scale, auto}
-#   KNN            n_neighbors in {3, 5, 7}, weights in {uniform, distance}, p in {1, 2}
-#   XGBoost        n_estimators in {50, 100, 200}, learning_rate in {0.01, 0.1, 0.2}, max_depth in {3, 5, 7}
-#   Logistic       C in {0.1, 1, 10}, solver in {liblinear, lbfgs}
-#   Random Forest  n_estimators in {50, 100, 200}, max_depth in {3, 5, 10, None}, min_samples_split in {2, 5, 10}
+src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER)
+save_path = os.path.join(REPO_ROOT, "6_Results", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
 
 # =============================================================================
-# Load barcode tables (Experiment 1)
+# Load Experiment 1 barcode tables
 # =============================================================================
-paths = late_split_barcode_paths(
-    PROTOCOL_BUCKET, FOLDER, LANDMARK_PERCENTAGES, SOURCE_EXPERIMENT
-)
-for path in paths:
-    print(f"Barcode table: {path}")
+print("Table L10:", os.path.join(src_dir, "data_L10.csv"))
+print("Table L20:", os.path.join(src_dir, "data_L20.csv"))
 
 # =============================================================================
-# Train models (tuned)
+# Train models (GridSearchCV, scoring = F1)
 # =============================================================================
+paths = [
+    os.path.join(src_dir, "data_L10.csv"),
+    os.path.join(src_dir, "data_L20.csv"),
+]
 model_results = train_models_on_multiple_datasets(
     data_paths=paths,
     model_configs=DEFAULT_TDA_TUNED_MODEL_CONFIGS,
     target_column="label",
-    test_size=TEST_SIZE,
-    scoring_metric=SCORING,
-    scale_features=True,
-    random_state=RANDOM_STATE,
-    n_splits_kfold=N_SPLITS_KFOLD,
+    scoring_metric="f1",
+    random_state=42,
 )
 
 print(model_results)
 
 # =============================================================================
-# Store results
+# Store model results
 # =============================================================================
-save_path = tda_results_dir(PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
-store_results(path=str(save_path), save_name="model_results", result_object=model_results)
+store_results(path=save_path, save_name="model_results", result_object=model_results)

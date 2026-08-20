@@ -394,7 +394,7 @@ We sit exactly on the minority bound for 60 training snapshots. That is intentio
 
 | Path | Role |
 |------|------|
-| `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/protocol_lib.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling |
+| `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/utils.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling |
 | `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/run_protocol.py` | Orchestrator |
 | `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
 | `.../<dataset>/worked_calculations.csv` | Step-by-step numeric audit |

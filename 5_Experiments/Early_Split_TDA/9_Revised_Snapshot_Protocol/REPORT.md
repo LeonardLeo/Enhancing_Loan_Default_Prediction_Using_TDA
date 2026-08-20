@@ -26,7 +26,7 @@ This experiment uses a **fixed absolute points-per-snapshot value** for train an
 
 Each dataset `*_protocol.py` is the method document. Helpers:
 
-- `protocol_lib.py` — sampling, overlap diagnostics, models
+- `utils.py` — sampling, overlap diagnostics, models
 - `run_protocol.py` — stages `design` → `split_ml` → `full_ml`
 
 ## Stages
@@ -53,4 +53,4 @@ Compared with Historical arm experiment 1, this protocol produces **fewer** barc
 
 ## Where to read the method
 
-Open the dataset `*_protocol.py` in this folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py`). That file is the method document. `run.py` is an optional convenience launcher. Helpers live in `protocol_lib.py`.
+Open the dataset `*_protocol.py` in this folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py`). That file is the method document.  Helpers live in `utils.py`.

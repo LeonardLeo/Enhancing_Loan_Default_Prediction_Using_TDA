@@ -39,8 +39,10 @@ Exp 1–5 (and Default_Parameters 1–2) consume `model_results.pkl` / metric CS
 
 Archived experiments keep their original `visualize_results.py` files under `5_Experiments/Archives/`. Historical scripts may still use symbols `t`/`l` in code identifiers; see `docs/Notation.md`.
 
-`Snapshot_Sample_Size` has its own `visualize_results.py` in each of `1_Snapshot_Count_Sweep`, `2_Points_Per_Snapshot_Sweep`, and `3_Snapshot_Count_Across_Cloud_Sizes`. Those call `sample_size_lib.py`, not `visualize_experiment_folder`.
+`Snapshot_Sample_Size` has its own `visualize_results.py` in each of `1_Snapshot_Count_Sweep`, `2_Points_Per_Snapshot_Sweep`, and `3_Snapshot_Count_Across_Cloud_Sizes`. Those call `utils.py`, not `visualize_experiment_folder`.
 
 ## Where to read the method
 
-Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. `run.py` is an optional convenience launcher and is not the method document.
+Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. Open the named dataset script in the dataset folder.
+
+For the snapshot sample-size study, open `Snapshot_Sample_Size/0_Shared_Pools`. The numbered experiment scripts only select which rows go on which figure.

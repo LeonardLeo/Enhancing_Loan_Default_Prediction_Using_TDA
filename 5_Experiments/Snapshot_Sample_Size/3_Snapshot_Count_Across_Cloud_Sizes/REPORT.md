@@ -25,16 +25,18 @@ CSV: `6_Results/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/all_sum
 
 ## Where to read the method
 
-Open the dataset script in this folder — for Default of Credit Card Client:
+To see how barcodes were built, open `0_Shared_Pools`. The numbered experiment scripts only select which rows go on which figure.
 
-`Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_sample_size.py`
+Method (Default of Credit Card Client):
 
-That file shows the protocol arm, customer split, PCA fit, how points-per-snapshot values are chosen (and which are dropped), the 60-snapshot draw, nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60, the five classifiers, the 10 repeats, and how the CI is built. The shared-pool builder is `../0_Shared_Pools/<Dataset>/<stem>_shared_pools.py`. `run.py` is an optional convenience launcher.
+`../0_Shared_Pools/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_shared_pools.py`
+
+This folder’s `*_sample_size.py` files keep every surviving (points per snapshot × number of snapshots) cell so the figure can draw one curve per cloud size. 
 
 ## How to run
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/run_shared.py
+.\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/run.py --protocol Early_Split_TDA --datasets pkdd_czech
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/visualize_results.py
 ```

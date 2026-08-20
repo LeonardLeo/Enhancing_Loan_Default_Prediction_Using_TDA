@@ -58,7 +58,7 @@ Consumers 2–5 and 7–8 read this arm's experiment-1 matrices. They must not s
 
 ## Where to read the method
 
-Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. `run.py` is an optional convenience launcher and is not the method document.
+Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. Open the named dataset script in the dataset folder.
 
 ## How to run
 
@@ -66,7 +66,7 @@ Open the named dataset script in each dataset folder (for example `Default_Of_Cr
 .\tda_env\Scripts\python.exe 5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/<Dataset>/default_of_credit_cards_client_PH.py
 ```
 
-Or the folder launcher `run_all.py`. Ensure the repository root is on `PYTHONPATH` (dataset scripts insert it themselves).
+ Ensure the repository root is on `PYTHONPATH` (dataset scripts insert it themselves).
 
 ## Cost
 

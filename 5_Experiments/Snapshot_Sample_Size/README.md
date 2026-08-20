@@ -23,21 +23,21 @@ DCCCD Early Split example (logistic, mean accuracy across 10 repeats): item 1 ho
 
 ## Where to read the method
 
-Open these files — they show the pipeline in order:
+To see how barcodes were built, open `0_Shared_Pools`. The numbered experiment scripts only select which rows go on which figure.
 
 | What to read | File |
 |--------------|------|
-| Shared-pool builder (this dataset) | `0_Shared_Pools/<Dataset>/<stem>_shared_pools.py` |
-| Item 1 — number of snapshots, points per snapshot fixed | `1_Snapshot_Count_Sweep/<Dataset>/<stem>_sample_size.py` |
-| Item 2 — points per snapshot, number of snapshots fixed at 60 | `2_Points_Per_Snapshot_Sweep/<Dataset>/<stem>_sample_size.py` |
-| Item 4 — families of cloud size | `3_Snapshot_Count_Across_Cloud_Sizes/<Dataset>/<stem>_sample_size.py` |
+| **Method** — split, PCA, undersample, Ripser, train | the dataset script in each numbered Snapshot_Sample_Size folder |
+| Item 1 slice — number of snapshots; default cloud size | `1_Snapshot_Count_Sweep/<Dataset>/<stem>_sample_size.py` |
+| Item 2 slice — points per snapshot; always 60 snapshots | `2_Points_Per_Snapshot_Sweep/<Dataset>/<stem>_sample_size.py` |
+| Item 4 slice — every surviving cell | `3_Snapshot_Count_Across_Cloud_Sizes/<Dataset>/<stem>_sample_size.py` |
 
 Example for the Default of Credit Card Client table:
 
-- `0_Shared_Pools/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_shared_pools.py`
-- `1_Snapshot_Count_Sweep/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_sample_size.py`
+- **Method:** `0_Shared_Pools/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_shared_pools.py`
+- Item 2 slice: `2_Points_Per_Snapshot_Sweep/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_sample_size.py`
 
-`run.py` in those folders is an optional convenience launcher. Heavy Ripser / IO helpers live in `sample_size_lib.py`. `run_shared.py` / `build_shared_pools.py` run the same grid from the bucket root.
+`run.py` in those folders is an optional convenience launcher. Heavy Ripser / IO helpers live in `utils.py`.
 
 ## Item 3 is not a third grid
 
@@ -110,7 +110,7 @@ The dataset scripts loop these four arms:
 
 ```
 5_Experiments/Snapshot_Sample_Size/
-  sample_size_lib.py
+  utils.py
   build_shared_pools.py
   run_shared.py
   0_Shared_Pools/{Dataset}/
@@ -133,8 +133,8 @@ CSV one-liners:
 ## How to run
 
 ```powershell
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/run_shared.py --stage design
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/run_shared.py
+.\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/ --stage design
+.\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/visualize_results.py
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/2_Points_Per_Snapshot_Sweep/visualize_results.py
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/visualize_results.py

@@ -1,106 +1,89 @@
 # -*- coding: utf-8 -*-
 """
-Early_Split_TDA / 9_Revised_Snapshot_Protocol
+Early Split TDA / 9_Revised_Snapshot_Protocol
 Dataset: PKDD'99 Czech Financial
 
-This file is the method document for this dataset. Heavy Ripser / IO helpers
-live in utils.py; the pipeline itself is written here in order.
-
-Protocol
---------
-- Split timing : early
-- Undersample  : True
-- PCA rank     : 10  (historical Exp 3 rank for this table)
-- Points per snapshot : fixed absolute count (design-chosen points per snapshot), not a class percent
-- Training snapshots  : 60 (default)
-- Test snapshots      : 15 (default)
-Revised snapshot protocol: fixed points per snapshot (not a class percent),
-default 60 training snapshots and 15 test snapshots, overlap reported separately
-from the reuse-ratio formula. PCA rank is the same Exp 3 rank as experiments 1–8.
+Revised snapshot protocol: fixed points per snapshot (not a class percent), default 60 train / 15 test snapshots.
 """
 
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
 import warnings
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-EXP_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(EXP_DIR))
+import numpy as np
+import pandas as pd
 
-import run_protocol
-from protocol_lib import (
-    DEFAULT_TEST_L,
-    DEFAULT_TRAIN_L,
-    DCCCD_FULL_L,
-    ZANIAR_TEST_L,
-    ZANIAR_TRAIN_L,
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
+
+from utils import (
+    data_preprocessing_pipeline,
+    set_revised_snapshot_arm,
+    design_for_dataset,
+    run_split_ml,
+    run_full_ml,
 )
 
+# =============================================================================
+# Deal with Warnings
+# =============================================================================
 warnings.filterwarnings("ignore")
 
-# =============================================================================
-# Protocol knobs (this arm, this dataset)
-# =============================================================================
-DATASET_KEY = 'pkdd_czech'
-PROTOCOL_BUCKET = 'Early_Split_TDA'
+DATASET_KEY = "pkdd_czech"
+PROTOCOL_BUCKET = "Early_Split_TDA"
 EXPERIMENT = "9_Revised_Snapshot_Protocol"
-FOLDER = 'PKDD_Czech_Financial'
-
-SPLIT_TIMING = 'early'
+FOLDER = "PKDD_Czech_Financial"
+SPLIT_TIMING = "early"
 UNDERSAMPLE = True
 PCA_N_COMPONENTS = 10
-TRAIN_SNAPSHOTS = DEFAULT_TRAIN_L          # 60
-TEST_SNAPSHOTS = DEFAULT_TEST_L            # 15
-ZANIAR_TRAIN_SNAPSHOTS = ZANIAR_TRAIN_L    # 60, 80, 100
-ZANIAR_TEST_SNAPSHOTS = ZANIAR_TEST_L      # 15, 22, 30
-DCCCD_FULL_SNAPSHOTS = DCCCD_FULL_L        # 60, 75, 90 (DCCCD non-split arm only)
-RANDOM_STATE = 42
+RUN_ZANIAR_SWEEP = False   # True = also run train {60,80,100} x test {15,22,30}
 
-assert run_protocol.PROTOCOL_BUCKET == PROTOCOL_BUCKET
-assert run_protocol.SPLIT_TIMING == SPLIT_TIMING
-assert run_protocol.UNDERSAMPLE == UNDERSAMPLE
+# Tell the Experiment 9 helpers which arm this file belongs to.
+set_revised_snapshot_arm(PROTOCOL_BUCKET, SPLIT_TIMING, UNDERSAMPLE)
 
 # =============================================================================
-# Stage 1 — Design: intrinsic dimension, joint points-per-snapshot, reuse
+# Get Dataset
 # =============================================================================
-# Points per snapshot is a fixed absolute count, not floor(class * percent / 100).
-# Reuse ratio R = (points_per_snapshot * n_snapshots) / class_count.
-print("=" * 72)
-print(f"{EXPERIMENT} / {FOLDER}")
-print(f"split={SPLIT_TIMING}  undersample={UNDERSAMPLE}  PCA={PCA_N_COMPONENTS}")
-print(f"default snapshots: train={TRAIN_SNAPSHOTS}  test={TEST_SNAPSHOTS}")
-print("=" * 72)
+data = pd.read_csv(os.path.join(REPO_ROOT, "1_Data", "Processed_Datasets", "PKDD_Czech_Financial", "processed_data.csv"))
+if "Unnamed: 0" in data.columns:
+    data = data.drop(columns=["Unnamed: 0"])
+for col in data.select_dtypes(include=[np.number]).columns:
+    if data[col].isnull().any():
+        data[col] = data[col].fillna(data[col].median())
+for col in data.select_dtypes(include=["object"]).columns:
+    data[col] = data[col].fillna("missing").astype(str)
+data = data_preprocessing_pipeline(
+    data,
+    log_col=["amount", "payments", "tx_amount_sum", "tx_amount_mean"],
+    dummy_col=["frequency", "type", "sex", "A2", "A3", "A12", "A15", "preloan_card_type"],
+)
+X = data.drop(columns=["target"])
+y = data["target"].astype(int)
+X = X.select_dtypes(include=[np.number]).copy()
 
-design = run_protocol.design_for_dataset(DATASET_KEY)
-chosen_t = int(design["chosen_t"])
-eff_train = int(design.get("effective_defaults", {}).get("train_l", TRAIN_SNAPSHOTS))
-eff_test = int(design.get("effective_defaults", {}).get("test_l", TEST_SNAPSHOTS))
+print("Loaded", FOLDER, "rows:", len(X), "columns:", X.shape[1])
+print("split timing:", SPLIT_TIMING, " undersample:", UNDERSAMPLE, " PCA rank:", PCA_N_COMPONENTS)
+
+# =============================================================================
+# Stage 1 - Design: intrinsic dimension, joint points-per-snapshot, reuse
+# =============================================================================
+design = design_for_dataset(DATASET_KEY, X=X, y=y)
 print(
-    f"Chosen points per snapshot={chosen_t}  "
-    f"effective train snapshots={eff_train}  test snapshots={eff_test}  "
-    f"t_sweep={design['t_sweep']}"
+    "Chosen points per snapshot =", design["chosen_t"],
+    " effective train snapshots =", design.get("effective_defaults", {}).get("train_l"),
+    " test snapshots =", design.get("effective_defaults", {}).get("test_l"),
 )
 
 # =============================================================================
-# Stage 2 — Split ML: independent train/test snapshots, overlap, classifiers
+# Stage 2 - Draw snapshots, Ripser, overlap, classifiers
 # =============================================================================
-# For each points-per-snapshot value in the design sweep:
-#   1. split customers according to this arm
-#   2. fit PCA as this arm requires
-#   3. draw train snapshots (default 60) and test snapshots (default 15)
-#   4. Ripser each cloud
-#   5. report pairwise snapshot overlap
-#   6. train the five classifiers
-run_protocol.run_split_ml({DATASET_KEY: design}, [DATASET_KEY], sweep=True)
+run_split_ml({DATASET_KEY: design}, [DATASET_KEY], sweep=RUN_ZANIAR_SWEEP)
 
 # =============================================================================
-# Stage 3 — Optional full-table (non-split) arm on DCCCD only
+# Stage 3 - Optional full-table (non-split) arm on DCCCD only
 # =============================================================================
-if DATASET_KEY == "credit_card_default":
-    run_protocol.run_full_ml({DATASET_KEY: design}, [DATASET_KEY])
-else:
-    print("Full-table non-split arm is DCCCD-only; skipped for this dataset.")
+print("Full-table non-split arm is DCCCD-only; skipped for this dataset.")

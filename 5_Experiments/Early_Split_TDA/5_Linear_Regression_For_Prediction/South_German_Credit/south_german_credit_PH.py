@@ -1,64 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Early_Split_TDA / 5_Linear_Regression_For_Prediction
+Early Split TDA / 5_Linear_Regression_For_Prediction
 Dataset: South German Credit
 
-This file is the method document for this dataset. Heavy Ripser / IO helpers
-live in utils.py; the pipeline itself is written here in order.
-
-Protocol
---------
-- Split timing : early
-- Undersample  : True
-- PCA rank     : 10  (historical Exp 3 rank for this table)
-- Snapshot size percents : [10.0, 20.0]
-- Number of snapshots    : 500
-This experiment does not run Ripser. It loads Experiment 1 barcode tables,
-keeps the H0 slice, and fits linear regression as a classifier (threshold 0.5).
+This experiment does not run Ripser. It keeps H0 columns and fits linear regression as a classifier (threshold 0.5).
 """
 
 # =============================================================================
 # Import Libraries
 # =============================================================================
+import os
 import sys
 import warnings
-from pathlib import Path
 
 import pandas as pd
-
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
-
-from utils import (
-    _percent_token,
-    _write_h0_slice,
-    store_results,
-    tda_artefact_dir,
-    tda_results_dir,
-    train_multiple_dataset_tda_linear_regression,
-)
-
-warnings.filterwarnings("ignore")
-
-# =============================================================================
-# Protocol knobs (this arm, this dataset)
-# =============================================================================
-DATASET_KEY = 'south_german_credit'
-PROTOCOL_BUCKET = 'Early_Split_TDA'
-EXPERIMENT = "5_Linear_Regression_For_Prediction"
-SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
-FOLDER = 'South_German_Credit'
-
-SPLIT_TIMING = 'early'
-UNDERSAMPLE = True
-LANDMARK_PERCENTAGES = [10.0, 20.0]
-RANDOM_STATE = 42
-TEST_SIZE = 0.2
-DECISION_THRESHOLD = 0.5
-
-# =============================================================================
-# Load H0 barcode tables and fit linear regression on the customer split
-# =============================================================================
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -69,45 +24,112 @@ from sklearn.metrics import (
     recall_score,
 )
 
+# This file lives four folders below the repository root (where utils.py is).
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, REPO_ROOT)
+
+from utils import (
+    store_results,
+)
+
+# =============================================================================
+# Deal with Warnings
+# =============================================================================
+warnings.filterwarnings("ignore")
+
+PROTOCOL_BUCKET = "Early_Split_TDA"
+EXPERIMENT = "5_Linear_Regression_For_Prediction"
+SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
+FOLDER = "South_German_Credit"
+
+src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER)
+dest_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
+save_path = os.path.join(REPO_ROOT, "6_Results", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
 model_results = {}
-dest_root = tda_artefact_dir("TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
-for pct in LANDMARK_PERCENTAGES:
-    token = _percent_token(pct)
-    train_src = tda_artefact_dir(
-        "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER, "train", f"data_L{token}.csv"
-    )
-    test_src = tda_artefact_dir(
-        "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER, "test", f"data_L{token}.csv"
-    )
-    dest_train = dest_root / "train" / f"data_L{token}.csv"
-    dest_test = dest_root / "test" / f"data_L{token}.csv"
-    _write_h0_slice(train_src, dest_train)
-    _write_h0_slice(test_src, dest_test)
-    train_df = pd.read_csv(dest_train)
-    test_df = pd.read_csv(dest_test)
-    feature_cols = [c for c in train_df.columns if c != "label"]
-    model = LinearRegression()
-    model.fit(train_df[feature_cols], train_df["label"])
-    scores = model.predict(test_df[feature_cols])
-    y_pred = (scores >= 0.5).astype(int)
-    y_test = test_df["label"].astype(int)
-    model_results[f"data_L{token}"] = {
-        "linear_regression": {
-            "model": model,
-            "accuracy": accuracy_score(y_test, y_pred),
-            "precision": precision_score(y_test, y_pred, zero_division=0),
-            "recall": recall_score(y_test, y_pred, zero_division=0),
-            "f1_score": f1_score(y_test, y_pred, zero_division=0),
-            "classification_report": classification_report(y_test, y_pred, zero_division=0),
-            "confusion_matrix": confusion_matrix(y_test, y_pred),
-        }
+
+# =============================================================================
+# Get Data - L10 (already split by customer in Experiment 1)
+# =============================================================================
+src_train_L10 = os.path.join(src_dir, "train", "data_L10.csv")
+src_test_L10 = os.path.join(src_dir, "test", "data_L10.csv")
+dest_train_L10 = os.path.join(dest_dir, "train", "data_L10.csv")
+dest_test_L10 = os.path.join(dest_dir, "test", "data_L10.csv")
+os.makedirs(os.path.dirname(dest_train_L10), exist_ok=True)
+os.makedirs(os.path.dirname(dest_test_L10), exist_ok=True)
+
+train_L10 = pd.read_csv(src_train_L10)
+test_L10 = pd.read_csv(src_test_L10)
+h0_L10 = [c for c in train_L10.columns if c == "label" or str(c).endswith("_0") or "(Dim 0)" in str(c)]
+train_L10 = train_L10[h0_L10]
+test_L10 = test_L10[h0_L10]
+train_L10.to_csv(dest_train_L10, index=False)
+test_L10.to_csv(dest_test_L10, index=False)
+
+# =============================================================================
+# Linear Regression as a classifier (threshold 0.5) - L10
+# =============================================================================
+feature_cols_L10 = [c for c in train_L10.columns if c != "label"]
+model_L10 = LinearRegression()
+model_L10.fit(train_L10[feature_cols_L10], train_L10["label"])
+scores_L10 = model_L10.predict(test_L10[feature_cols_L10])
+y_pred_L10 = (scores_L10 >= 0.5).astype(int)
+y_true_L10 = test_L10["label"].astype(int)
+model_results[f"data_L10"] = {
+    "linear_regression": {
+        "model": model_L10,
+        "accuracy": accuracy_score(y_true_L10, y_pred_L10),
+        "precision": precision_score(y_true_L10, y_pred_L10, zero_division=0),
+        "recall": recall_score(y_true_L10, y_pred_L10, zero_division=0),
+        "f1_score": f1_score(y_true_L10, y_pred_L10, zero_division=0),
+        "classification_report": classification_report(y_true_L10, y_pred_L10, zero_division=0),
+        "confusion_matrix": confusion_matrix(y_true_L10, y_pred_L10),
     }
-    print(f"Linear regression (presplit) data_L{token}")
+}
+print("Linear regression (presplit) data_L10")
+
+# =============================================================================
+# Get Data - L20 (already split by customer in Experiment 1)
+# =============================================================================
+src_train_L20 = os.path.join(src_dir, "train", "data_L20.csv")
+src_test_L20 = os.path.join(src_dir, "test", "data_L20.csv")
+dest_train_L20 = os.path.join(dest_dir, "train", "data_L20.csv")
+dest_test_L20 = os.path.join(dest_dir, "test", "data_L20.csv")
+os.makedirs(os.path.dirname(dest_train_L20), exist_ok=True)
+os.makedirs(os.path.dirname(dest_test_L20), exist_ok=True)
+
+train_L20 = pd.read_csv(src_train_L20)
+test_L20 = pd.read_csv(src_test_L20)
+h0_L20 = [c for c in train_L20.columns if c == "label" or str(c).endswith("_0") or "(Dim 0)" in str(c)]
+train_L20 = train_L20[h0_L20]
+test_L20 = test_L20[h0_L20]
+train_L20.to_csv(dest_train_L20, index=False)
+test_L20.to_csv(dest_test_L20, index=False)
+
+# =============================================================================
+# Linear Regression as a classifier (threshold 0.5) - L20
+# =============================================================================
+feature_cols_L20 = [c for c in train_L20.columns if c != "label"]
+model_L20 = LinearRegression()
+model_L20.fit(train_L20[feature_cols_L20], train_L20["label"])
+scores_L20 = model_L20.predict(test_L20[feature_cols_L20])
+y_pred_L20 = (scores_L20 >= 0.5).astype(int)
+y_true_L20 = test_L20["label"].astype(int)
+model_results[f"data_L20"] = {
+    "linear_regression": {
+        "model": model_L20,
+        "accuracy": accuracy_score(y_true_L20, y_pred_L20),
+        "precision": precision_score(y_true_L20, y_pred_L20, zero_division=0),
+        "recall": recall_score(y_true_L20, y_pred_L20, zero_division=0),
+        "f1_score": f1_score(y_true_L20, y_pred_L20, zero_division=0),
+        "classification_report": classification_report(y_true_L20, y_pred_L20, zero_division=0),
+        "confusion_matrix": confusion_matrix(y_true_L20, y_pred_L20),
+    }
+}
+print("Linear regression (presplit) data_L20")
 
 print(model_results)
 
 # =============================================================================
-# Store results
+# Store model results
 # =============================================================================
-save_path = tda_results_dir(PROTOCOL_BUCKET, EXPERIMENT, FOLDER)
-store_results(path=str(save_path), save_name="model_results", result_object=model_results)
+store_results(path=save_path, save_name="model_results", result_object=model_results)

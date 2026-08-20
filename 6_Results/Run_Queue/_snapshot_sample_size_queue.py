@@ -1,8 +1,4 @@
-# Sequential Snapshot_Sample_Size queue. Resume-safe via skip_existing.
-
-# Separate from _ripser_queue.py / _consumer_queue.py so an in-flight
-# historical queue is not interleaved destructively.
-
+# Sequential Snapshot_Sample_Size queue. Resume-safe via skip_existing inside each script.
 import os
 import subprocess
 import sys
@@ -15,30 +11,23 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 PY = ROOT / "tda_env" / "Scripts" / "python.exe"
 LOG = HERE / "_snapshot_sample_size_queue.log"
-ENGINE = ROOT / "5_Experiments" / "Snapshot_Sample_Size" / "run_shared.py"
-VIZ = [
-    ROOT / "5_Experiments" / "Snapshot_Sample_Size" / "1_Snapshot_Count_Sweep" / "visualize_results.py",
-    ROOT / "5_Experiments" / "Snapshot_Sample_Size" / "2_Points_Per_Snapshot_Sweep" / "visualize_results.py",
-    ROOT / "5_Experiments" / "Snapshot_Sample_Size" / "3_Snapshot_Count_Across_Cloud_Sizes" / "visualize_results.py",
-]
 
 DATASETS = [
-    "pkdd_czech",
-    "south_german_credit",
-    "statlog_german",
-    "taiwan_bankruptcy",
-    "polish_bankruptcy",
-    "credit_card_default",
+    ("PKDD_Czech_Financial", "pkdd_czech_financial_sample_size.py"),
+    ("South_German_Credit", "south_german_credit_sample_size.py"),
+    ("Statlog_German_Credit_Data", "statlog_german_credit_sample_size.py"),
+    ("Taiwan_Bankruptcy", "taiwan_bankruptcy_sample_size.py"),
+    ("Polish_Bankruptcy_3Year", "polish_bankruptcy_3year_sample_size.py"),
+    ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_sample_size.py"),
 ]
-PROTOCOLS = [
-    "Historical_Late_Split_Balanced_TDA",
-    "Early_Split_TDA",
-    "No_Undersampling",
-    "Early_Split_TDA_And_No_Undersampling",
+ITEMS = [
+    "1_Snapshot_Count_Sweep",
+    "2_Points_Per_Snapshot_Sweep",
+    "3_Snapshot_Count_Across_Cloud_Sizes",
 ]
 
 
-def log(msg: str) -> None:
+def log(msg):
     line = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}"
     print(line, flush=True)
     LOG.parent.mkdir(parents=True, exist_ok=True)
@@ -46,41 +35,29 @@ def log(msg: str) -> None:
         handle.write(line + "\n")
 
 
-def run(cmd) -> int:
+def run(cmd):
     log("RUN " + " ".join(str(c) for c in cmd))
     code = subprocess.call(cmd, cwd=str(ROOT))
     log(f"EXIT {code} :: {' '.join(str(c) for c in cmd)}")
     return code
 
 
-def main() -> int:
+def main():
     failed = []
-    run([str(PY), str(ENGINE), "--stage", "design"])
-    for dataset in DATASETS:
-        for protocol in PROTOCOLS:
-            code = run(
-                [
-                    str(PY),
-                    str(ENGINE),
-                    "--stage",
-                    "generate",
-                    "--datasets",
-                    dataset,
-                    "--protocol",
-                    protocol,
-                ]
-            )
+    for item in ITEMS:
+        for folder, fname in DATASETS:
+            script = ROOT / "5_Experiments" / "Snapshot_Sample_Size" / item / folder / fname
+            code = run([str(PY), str(script)])
             if code != 0:
-                failed.append(f"{protocol}/{dataset}")
-    run([str(PY), str(ENGINE), "--stage", "export"])
-    for script in VIZ:
-        code = run([str(PY), str(script)])
+                failed.append(f"{item}/{folder}")
+        viz = ROOT / "5_Experiments" / "Snapshot_Sample_Size" / item / "visualize_results.py"
+        code = run([str(PY), str(viz)])
         if code != 0:
-            failed.append(str(script.name))
+            failed.append(str(viz.name))
     if failed:
-        log("QUEUE FINISHED WITH FAILURES: " + ", ".join(failed))
+        log("FAILED: " + ", ".join(failed))
         return 1
-    log("QUEUE FINISHED")
+    log("Snapshot sample size queue finished.")
     return 0
 
 
