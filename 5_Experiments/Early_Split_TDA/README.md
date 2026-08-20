@@ -4,9 +4,9 @@ early — stratified 80/20 on customers BEFORE scaler/PCA/landmarks
 
 - **Undersample:** yes — independently inside the train pool and the test pool
 - **PCA:** MinMax + PCA fit on TRAIN only; test is transformed
-- **t:** t = floor(n_class * L / 100) on the undersampled pool of that split
-- **l:** 500 (dataset historical n_files)
-- **PCA ranks / L percents:** same as historical Exp 3 (`docs/Design_Decisions.md`). Not Exp 28's revised t/l.
+- **Points per snapshot:** points per snapshot = floor(class count × snapshot size percent / 100) on the undersampled pool of that split
+- **Number of snapshots:** 500 (dataset historical n_files)
+- **PCA ranks / snapshot-size percents:** same as historical Exp 3 (`docs/Design_Decisions.md`). Not Exp 28's revised points-per-snapshot / snapshot-count rule. English names for snapshot quantities are used throughout; the symbol mapping is in `docs/Notation.md`.
 
 ## Experiments in this arm (1-based)
 
@@ -15,9 +15,13 @@ early — stratified 80/20 on customers BEFORE scaler/PCA/landmarks
 3. `3_H0_Only` — consumes experiment 1 (H0 columns only)
 4. `4_Dropping_Correlated_Barcode_Statistics_Columns` — consumes experiment 1
 5. `5_Linear_Regression_For_Prediction` — consumes experiment 1
-6. `6_Sampling_Ratio_Audit` — class counts + L + l (no Ripser)
+6. `6_Sampling_Ratio_Audit` — class counts + snapshot-size percents + number of snapshots (no Ripser)
 7. `7_Snapshot_Mean_Variance` — consumes experiment 1
 8. `8_Null_Hypothesis_Algorithm2` — consumes experiment 1
-9. `9_Revised_Snapshot_Protocol` — Exp 28 snapshot rules (fixed absolute t, l_train/l_test = 60/15). Not the historical L-percent / l=500 pipeline.
+9. `9_Revised_Snapshot_Protocol` — Exp 28 snapshot rules (fixed points per snapshot, default 60 training snapshots / 15 test snapshots). Not the historical snapshot-size-percent / 500-snapshot pipeline.
 
 Not in this arm: tabular Default Parameters (see `Default_Parameters/`), protocol-independent geometry (see `Statistics/`), or retired paper/exploratory work (see `Archives/`).
+
+## Where to read the method
+
+Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. `run.py` is an optional convenience launcher and is not the method document.

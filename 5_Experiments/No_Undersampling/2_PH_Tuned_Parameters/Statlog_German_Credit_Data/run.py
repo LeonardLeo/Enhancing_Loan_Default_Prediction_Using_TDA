@@ -1,23 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-No_Undersampling / 2_PH_Tuned_Parameters
-Dataset: Statlog_German_Credit_Data
-
-Protocol knobs and artefact paths are resolved in utils.run_protocol_experiment.
-This file is a complete, runnable entry point — not a stub.
-"""
-import sys
+"""Convenience launcher. Open `statlog_german_credit_data_PH_tuned.py` in this folder to read the method."""
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
-
-from utils import run_protocol_experiment
+import runpy
 
 if __name__ == "__main__":
-    run_protocol_experiment(
-        dataset_key='statlog_german',
-        protocol_bucket='No_Undersampling',
-        experiment='2_PH_Tuned_Parameters',
-        skip_existing_barcodes=True,
-    )
+    runpy.run_path(str(Path(__file__).with_name('statlog_german_credit_data_PH_tuned.py')), run_name="__main__")

@@ -1,12 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May  1 14:33:06 2025
+Paper-table aggregator.
 
-@author: leonard
+Run from ``6_Results/``:
+
+    python results.py
+
+LaTeX/CSV outputs are written to ``6_Results/Paper_Tables/``.
+Pickle inputs are still read from the protocol buckets beside this file.
 """
 
+import sys
+from pathlib import Path
+
 import joblib
+
+RESULTS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = RESULTS_DIR.parent
+sys.path.insert(0, str(REPO_ROOT))
+
 from utils import build_results_dataframe_v3
+
+PAPER_TABLES = RESULTS_DIR / "Paper_Tables"
+PAPER_TABLES.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
 # Experiment 1 - 1_ML_Default_Parameters
@@ -47,7 +63,7 @@ Experiment_2_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experi
 # CHECK RESULTS FOLDER FOR GRAPHS
 
 # =============================================================================
-# Experiment 3 - 3_PH_Default_Parameters
+# Experiment 3 - Historical_Late_Split_Balanced_TDA / 1_PH_Default_Parameters
 # =============================================================================
 # --- Statlog
 Experiment_3_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
@@ -60,7 +76,7 @@ Experiment_3_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/
 # CHECK RESULTS FOLDER FOR GRAPHS
 
 # =============================================================================
-# Experiment 4 - 4_PH_Tuned_Parameters
+# Experiment 4 - Historical_Late_Split_Balanced_TDA / 2_PH_Tuned_Parameters
 # =============================================================================
 # --- Statlog
 Experiment_4_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
@@ -78,7 +94,7 @@ Experiment_4_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/
 # --- Mapper Algorithm. Refer to results folder
 
 # =============================================================================
-# Experiment 6 - 6_Experiment_Impact_of_H0_Only
+# Experiment 6 - Historical_Late_Split_Balanced_TDA / 3_H0_Only  (paper table #5)
 # =============================================================================
 # --- Statlog
 Experiment_6_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/model_results.pkl")
@@ -370,7 +386,7 @@ latex_table = dataframe_experiments.to_latex(
     escape=True              # Allows underscores in index values like L_1.82
 )
 
-with open("results_table.tex", "w") as f:
+with open(PAPER_TABLES / "results_table.tex", "w") as f:
     f.write(latex_table)
 
 
@@ -391,7 +407,7 @@ latex_table = statlog_table_analysis.to_latex(
     escape=True              # Allows underscores in index values like L_1.82
 )
 
-with open("statlog_german_credit_results_table.tex", "w") as f:
+with open(PAPER_TABLES / "statlog_german_credit_results_table.tex", "w") as f:
     f.write(latex_table)
 
 # =============================================================================
@@ -411,7 +427,7 @@ latex_table = default_credit_card_client_table_analysis.to_latex(
     escape=True              # Allows underscores in index values like L_1.82
 )
 
-with open("default_of_credit_card_client_results_table.tex", "w") as f:
+with open(PAPER_TABLES / "default_of_credit_card_client_results_table.tex", "w") as f:
     f.write(latex_table)
     
 # =============================================================================
@@ -531,7 +547,7 @@ latex_table_1 = df_experiment_1.to_latex(
     label="tab:experiment_1_results",
     escape=True
 )
-with open("results_experiment_1.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_1.tex", "w") as f:
     f.write(latex_table_1)
 
 latex_table_2 = df_experiment_2.to_latex(
@@ -544,7 +560,7 @@ latex_table_2 = df_experiment_2.to_latex(
     label="tab:experiment_2_results",
     escape=True
 )
-with open("results_experiment_2.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_2.tex", "w") as f:
     f.write(latex_table_2)
 
 latex_table_3 = df_experiment_3.to_latex(
@@ -557,7 +573,7 @@ latex_table_3 = df_experiment_3.to_latex(
     label="tab:experiment_3_results",
     escape=True
 )
-with open("results_experiment_3.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_3.tex", "w") as f:
     f.write(latex_table_3)
 
 latex_table_4 = df_experiment_4.to_latex(
@@ -570,7 +586,7 @@ latex_table_4 = df_experiment_4.to_latex(
     label="tab:experiment_4_results",
     escape=True
 )
-with open("results_experiment_4.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_4.tex", "w") as f:
     f.write(latex_table_4)
 
 latex_table_5 = df_experiment_5.to_latex(
@@ -583,7 +599,7 @@ latex_table_5 = df_experiment_5.to_latex(
     label="tab:experiment_5_results",
     escape=True
 )
-with open("results_experiment_5.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_5.tex", "w") as f:
     f.write(latex_table_5)
 
 latex_table_6 = df_experiment_6.to_latex(
@@ -596,7 +612,7 @@ latex_table_6 = df_experiment_6.to_latex(
     label="tab:experiment_6_results",
     escape=True
 )
-with open("results_experiment_6.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_6.tex", "w") as f:
     f.write(latex_table_6)
 
 latex_table_7 = df_experiment_7.to_latex(
@@ -609,7 +625,7 @@ latex_table_7 = df_experiment_7.to_latex(
     label="tab:experiment_7_results",
     escape=True
 )
-with open("results_experiment_7.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_7.tex", "w") as f:
     f.write(latex_table_7)
 
 latex_table_8 = df_experiment_8.to_latex(
@@ -622,7 +638,7 @@ latex_table_8 = df_experiment_8.to_latex(
     label="tab:experiment_8_results",
     escape=True
 )
-with open("results_experiment_8.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_8.tex", "w") as f:
     f.write(latex_table_8)
 
 latex_table_9 = df_experiment_9.to_latex(
@@ -635,7 +651,7 @@ latex_table_9 = df_experiment_9.to_latex(
     label="tab:experiment_9_results",
     escape=True
 )
-with open("results_experiment_9.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_9.tex", "w") as f:
     f.write(latex_table_9)
 
 latex_table_10 = df_experiment_10.to_latex(
@@ -648,5 +664,5 @@ latex_table_10 = df_experiment_10.to_latex(
     label="tab:experiment_10_results",
     escape=True
 )
-with open("results_experiment_10.tex", "w") as f:
+with open(PAPER_TABLES / "results_experiment_10.tex", "w") as f:
     f.write(latex_table_10)

@@ -1,49 +1,56 @@
-# Experiment 28 — Rebuild sampling the way the meeting asked
+# Early_Split_TDA_And_No_Undersampling — Experiment 9 (revised snapshot protocol)
+
+This is arm experiment 9 in **Early Split TDA And No Undersampling** (customers split first; full class pools). The canonical meeting protocol lives here. The same engine is reused in the other three TDA arms. The deep write-up that originally used the label Experiment 28 lives at `docs/Revised_Snapshot_Protocol_Deep_Report.md`. There is no live top-level `28_Revised_…` folder.
 
 ## In one sentence
 
-Keep the TDA idea, but stop cheating the sample: **no undersampling**, **one absolute snapshot size t** for train and test, default **60 train snapshots / 15 test snapshots**, and report formula-`l` vs reuse-`l` separately.
+This experiment uses a **fixed absolute points-per-snapshot value** for train and test, default **60 training snapshots / 15 test snapshots**, and reports the formula snapshot count separately from the reuse-ratio constraint.
 
-## Who this is for
+## This arm's knobs
 
-Experiments 3–27 mostly follow the historical paper protocol (undersample, 500 overlapping snapshots, PCA on the full table). This folder is the **revised protocol** from the team discussion. If you are writing the methods section for “what we would do next time”, start here.
+- Early split + no undersampling
+- Fixed absolute points per snapshot (same for train and test)
+- Default train/test snapshot counts: **60 / 15**
+- Sensitivity sweep: train `{60, 80, 100}`, test `{15, 22, 30}`
+- Default of Credit Card Client non-split arm: snapshot counts in {60, 75, 90}
+- Formula concern and reuse-ratio concern reported separately
+- Overlap: pairwise + reuse + significance tests
 
-## Datasets (all six)
-
-Each dataset folder is a readable launcher, including **Statlog** and **DCCCD**:
+## Where the code lives
 
 ```
 5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py
 5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py
-5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/PKDD_Czech_Financial/pkdd_czech_financial_protocol.py
-...
+…
 ```
 
-The heavy lifting is **not** duplicated in those files. They call:
+Each dataset `*_protocol.py` is the method document. Helpers:
 
 - `protocol_lib.py` — sampling, overlap diagnostics, models
 - `run_protocol.py` — stages `design` → `split_ml` → `full_ml`
 
-Open the launcher first (it prints dataset key and stage), then step through `run_protocol.py` if you need to debug.
+## Stages
 
-## What we do (stages)
-
-1. **design** — estimate intrinsic dimension, choose a joint t, print reuse R.
+1. **design** — estimate intrinsic dimension, choose a joint points-per-snapshot value, print the reuse ratio.
 2. **split_ml** — split customers into train/test **before** snapshots; draw independent snapshots; fit models.
-3. **full_ml** — DCCCD-only extra arm that skips the split (documented in the launcher).
+3. **full_ml** — Default of Credit Card Client extra arm that skips the customer split (documented in the launcher).
 
-## What we found
+## Findings
 
-Numeric dump: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/` (including `all_designs.json`).
+Numeric dump: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/` (including `all_designs.json`). Figures: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/Visualizations/`.
 
-The design JSON is large because it stores per-dataset t, estimated b, and overlap diagnostics. Read `docs/Revised_Snapshot_Protocol_Deep_Report.md` for the narrative; this REPORT is the map of *where the code lives* and *what each stage means*.
+Sampling-ratio audit (arm experiment 6) showed 500 snapshots over-reuse every table (reuse ratio 25–300). Intrinsic dimension (Statistics experiment 1) after PCA is 2.8–4.9, not 7. Arm experiment 9 is where those two facts change the protocol: fixed points per snapshot, small snapshot counts, customers split first, no undersampling. Flow: `docs/Statistical_Approach_Flow.md`. English names: `docs/Notation.md`.
 
-Compared with Experiment 3: you should expect **fewer** barcode rows and **honest** train/test separation. Accuracy may drop. That drop is information, not a failure.
+Compared with Historical arm experiment 1, this protocol produces **fewer** barcode rows and an honest train/test separation. Accuracy may drop. That drop is information, not a failure.
 
-**Why this folder exists in the statistical sequence:** Exp 24 showed `l = 500` over-reuses every table (R = 25–300). Exp 26 estimated `b` before and after PCA (after-PCA Two-NN is 2.8–4.9, not 7). Exp 28 is where those two facts change the protocol: fixed `t`, small `l`, customers split first, no undersampling. Flow: `docs/Statistical_Approach_Flow.md`.
-
-## How to re-run one dataset
+## How to run
 
 ```
-python 5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py
+.\tda_env\Scripts\python.exe 5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/run_protocol.py --stage all
+.\tda_env\Scripts\python.exe 5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/run_protocol.py --stage design
+.\tda_env\Scripts\python.exe 5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py
 ```
+
+## Where to read the method
+
+Open the dataset `*_protocol.py` in this folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py`). That file is the method document. `run.py` is an optional convenience launcher. Helpers live in `protocol_lib.py`.

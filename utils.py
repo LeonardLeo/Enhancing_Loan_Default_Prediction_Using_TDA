@@ -26,6 +26,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Union, Optional, Tuple
+import textwrap
 from ripser import ripser
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 from kmapper import KeplerMapper
@@ -283,7 +284,7 @@ for _dataset_config in (
         landmark_percentages=(30.0, 60.0),
         notes={
             "pca_n_components_exp3": 15,
-            "landmark_reason": "Original paper percents. n1=300, so 30%/60% are required to get t=90/180 points.",
+            "landmark_reason": "Original paper percents. Minority class count=300, so 30%/60% are required to get 90/180 points per snapshot.",
         },
     ),
     DatasetConfig(
@@ -296,7 +297,7 @@ for _dataset_config in (
         landmark_percentages=(5.0, 15.0),
         notes={
             "pca_n_components_exp3": 7,
-            "landmark_reason": "Original paper percents. n1=6630, so 5% already gives t=331 points.",
+            "landmark_reason": "Original paper percents. Minority class count=6630, so 5% already gives 331 points per snapshot.",
         },
     ),
     DatasetConfig(
@@ -310,7 +311,7 @@ for _dataset_config in (
         landmark_percentages=(10.0, 20.0),
         notes={
             "pca_n_components_exp3": 10,
-            "landmark_reason": "Shared new-table percents. 5% would give t=3 on n1=76 (too small for PH); 30% would over-reuse.",
+            "landmark_reason": "Shared new-table percents. 5% would give 3 points per snapshot on a minority class of 76 (too small for PH); 30% would over-reuse.",
         },
     ),
     DatasetConfig(
@@ -354,7 +355,7 @@ for _dataset_config in (
         landmark_percentages=(10.0, 20.0),
         notes={
             "pca_n_components_exp3": 10,
-            "landmark_reason": "Shared new-table percents. Not Statlog's 30/60: this is a sensitivity table, kept on the same L10/L20 grid as the other new sets.",
+            "landmark_reason": "Shared new-table percents. Not Statlog's 30/60: this is a sensitivity table, kept on the same 10%/20% snapshot-size grid as the other new sets.",
             "target_mapping": {"0_bad": 1, "1_good": 0},
             "sensitivity_analysis": True,
         },
@@ -2558,6 +2559,684 @@ def get_distance_view(data,
 
     return result_df
 
+
+# =============================================================================
+# Publication-quality visualization (shared by all experiment visualizers)
+# =============================================================================
+VISUALIZATIONS_DIRNAME = "Visualizations"
+_VIZ_DPI = 160
+_OKABE_ITO = (
+    "#0072B2", "#E69F00", "#009E73", "#CC79A7",
+    "#56B4E9", "#D55E00", "#F0E442", "#000000",
+)
+_MODEL_DISPLAY = {
+    "knn": "kNN",
+    "logistic": "Logistic",
+    "logit": "Logistic",
+    "logreg": "Logistic",
+    "random_forest": "Random Forest",
+    "rf": "Random Forest",
+    "svm": "SVM",
+    "xgb": "XGBoost",
+    "xgboost": "XGBoost",
+    "lgbm": "LightGBM",
+    "lightgbm": "LightGBM",
+    "linear": "Linear",
+    "linear_regression": "Linear regression",
+}
+_MODEL_COLOR = {
+    "knn": "#0072B2",
+    "logistic": "#E69F00",
+    "logit": "#E69F00",
+    "logreg": "#E69F00",
+    "random_forest": "#009E73",
+    "rf": "#009E73",
+    "svm": "#CC79A7",
+    "xgb": "#D55E00",
+    "xgboost": "#D55E00",
+    "lgbm": "#56B4E9",
+    "lightgbm": "#56B4E9",
+    "linear": "#000000",
+    "linear_regression": "#000000",
+}
+_METRIC_DISPLAY = {
+    "accuracy": "Accuracy",
+    "precision": "Precision",
+    "recall": "Recall",
+    "f1_score": "F1 score",
+    "f1": "F1 score",
+    "balanced_accuracy": "Balanced accuracy",
+    "roc_auc": "ROC AUC",
+    "average_precision": "Average precision",
+}
+_DATASET_SHORT = {
+    "Statlog_German_Credit_Data": "Statlog German",
+    "Default_Of_Credit_Card_Client_Data": "Credit card default",
+    "PKDD_Czech_Financial": "PKDD Czech",
+    "Polish_Bankruptcy_3Year": "Polish bankruptcy",
+    "Taiwan_Bankruptcy": "Taiwan bankruptcy",
+    "South_German_Credit": "South German",
+}
+_DATASET_FILE_SLUG = {
+    "Statlog_German_Credit_Data": "Statlog_German",
+    "Default_Of_Credit_Card_Client_Data": "Credit_Card_Default",
+    "PKDD_Czech_Financial": "PKDD_Czech",
+    "Polish_Bankruptcy_3Year": "Polish_Bankruptcy",
+    "Taiwan_Bankruptcy": "Taiwan_Bankruptcy",
+    "South_German_Credit": "South_German",
+}
+_DATASET_DISPLAY_SHORT = {
+    "Statlog German Credit": "Statlog German",
+    "Default of Credit Card Client": "Credit card default",
+    "PKDD'99 Czech Financial": "PKDD Czech",
+    "Polish Companies Bankruptcy (3 year)": "Polish bankruptcy",
+    "Taiwanese Bankruptcy Prediction": "Taiwan bankruptcy",
+    "South German Credit (updated-German sensitivity)": "South German",
+}
+_RATE_METRIC_KEYS = {
+    "accuracy", "precision", "recall", "f1", "f1_score",
+    "balanced_accuracy", "roc_auc", "average_precision",
+}
+_LANDMARK_TOKEN_RE = re.compile(r"L_?(\d+(?:\.\d+)?)", re.IGNORECASE)
+_VIZ_STYLE_APPLIED = False
+
+
+def _public_fs_path(path: Union[str, Path]) -> Path:
+    text = os.fspath(path)
+    if text.startswith("\\\\?\\UNC\\"):
+        text = "\\\\" + text[8:]
+    elif text.startswith("\\\\?\\"):
+        text = text[4:]
+    return Path(text)
+
+
+def apply_publication_viz_style() -> None:
+    """Idempotent matplotlib/seaborn style for paper-readable figures."""
+    global _VIZ_STYLE_APPLIED
+    if _VIZ_STYLE_APPLIED:
+        return
+    sns.set_theme(style="whitegrid", context="paper", font_scale=1.12)
+    plt.rcParams.update({
+        "font.size": 11,
+        "axes.titlesize": 13,
+        "axes.labelsize": 12,
+        "xtick.labelsize": 10,
+        "ytick.labelsize": 10,
+        "legend.fontsize": 10,
+        "legend.title_fontsize": 11,
+        "figure.titlesize": 14,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.grid": True,
+        "grid.alpha": 0.28,
+        "grid.linewidth": 0.6,
+        "figure.dpi": 120,
+        "savefig.dpi": _VIZ_DPI,
+        "savefig.bbox": "tight",
+        "savefig.pad_inches": 0.28,
+    })
+    _VIZ_STYLE_APPLIED = True
+
+
+def pretty_model_label(raw: str) -> str:
+    key = re.sub(r"[^a-z0-9]+", "_", str(raw).strip().lower()).strip("_")
+    if key in _MODEL_DISPLAY:
+        return _MODEL_DISPLAY[key]
+    return str(raw).replace("_", " ").title()
+
+
+def pretty_metric_label(raw: str) -> str:
+    key = str(raw).strip().lower()
+    if key in _METRIC_DISPLAY:
+        return _METRIC_DISPLAY[key]
+    return str(raw).replace("_", " ").capitalize()
+
+
+def pretty_setting_label(raw: str) -> str:
+    if raw is None:
+        return ""
+    text = str(raw).strip()
+    if not text or text.lower() in {"nan", "none", "default", "main"}:
+        return ""
+    if "|" in text:
+        text = text.split("|")[-1].strip()
+    if "=" in text:
+        key, _, val = text.partition("=")
+        key, val = key.strip().lower(), val.strip()
+        if "hist" in val.lower():
+            return "Historical protocol"
+        if "clean" in val.lower():
+            return "Clean protocol"
+        if key in {"protocol", "variant", "setting", "feature_space", "run_key"}:
+            return val.replace("_", " ").title()
+        text = val
+    name = Path(text.replace("\\", "/")).name
+    name = re.sub(r"\.(csv|pkl|json)$", "", name, flags=re.IGNORECASE)
+    lower = name.lower()
+    if "protocol_historical" in lower or lower in {"historical", "protocol historical"}:
+        return "Historical protocol"
+    if "protocol_clean" in lower or lower in {"clean", "protocol clean"}:
+        return "Clean protocol"
+    match = _LANDMARK_TOKEN_RE.search(name)
+    if match:
+        return f"{match.group(1)}% of class"
+    return name.replace("_", " ")
+
+
+def _registry_folder_from_token(token: str) -> Optional[str]:
+    token = str(token).strip()
+    if not token:
+        return None
+    try:
+        return get_dataset_config(token).folder_name
+    except (ValueError, KeyError):
+        return None
+
+
+def parse_group_key(raw: str) -> Tuple[str, str]:
+    """Split a model-results group key into (dataset_folder, setting)."""
+    text = str(raw).strip()
+    dataset, setting = text, ""
+    if ":" in text:
+        dataset, setting = text.split(":", 1)
+    if "|" in dataset and not _registry_folder_from_token(dataset):
+        left, right = dataset.split("|", 1)
+        if _registry_folder_from_token(left.strip()):
+            extra = right.strip()
+            setting = f"{extra} | {setting}".strip(" |") if setting else extra
+            dataset = left.strip()
+    if _registry_folder_from_token(dataset):
+        return _registry_folder_from_token(dataset), setting
+    if re.search(r"data_L", dataset, re.IGNORECASE) or dataset.lower().endswith((".csv", ".pkl")):
+        return "", dataset
+    return dataset, setting
+
+
+def pretty_dataset_label(raw: str, short: bool = False) -> str:
+    if raw is None:
+        return "Unknown dataset"
+    text = str(raw).strip()
+    if not text:
+        return "Unknown dataset"
+    folder = _registry_folder_from_token(text)
+    if folder is None:
+        for part in re.split(r"[\\/,:|]+", text):
+            folder = _registry_folder_from_token(part)
+            if folder:
+                break
+    if folder:
+        if short:
+            return _DATASET_SHORT.get(folder, folder.replace("_", " "))
+        try:
+            display = get_dataset_config(folder).display_name
+        except (ValueError, KeyError):
+            display = folder.replace("_", " ")
+        return _DATASET_DISPLAY_SHORT.get(display, display) if short else display
+    cleaned = text.replace("_", " ")
+    return _DATASET_DISPLAY_SHORT.get(cleaned, cleaned)
+
+
+def dataset_slug_for_filename(raw: str) -> str:
+    folder = _registry_folder_from_token(raw)
+    if folder:
+        return _DATASET_FILE_SLUG.get(folder, folder)
+    for part in re.split(r"[\\/,:]+", str(raw)):
+        folder = _registry_folder_from_token(part)
+        if folder:
+            return _DATASET_FILE_SLUG.get(folder, folder)
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", str(raw)).strip("_")
+    return slug or "dataset"
+
+
+def _is_rate_metric(name: str) -> bool:
+    key = str(name).strip().lower()
+    return key in _RATE_METRIC_KEYS
+
+
+def _model_palette(models: List[str]) -> Dict[str, str]:
+    palette: Dict[str, str] = {}
+    extra_i = 0
+    for model in models:
+        key = re.sub(r"[^a-z0-9]+", "_", str(model).strip().lower()).strip("_")
+        if key in _MODEL_COLOR:
+            palette[model] = _MODEL_COLOR[key]
+        else:
+            palette[model] = _OKABE_ITO[extra_i % len(_OKABE_ITO)]
+            extra_i += 1
+    return palette
+
+
+def _categorical_palette(levels: List[str]) -> Dict[str, str]:
+    return {level: _OKABE_ITO[i % len(_OKABE_ITO)] for i, level in enumerate(levels)}
+
+
+def _save_figure(fig: plt.Figure, path: Union[str, Path]) -> Path:
+    path = win_long_path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(os.fspath(path), dpi=_VIZ_DPI, bbox_inches="tight", pad_inches=0.4)
+    plt.close(fig)
+    return _public_fs_path(path)
+
+
+def _write_csv(path: Union[str, Path], frame: pd.DataFrame) -> Path:
+    path = win_long_path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    frame.to_csv(os.fspath(path), index=False)
+    return _public_fs_path(path)
+
+
+def _barplot(ax, data: pd.DataFrame, x: str, y: str, hue: Optional[str], palette, order=None, hue_order=None):
+    plot_hue = hue if hue is not None else x
+    plot_hue_order = hue_order if hue is not None else order
+    kwargs = dict(
+        data=data, x=x, y=y, hue=plot_hue, ax=ax,
+        palette=palette, order=order, hue_order=plot_hue_order,
+    )
+    if hue is None:
+        kwargs["legend"] = False
+    try:
+        return sns.barplot(errorbar=None, **kwargs)
+    except TypeError:
+        kwargs.pop("legend", None)
+        try:
+            return sns.barplot(ci=None, **kwargs)
+        except TypeError:
+            return sns.barplot(**kwargs)
+
+
+def _style_rate_axis(ax, ylabel: str, is_rate: bool) -> None:
+    ax.set_ylabel(ylabel, fontsize=12)
+    if is_rate:
+        ax.set_ylim(0, 1.05)
+        ax.set_yticks(np.linspace(0, 1, 6))
+
+
+def _set_wrapped_ticks(ax, labels: List[str], width: int = 16) -> None:
+    wrapped = ["\n".join(textwrap.wrap(str(lab), width=width)) if lab else "" for lab in labels]
+    ax.set_xticks(range(len(wrapped)))
+    rotate = 40 if len(labels) > 5 else 0
+    ax.set_xticklabels(
+        wrapped,
+        fontsize=10,
+        rotation=rotate,
+        ha="right" if rotate else "center",
+    )
+
+
+def _place_legend_outside(fig: plt.Figure, handles, labels, title: Optional[str] = None, ncol: int = 4) -> None:
+    if not handles:
+        return
+    fig.legend(
+        handles,
+        labels,
+        title=title,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.02),
+        ncol=min(ncol, max(1, len(labels))),
+        frameon=False,
+        fontsize=10,
+    )
+
+
+def _hide_unused_axes(axes, used: int) -> None:
+    for ax in axes[used:]:
+        ax.set_visible(False)
+
+
+def protocol_context_sentence(protocol_bucket: str) -> str:
+    """One-sentence protocol reminder for figure footnotes (English names, not compact t/l symbols)."""
+    if not protocol_bucket or protocol_bucket == "Default_Parameters":
+        return "These scores use the original tabular features, not barcode statistics."
+    if protocol_bucket == "Statistics":
+        return "Estimates are computed on the processed table, before any TDA snapshots."
+    spec = TDA_PROTOCOL_SPECS.get(protocol_bucket) or {}
+    parts = []
+    if spec.get("split_timing") == "early":
+        parts.append("Customers are split into train and test before PCA.")
+    elif spec.get("split_timing") == "late":
+        parts.append("PCA is fit on the full table; the train/test split is applied to barcode rows afterwards.")
+    if spec.get("undersample") is True:
+        parts.append("The majority class is undersampled to the minority class count.")
+    elif spec.get("undersample") is False:
+        parts.append("No undersampling: both class pools keep their original sizes.")
+    return " ".join(parts)
+
+
+def _finish_and_save(
+    fig: plt.Figure,
+    save_path: Path,
+    *,
+    note: str = "",
+    handles=None,
+    labels=None,
+    legend_title: Optional[str] = None,
+    left: float = 0.02,
+) -> Path:
+    """Legend above a wrapped methodology footnote, then save at 160 dpi."""
+    keep = []
+    for handle, label in zip(handles or [], labels or []):
+        if label:
+            keep.append((handle, str(label)))
+    if len(keep) <= 1:
+        keep = []
+    note = " ".join(str(note or "").split())
+    wrapped = textwrap.wrap(note, width=108) if note else []
+    n_lines = len(wrapped)
+    legend_h = 0.09 if keep else 0.0
+    note_h = (0.028 * n_lines + 0.045) if wrapped else 0.0
+    bottom = min(0.48, legend_h + note_h)
+    fig.tight_layout(rect=[left, bottom, 0.98, 0.95])
+    y = 0.012
+    if wrapped:
+        fig.text(
+            0.5, y,
+            "\n".join(wrapped),
+            ha="center", va="bottom", fontsize=9, color="#222222",
+            linespacing=1.3,
+        )
+        y += max(0.04, note_h - 0.02)
+    if keep:
+        fig.legend(
+            [h for h, _ in keep],
+            [lab for _, lab in keep],
+            title=legend_title,
+            loc="lower center",
+            bbox_to_anchor=(0.5, y),
+            ncol=min(6, max(1, len(keep))),
+            frameon=False,
+            fontsize=10,
+        )
+    return _save_figure(fig, save_path)
+
+
+def plot_faceted_bars(
+    frame: pd.DataFrame,
+    *,
+    x: str,
+    y: str,
+    facet: str,
+    title: str,
+    ylabel: str,
+    save_path: Path,
+    hue: Optional[str] = None,
+    hline: Optional[float] = None,
+    hline_label: Optional[str] = None,
+    ylim: Optional[Tuple[float, float]] = None,
+    yscale: Optional[str] = None,
+    x_order: Optional[List[str]] = None,
+    hue_order: Optional[List[str]] = None,
+    palette: Optional[Dict[str, str]] = None,
+    annotate: bool = False,
+    wrap_width: int = 14,
+    note: str = "",
+    xlabel: Optional[str] = None,
+    share_x: bool = True,
+) -> Path:
+    """One primary question, small multiples: one panel per facet level."""
+    apply_publication_viz_style()
+    data = frame.dropna(subset=[x, y, facet]).copy()
+    if data.empty:
+        raise ValueError(f"No rows to plot for {Path(save_path).name}")
+    facets = list(dict.fromkeys(data[facet].tolist()))
+    x_levels = x_order or list(dict.fromkeys(data[x].tolist()))
+    hue_levels = None
+    if hue:
+        hue_levels = hue_order or list(dict.fromkeys(data[hue].tolist()))
+        if palette is None:
+            palette = _categorical_palette(hue_levels)
+    elif palette is None:
+        palette = _categorical_palette(x_levels)
+
+    n = len(facets)
+    ncols = 3 if n > 4 else (2 if n > 1 else 1)
+    nrows = int(np.ceil(n / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(4.8 * ncols, 3.7 * nrows + 0.35), sharey=True)
+    axes = np.atleast_1d(axes).ravel()
+    is_rate = ylim == (0, 1.05) or _is_rate_metric(y) or _is_rate_metric(ylabel)
+
+    handles, labels = [], []
+    for i, facet_val in enumerate(facets):
+        ax = axes[i]
+        sub = data[data[facet] == facet_val]
+        local_hues = list(dict.fromkeys(sub[hue].tolist())) if hue else None
+        local_x = list(x_levels)
+        if not share_x:
+            local_x = list(dict.fromkeys(sub[x].tolist()))
+            try:
+                local_x = sorted(local_x, key=lambda v: float(v))
+            except (TypeError, ValueError):
+                pass
+        _barplot(
+            ax, sub, x, y, hue,
+            palette=(
+                palette if hue
+                else [palette.get(v, _OKABE_ITO[j % len(_OKABE_ITO)]) for j, v in enumerate(local_x)]
+                if isinstance(palette, dict)
+                else palette
+            ),
+            order=local_x,
+            hue_order=local_hues,
+        )
+        ax.set_title(str(facet_val), fontsize=12)
+        ax.set_xlabel(xlabel if xlabel and i >= n - ncols else "")
+        if is_rate and yscale is None:
+            _style_rate_axis(ax, "", True)
+        else:
+            if ylim is not None:
+                ax.set_ylim(*ylim)
+        ax.set_ylabel("")
+        if yscale:
+            ax.set_yscale(yscale)
+        if hline is not None:
+            ax.axhline(hline, color="#222222", linestyle="--", linewidth=1.0)
+        legend = ax.get_legend()
+        if legend is not None:
+            new_handles = getattr(legend, "legend_handles", None) or getattr(legend, "legendHandles", [])
+            new_labels = [t.get_text() for t in legend.get_texts()]
+            for handle, label in zip(new_handles, new_labels):
+                if label not in labels:
+                    handles.append(handle)
+                    labels.append(label)
+            legend.remove()
+        _set_wrapped_ticks(ax, [str(v) for v in local_x], width=wrap_width)
+        if annotate and sub[x].nunique() <= 6 and (hue is None or sub[hue].nunique() <= 2):
+            for patch in ax.patches:
+                height = patch.get_height()
+                if np.isfinite(height) and height > 0:
+                    ax.annotate(
+                        f"{height:.2f}",
+                        (patch.get_x() + patch.get_width() / 2, height),
+                        ha="center", va="bottom", fontsize=8, xytext=(0, 2),
+                        textcoords="offset points",
+                    )
+
+    _hide_unused_axes(axes, n)
+    fig.suptitle(title, fontsize=14, y=1.03)
+    if ylabel:
+        fig.supylabel(ylabel, fontsize=12)
+    if hline is not None and hline_label:
+        labels = list(labels) + [hline_label]
+        from matplotlib.lines import Line2D
+        handles = list(handles) + [Line2D([0], [0], color="#222222", linestyle="--", linewidth=1.0)]
+    return _finish_and_save(fig, save_path, note=note, handles=handles, labels=labels, left=0.11)
+
+
+def plot_grouped_bars(
+    frame: pd.DataFrame,
+    *,
+    x: str,
+    y: str,
+    title: str,
+    ylabel: str,
+    save_path: Path,
+    hue: Optional[str] = None,
+    hline: Optional[float] = None,
+    hline_label: Optional[str] = None,
+    ylim: Optional[Tuple[float, float]] = None,
+    yscale: Optional[str] = None,
+    x_order: Optional[List[str]] = None,
+    hue_order: Optional[List[str]] = None,
+    palette: Optional[Dict[str, str]] = None,
+    annotate: bool = False,
+    wrap_width: int = 16,
+    note: str = "",
+) -> Path:
+    """Single-panel bar chart with legend outside the axes."""
+    apply_publication_viz_style()
+    data = frame.dropna(subset=[x, y]).copy()
+    if data.empty:
+        raise ValueError(f"No rows to plot for {Path(save_path).name}")
+    x_levels = x_order or list(dict.fromkeys(data[x].tolist()))
+    hue_levels = hue_order or (list(dict.fromkeys(data[hue].tolist())) if hue else None)
+    if palette is None:
+        palette = _categorical_palette(hue_levels if hue else x_levels)
+    width = max(7.5, 0.7 * len(x_levels) + 2.8)
+    fig, ax = plt.subplots(figsize=(width, 5.2))
+    _barplot(ax, data, x, y, hue, palette=palette, order=x_levels, hue_order=hue_levels)
+    ax.set_title(title, fontsize=14)
+    ax.set_xlabel("")
+    is_rate = ylim == (0, 1.05) or _is_rate_metric(y) or _is_rate_metric(ylabel)
+    if is_rate and yscale is None:
+        _style_rate_axis(ax, ylabel, True)
+    else:
+        ax.set_ylabel(ylabel, fontsize=12)
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+    if yscale:
+        ax.set_yscale(yscale)
+    if hline is not None:
+        ax.axhline(hline, color="#222222", linestyle="--", linewidth=1.0, label=hline_label or None)
+    legend = ax.get_legend()
+    handles, labels = [], []
+    if legend is not None:
+        handles = getattr(legend, "legend_handles", None) or getattr(legend, "legendHandles", [])
+        labels = [t.get_text() for t in legend.get_texts()]
+        legend.remove()
+    if hline is not None and hline_label and hline_label not in labels:
+        from matplotlib.lines import Line2D
+        handles = list(handles) + [Line2D([0], [0], color="#222222", linestyle="--", linewidth=1.0)]
+        labels = list(labels) + [hline_label]
+    _set_wrapped_ticks(ax, [str(v) for v in x_levels], width=wrap_width)
+    if annotate and len(x_levels) <= 8 and (hue is None or (hue_levels is not None and len(hue_levels) <= 2)):
+        for patch in ax.patches:
+            height = patch.get_height()
+            if np.isfinite(height) and height > 0:
+                ax.annotate(
+                    f"{height:.2f}",
+                    (patch.get_x() + patch.get_width() / 2, height),
+                    ha="center", va="bottom", fontsize=8, xytext=(0, 2),
+                    textcoords="offset points",
+                )
+    if handles:
+        return _finish_and_save(fig, save_path, note=note, handles=handles, labels=labels)
+    return _finish_and_save(fig, save_path, note=note)
+
+
+def _model_results_long_frame(model_results: dict, default_dataset: str = "") -> pd.DataFrame:
+    metrics = ["accuracy", "precision", "recall", "f1_score"]
+    rows = []
+    for group_key, models in (model_results or {}).items():
+        if not isinstance(models, dict):
+            continue
+        dataset_folder, setting = parse_group_key(group_key)
+        if not _registry_folder_from_token(dataset_folder):
+            if default_dataset:
+                setting = setting or dataset_folder or str(group_key)
+                dataset_folder = default_dataset
+            elif _registry_folder_from_token(default_dataset):
+                dataset_folder = default_dataset
+        dataset_folder = _registry_folder_from_token(dataset_folder) or dataset_folder
+        setting_label = pretty_setting_label(setting)
+        dataset_label = pretty_dataset_label(dataset_folder or group_key, short=True)
+        dataset_full = pretty_dataset_label(dataset_folder or group_key, short=False)
+        slug = dataset_slug_for_filename(dataset_folder or default_dataset or group_key)
+        for model_name, stats in models.items():
+            if not isinstance(stats, dict):
+                continue
+            stats = _normalize_model_stats(stats) if "f1" in stats or "f1_score" in stats else stats
+            for metric in metrics:
+                value = stats.get(metric)
+                if value is None and metric == "f1_score":
+                    value = stats.get("f1")
+                if value is None or not np.isfinite(float(value)):
+                    continue
+                rows.append({
+                    "group_key": group_key,
+                    "dataset_folder": dataset_folder or slug,
+                    "dataset_label": dataset_label,
+                    "dataset_full": dataset_full,
+                    "setting": setting_label or "Default pipeline",
+                    "model": str(model_name),
+                    "model_label": pretty_model_label(model_name),
+                    "metric": metric,
+                    "metric_label": pretty_metric_label(metric),
+                    "value": float(value),
+                })
+    return pd.DataFrame(rows)
+
+
+def _write_metric_csvs(frame: pd.DataFrame, save_dir: Path, prefix: str = "") -> List[Path]:
+    written: List[Path] = []
+    stem = f"{prefix}_" if prefix else ""
+    save_dir = win_long_path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    export = frame.copy()
+    if not export.empty:
+        written.append(_write_csv(save_dir / f"{stem}test_metrics_summary.csv", export))
+        for metric, sub in export.groupby("metric"):
+            written.append(_write_csv(save_dir / f"{stem}{metric}_summary.csv", sub))
+    return written
+
+
+def _plot_dataset_metric_dashboard(frame: pd.DataFrame, save_path: Path, dataset_title: str, note: str = "") -> Path:
+    apply_publication_viz_style()
+    metrics = [m for m in ("accuracy", "precision", "recall", "f1_score") if m in set(frame["metric"])]
+    models = list(dict.fromkeys(frame["model"].tolist()))
+    settings = list(dict.fromkeys(frame["setting"].tolist()))
+    use_hue = len(settings) > 1
+    palette = _model_palette(models) if not use_hue else _categorical_palette(settings)
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.4), sharey=True)
+    axes = axes.ravel()
+    handles, labels = [], []
+    for i, metric in enumerate(metrics):
+        ax = axes[i]
+        sub = frame[frame["metric"] == metric]
+        _barplot(
+            ax, sub, "model_label", "value",
+            hue="setting" if use_hue else None,
+            palette=palette if use_hue else [palette.get(m, _OKABE_ITO[0]) for m in models],
+            order=[pretty_model_label(m) for m in models],
+            hue_order=settings if use_hue else None,
+        )
+        ax.set_title(pretty_metric_label(metric), fontsize=13)
+        ax.set_xlabel("")
+        _style_rate_axis(ax, "Score" if i % 2 == 0 else "", True)
+        legend = ax.get_legend()
+        if legend is not None:
+            if not handles:
+                handles = getattr(legend, "legend_handles", None) or getattr(legend, "legendHandles", [])
+                labels = [t.get_text() for t in legend.get_texts()]
+            legend.remove()
+        ax.tick_params(axis="x", labelsize=10)
+        if not use_hue and sub["model"].nunique() <= 6:
+            for patch in ax.patches:
+                height = patch.get_height()
+                if np.isfinite(height) and height > 0:
+                    ax.annotate(
+                        f"{height:.2f}",
+                        (patch.get_x() + patch.get_width() / 2, height),
+                        ha="center", va="bottom", fontsize=8, xytext=(0, 1),
+                        textcoords="offset points",
+                    )
+    for j in range(len(metrics), 4):
+        axes[j].set_visible(False)
+    fig.suptitle(f"Held-out test metrics — {dataset_title}", fontsize=14, y=1.02)
+    legend_title = "Snapshot size" if use_hue else None
+    return _finish_and_save(
+        fig, save_path, note=note, handles=handles, labels=labels, legend_title=legend_title
+    )
+
+
 def improved_visualize_model_results(
     model_results: dict,
     save_dir: str = "results/visualizations",
@@ -2565,224 +3244,211 @@ def improved_visualize_model_results(
     plot_precision_recall: bool = False,
     hide_axis_labels: bool = False,
     compare_datasets: bool = False,
-    colormap: str = "tab10"  # New: supports color schemes like 'viridis', 'OrRd'
+    colormap: str = "tab10",
+    filename_prefix: str = "",
+    protocol_bucket: str = "",
+    figure_note: str = "",
 ):
+    """Publication-quality test-metric figures. One question per figure.
+
+    Cross-dataset calls write faceted small-multiples (one metric per file).
+    Single-dataset calls write a 2x2 metric dashboard with consistent model colors.
+    CV results are never mixed into these figures.
     """
-    Enhanced visualization of model results with dataset comparison, custom colormaps, and layout improvements.
-    """
-    save_dir = os.path.abspath(save_dir)
-    os.makedirs(save_dir, exist_ok=True)
+    del plot_precision_recall, hide_axis_labels, colormap  # kept for call-site compatibility
+    apply_publication_viz_style()
+    save_path = win_long_path(save_dir)
+    save_path.mkdir(parents=True, exist_ok=True)
+    frame = _model_results_long_frame(
+        model_results,
+        default_dataset=filename_prefix if filename_prefix not in {"", "cross"} else "",
+    )
+    if frame.empty:
+        return []
 
-    metrics = ["accuracy", "precision", "recall", "f1_score"]
-    metric_titles = ["Accuracy", "Precision", "Recall", "F1 Score"]
-
-    datasets = list(model_results.keys())
-    all_models = sorted({model for data in model_results.values() for model in data})
-
-    # Export to CSV if requested
+    written: List[Path] = []
+    prefix = filename_prefix.strip("_")
+    if prefix and prefix != "cross":
+        prefix = dataset_slug_for_filename(prefix)
     if export_metrics:
-        for metric in metrics:
-            rows = []
-            for dataset_name, results in model_results.items():
-                for model_name, model_stats in results.items():
-                    value = model_stats.get(metric, None)
-                    if value is not None:
-                        rows.append({
-                            "Dataset": dataset_name,
-                            "Model": model_name,
-                            metric.capitalize(): value
-                        })
-            df = pd.DataFrame(rows)
-            df.to_csv(os.path.join(save_dir, f"{metric}_summary.csv"), index=False)
+        written.extend(_write_metric_csvs(frame, save_path, prefix))
 
-    if compare_datasets:
-        # Grouped bar chart with datasets grouped per model
-        num_metrics = len(metrics)
-        fig, axs = plt.subplots(2, 2, figsize=(16, 10))
-        fig.suptitle("Model Performance Comparison (Grouped by Dataset)", fontsize=18)
+    datasets = list(dict.fromkeys(frame["dataset_folder"].tolist()))
+    settings = list(dict.fromkeys(frame["setting"].tolist()))
+    models = list(dict.fromkeys(frame["model"].tolist()))
+    model_labels = [pretty_model_label(m) for m in models]
+    use_setting_hue = len(settings) > 1
+    palette = _model_palette(models)
+    context = figure_note or protocol_context_sentence(protocol_bucket)
 
-        x = np.arange(len(all_models))
-        width = 0.8 / len(datasets)
+    if compare_datasets and len(datasets) >= 2:
+        metric_file = {
+            "accuracy": "accuracy_by_model_faceted.png",
+            "precision": "precision_by_model_faceted.png",
+            "recall": "recall_by_model_faceted.png",
+            "f1_score": "f1_by_model_faceted.png",
+        }
+        for metric, filename in metric_file.items():
+            sub = frame[frame["metric"] == metric].copy()
+            if sub.empty:
+                continue
+            written.append(plot_faceted_bars(
+                sub,
+                x="model_label",
+                y="value",
+                facet="dataset_label",
+                hue="setting" if use_setting_hue else None,
+                title=f"Held-out {pretty_metric_label(metric)} by model",
+                ylabel=pretty_metric_label(metric),
+                save_path=_public_fs_path(save_path) / filename,
+                ylim=(0, 1.05),
+                x_order=model_labels,
+                hue_order=settings if use_setting_hue else None,
+                palette=_categorical_palette(settings) if use_setting_hue else {pretty_model_label(m): palette[m] for m in models},
+                annotate=False,
+                wrap_width=12,
+                note=(
+                    f"Each bar is held-out test-set {pretty_metric_label(metric)} for one classifier. "
+                    "Datasets are separate panels so models are comparable within a table. "
+                    f"{context} "
+                    "When two colours appear they mark different snapshot sizes "
+                    "(fraction of the class used as points per snapshot) or table-cleaning protocols, not different metrics."
+                ),
+            ))
+        return written
 
-        for i, (metric, title) in enumerate(zip(metrics, metric_titles)):
-            ax = axs[i // 2, i % 2]
-            for idx, dataset_name in enumerate(datasets):
-                values = [model_results[dataset_name].get(model, {}).get(metric, 0) for model in all_models]
-                offset = (idx - (len(datasets) - 1) / 2) * width
-                bars = ax.bar(x + offset, values, width, label=dataset_name)
+    for dataset_folder, sub in frame.groupby("dataset_folder", sort=False):
+        slug = dataset_slug_for_filename(dataset_folder)
+        title = sub["dataset_full"].iloc[0]
+        written.append(_plot_dataset_metric_dashboard(
+            sub,
+            save_path=_public_fs_path(save_path) / f"{slug}_test_metrics_by_model.png",
+            dataset_title=title,
+            note=(
+                f"Each panel is one held-out test-set metric on a 0-1 scale. "
+                f"Bars are classifiers on {title}. {context} "
+                "Cross-validation accuracy is plotted in separate figures and is not mixed in here."
+            ),
+        ))
+    return written
 
-                for bar in bars:
-                    height = bar.get_height()
-                    ax.text(bar.get_x() + bar.get_width() / 2, height + 0.01,
-                            f"{height:.2f}", ha='center', va='bottom', fontsize=9)
 
-            ax.set_title(title, fontsize=14)
-            ax.set_ylim(0, 1.05)
-            ax.set_xticks(x)
-            ax.set_xticklabels(all_models, rotation=45)
-
-            if not hide_axis_labels:
-                ax.set_xlabel("Model", fontsize=10)
-            ax.set_ylabel(title, fontsize=10)
-
-        # Add legend below the figure (prevents overlapping)
-        fig.legend(loc='upper center', bbox_to_anchor=(0.5, -0.02),
-                   ncol=len(datasets), fontsize=11)
-        plt.tight_layout(rect=[0, 0, 1, 0.94])
-        plot_path = os.path.join(save_dir, "model_comparison_grouped.png")
-        plt.savefig(plot_path, bbox_inches="tight")
-        plt.close()
-        return plot_path
-
-    else:
-        # One chart per dataset
-        paths = []
-        for dataset_name in datasets:
-            fig, axs = plt.subplots(2, 2, figsize=(16, 10))
-            fig.suptitle(f"Model Performance - {dataset_name}", fontsize=18)
-
-            for i, (metric, title) in enumerate(zip(metrics, metric_titles)):
-                ax = axs[i // 2, i % 2]
-                plot_data = [
-                    (model, model_results[dataset_name].get(model, {}).get(metric, None))
-                    for model in all_models
-                ]
-                plot_data = [item for item in plot_data if item[1] is not None]
-                if not plot_data:
-                    ax.set_title(f"{title} (No Data)", fontsize=14)
-                    continue
-
-                labels, values = zip(*plot_data)
-                cmap = plt.get_cmap(colormap)
-                colors = cmap(np.linspace(0, 1, len(labels)))
-
-                bars = ax.bar(labels, values, color=colors)
-                ax.set_title(title, fontsize=14)
-                ax.set_ylim(0, 1.05)
-
-                if not hide_axis_labels:
-                    ax.set_xlabel("Model", fontsize=10)
-                ax.set_ylabel(title, fontsize=10)
-                ax.tick_params(axis='x', rotation=45)
-
-                for bar in bars:
-                    height = bar.get_height()
-                    ax.text(bar.get_x() + bar.get_width() / 2, height + 0.01,
-                            f"{height:.2f}", ha='center', va='bottom', fontsize=9)
-
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
-            plot_path = os.path.join(save_dir, f"model_comparison_{dataset_name}.png")
-            plt.savefig(plot_path, bbox_inches="tight")
-            plt.close()
-            paths.append(plot_path)
-        return paths
-    
 def visualize_cross_validation_detailed(
     cross_val_results: Dict[str, Dict[str, Dict[str, Any]]],
     save_dir: str = "results/visualizations",
     colormap: str = "tab10",
-    compare_models: bool = False
+    compare_models: bool = False,
+    protocol_bucket: str = "",
+    figure_note: str = "",
 ):
-    """
-    Visualizes cross-validation results in detail.
-    If compare_models is True:
-        - One figure per dataset.
-        - Each figure compares models via subplots.
-    Otherwise:
-        - One figure per dataset-model with fold-wise and summary plots.
-    """
-    save_dir = os.path.abspath(save_dir)
-    os.makedirs(save_dir, exist_ok=True)
-    cmap = plt.get_cmap(colormap)
-    paths = []
+    """CV-only figures: fold accuracy (faceted by model) and mean±std by model."""
+    del colormap, compare_models
+    apply_publication_viz_style()
+    save_path = win_long_path(save_dir)
+    save_path.mkdir(parents=True, exist_ok=True)
+    out_dir = _public_fs_path(save_path)
+    paths: List[Path] = []
 
-    for dataset_idx, (dataset_name, models_data) in enumerate(cross_val_results.items()):
-        model_names = list(models_data.keys())
+    for dataset_name, models_data in (cross_val_results or {}).items():
+        if not isinstance(models_data, dict):
+            continue
+        slug = dataset_slug_for_filename(dataset_name)
+        dataset_title = pretty_dataset_label(dataset_name, short=False)
+        fold_rows = []
+        summary_rows = []
+        for model_name, stats in models_data.items():
+            if not isinstance(stats, dict):
+                continue
+            raw_scores = stats.get("cross_val_scores")
+            if raw_scores is None:
+                scores = []
+            else:
+                scores = [float(v) for v in np.asarray(raw_scores).ravel().tolist()]
+            mean_score = stats.get("mean_accuracy", stats.get("mean_accracy"))
+            std_score = stats.get("std_accuracy", 0.0)
+            if mean_score is None and scores:
+                mean_score = float(np.mean(scores))
+            if not scores and mean_score is None:
+                continue
+            for i, score in enumerate(scores, start=1):
+                fold_rows.append({
+                    "model": str(model_name),
+                    "model_label": pretty_model_label(model_name),
+                    "fold": f"Fold {i}",
+                    "fold_num": i,
+                    "accuracy": float(score),
+                })
+            summary_rows.append({
+                "model": str(model_name),
+                "model_label": pretty_model_label(model_name),
+                "mean_accuracy": float(mean_score or 0.0),
+                "std_accuracy": float(std_score or 0.0),
+            })
+        if not summary_rows:
+            continue
+        summary = pd.DataFrame(summary_rows)
+        models = list(summary["model"])
+        palette = _model_palette(models)
 
-        if compare_models:
-            n_models = len(model_names)
-            cols = 2
-            rows = (n_models + 1) // cols
-
-            fig, axs = plt.subplots(rows, cols, figsize=(14, 4 * rows))
-            fig.suptitle(f"Cross-Validation Comparison — {os.path.basename(dataset_name)}", fontsize=18)
-
-            axs = axs.flatten()
-            for idx, model_name in enumerate(model_names):
-                ax = axs[idx]
-                stats = models_data[model_name]
-                scores = stats.get("cross_val_scores", [])
-                mean_score = stats.get("mean_accuracy", stats.get("mean_accracy", 0))
-                std_score = stats.get("std_accuracy", 0)
-
-                bars = ax.bar([f"Fold {i+1}" for i in range(len(scores))], scores,
-                              color=cmap(idx / n_models))
+        if fold_rows:
+            folds = pd.DataFrame(fold_rows)
+            n_models = folds["model_label"].nunique()
+            ncols = 3 if n_models > 4 else (2 if n_models > 1 else 1)
+            nrows = int(np.ceil(n_models / ncols))
+            fig, axes = plt.subplots(nrows, ncols, figsize=(4.6 * ncols, 3.4 * nrows), sharey=True)
+            axes = np.atleast_1d(axes).ravel()
+            for i, model_label in enumerate(dict.fromkeys(folds["model_label"].tolist())):
+                ax = axes[i]
+                sub = folds[folds["model_label"] == model_label]
+                model_key = sub["model"].iloc[0]
+                ax.bar(sub["fold"], sub["accuracy"], color=palette.get(model_key, _OKABE_ITO[0]), width=0.72)
+                mean_val = float(summary.loc[summary["model_label"] == model_label, "mean_accuracy"].iloc[0])
+                std_val = float(summary.loc[summary["model_label"] == model_label, "std_accuracy"].iloc[0])
+                ax.axhline(mean_val, color="#222222", linestyle="--", linewidth=1.0)
+                ax.set_title(f"{model_label}  (mean {mean_val:.3f} ± {std_val:.3f})", fontsize=12)
                 ax.set_ylim(0, 1.05)
-                ax.set_title(f"{model_name}", fontsize=13)
-                ax.set_ylabel("Accuracy")
+                ax.set_ylabel("Accuracy" if i % ncols == 0 else "")
+                ax.set_xlabel("")
+                ax.tick_params(axis="x", labelrotation=0, labelsize=9)
+            _hide_unused_axes(axes, n_models)
+            fig.suptitle(f"Cross-validation fold accuracy — {dataset_title}", fontsize=14, y=1.03)
+            paths.append(_finish_and_save(
+                fig,
+                out_dir / f"cv_{slug}_accuracy_by_fold.png",
+                note=(
+                    "Each bar is classification accuracy on one cross-validation fold. "
+                    "The dashed line is the mean across folds. "
+                    "This is training-set resampling, not the held-out test score. "
+                    f"{figure_note or protocol_context_sentence(protocol_bucket)}"
+                ),
+            ))
 
-                for bar in bars:
-                    height = bar.get_height()
-                    ax.text(bar.get_x() + bar.get_width() / 2, height + 0.01,
-                            f"{height:.2f}", ha='center', va='bottom', fontsize=9)
-
-                # Add summary as text
-                ax.text(0.5, 0.02, f"Mean ± Std: {mean_score:.3f} ± {std_score:.3f}",
-                        transform=ax.transAxes, ha='center', fontsize=10, bbox=dict(boxstyle="round", facecolor="#f0f0f0"))
-
-            # Hide any unused subplots
-            for j in range(idx + 1, len(axs)):
-                fig.delaxes(axs[j])
-
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
-            filename = f"cv_compare_models_{os.path.basename(dataset_name).replace('.csv','')}.png"
-            path = os.path.join(save_dir, filename)
-            plt.savefig(path, bbox_inches="tight")
-            plt.close()
-            paths.append(path)
-
-        else:
-            # Individual detailed plots
-            for model_idx, (model_name, stats) in enumerate(models_data.items()):
-                scores = stats.get("cross_val_scores", [])
-                mean_score = stats.get("mean_accuracy", stats.get("mean_accracy", 0))
-                std_score = stats.get("std_accuracy", 0)
-
-                fig, axs = plt.subplots(2, 1, figsize=(10, 8), gridspec_kw={'height_ratios': [3, 2]})
-                fig.suptitle(f"Cross-Validation — {model_name} on {os.path.basename(dataset_name)}", fontsize=16)
-
-                # Subplot 1: Fold scores
-                ax1 = axs[0]
-                bar_colors = cmap(np.linspace(0, 1, len(scores)))
-                bars = ax1.bar([f"Fold {i+1}" for i in range(len(scores))], scores, color=bar_colors)
-                ax1.set_ylim(0, 1.05)
-                ax1.set_ylabel("Accuracy")
-                ax1.set_title("Fold-wise Accuracy")
-
-                for bar in bars:
-                    height = bar.get_height()
-                    ax1.text(bar.get_x() + bar.get_width() / 2, height + 0.005,
-                             f"{height:.2f}", ha='center', va='bottom', fontsize=9)
-
-                # Subplot 2: Summary
-                ax2 = axs[1]
-                ax2.bar(["Mean Accuracy"], [mean_score], yerr=[std_score], capsize=10,
-                        color=cmap(0.6), edgecolor='black', linewidth=1.2)
-                ax2.set_ylim(0, 1.05)
-                ax2.set_title("Mean Accuracy with Std Deviation")
-                ax2.set_ylabel("Accuracy")
-
-                ax2.text(0, mean_score + std_score + 0.02,
-                         f"Mean ± Std = {mean_score:.3f} ± {std_score:.3f}",
-                         ha='center', fontsize=10, fontweight='bold')
-
-                plt.tight_layout(rect=[0, 0, 1, 0.94])
-                filename = f"cv_detail_{os.path.basename(dataset_name).replace('.csv','')}_{model_name}.png"
-                path = os.path.join(save_dir, filename)
-                plt.savefig(path, bbox_inches="tight")
-                plt.close()
-                paths.append(path)
-
+        fig, ax = plt.subplots(figsize=(max(7.5, 1.15 * len(summary)), 5.0))
+        x_pos = np.arange(len(summary))
+        colors = [palette.get(m, _OKABE_ITO[0]) for m in summary["model"]]
+        ax.bar(
+            x_pos,
+            summary["mean_accuracy"],
+            yerr=summary["std_accuracy"],
+            color=colors,
+            capsize=5,
+            width=0.66,
+            ecolor="#333333",
+        )
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels(summary["model_label"], fontsize=10)
+        ax.set_ylim(0, 1.05)
+        ax.set_ylabel("Mean CV accuracy")
+        ax.set_title(f"Mean cross-validation accuracy — {dataset_title}", fontsize=14)
+        paths.append(_finish_and_save(
+            fig,
+            out_dir / f"cv_{slug}_mean_accuracy_by_model.png",
+            note=(
+                "Each bar is mean cross-validation accuracy; whiskers are one standard deviation across folds. "
+                "Compare this with the held-out test dashboards — they answer different questions. "
+                f"{figure_note or protocol_context_sentence(protocol_bucket)}"
+            ),
+        ))
     return paths
 
 def build_results_dataframe_v3(
@@ -3112,11 +3778,13 @@ def compute_sampling_ratio_audit(
     landmark_percent: float = None,
 ) -> Dict[str, Any]:
     """
-    Audit sampling ratios from Zaniar's statistical checklist.
+    Audit sampling ratios from the statistical checklist.
 
-    n  = n1 + n2  (class sizes used for landmark generation, typically after balancing)
-    t  = points per landmark snapshot
-    l  = number of landmark files (snapshots) per class
+    Internal arguments keep the compact symbols (n1, n2, t, l) so existing
+    callers do not break. The returned dict also has English keys:
+    minority_class_count, majority_class_count, points_per_snapshot,
+    n_snapshots, snapshot_size_percent_of_class, reuse_ratio.
+    See docs/Notation.md.
     """
     n = n1 + n2
     ratios = {
@@ -3125,6 +3793,12 @@ def compute_sampling_ratio_audit(
         "n2": n2,
         "t": t,
         "l": l,
+        "minority_class_count": n1,
+        "majority_class_count": n2,
+        "points_per_snapshot": t,
+        "n_snapshots": l,
+        "snapshot_size_percent_of_class": landmark_percent,
+        "reuse_ratio": (t * l) / n1 if n1 else np.nan,
         "landmark_percent": landmark_percent,
         "t_over_n": t / n if n else np.nan,
         "t_over_n1": t / n1 if n1 else np.nan,
@@ -4474,3 +5148,1009 @@ def run_protocol_experiment(
         return run_protocol_algorithm2(dataset_key, protocol_bucket)
     raise ValueError(f"Unknown active TDA experiment: {experiment}")
 
+
+# =============================================================================
+# Experiment visualization (6_Results/{Bucket}/{Experiment}/)
+# =============================================================================
+
+_MODEL_METRIC_KEYS = {
+    "accuracy",
+    "precision",
+    "recall",
+    "f1",
+    "f1_score",
+    "balanced_accuracy",
+    "roc_auc",
+    "average_precision",
+}
+_CANONICAL_DATASET_FOLDERS = (
+    "Default_Of_Credit_Card_Client_Data",
+    "Statlog_German_Credit_Data",
+    "PKDD_Czech_Financial",
+    "Polish_Bankruptcy_3Year",
+    "Taiwan_Bankruptcy",
+    "South_German_Credit",
+)
+_METRIC_CSV_CANDIDATES = (
+    "model_results.pkl",
+    "CV_results.pkl",
+    "baseline_results.csv",
+    "extended_results.csv",
+    "tda_results.csv",
+    "metrics_table.csv",
+)
+_SAMPLING_ARTEFACTS = ("sampling_ratio_audit.csv", "sampling_ratio_audit.pkl")
+_SNAPSHOT_ARTEFACTS = ("snapshot_mean_variance.csv", "snapshot_mean_variance_full.pkl")
+_ALG2_ARTEFACTS = ("algorithm2_permutation_results.csv", "algorithm2_permutation_results.pkl")
+_EXP9_ARTEFACTS = ("ml_results.csv", "all_ml_results.csv", "design.json")
+_ID_ARTEFACTS = ("intrinsic_dimension_estimates.csv", "intrinsic_dimension_estimates.pkl")
+
+
+class ResultsNotGeneratedError(FileNotFoundError):
+    """Raised when a visualizer cannot find the experiment's result artefacts."""
+
+
+def _results_not_generated(expected_paths: List[Union[str, Path]]) -> None:
+    rendered = "\n".join(f"  - {Path(p)}" for p in expected_paths)
+    raise ResultsNotGeneratedError(
+        "results not generated yet. Expected artefacts at one of:\n" + rendered
+    )
+
+
+def experiment_results_root(protocol_bucket: str, experiment: str) -> Path:
+    return win_long_path(REPO_ROOT / "6_Results" / protocol_bucket / experiment)
+
+
+def experiment_visualizations_dir(protocol_bucket: str, experiment: str) -> Path:
+    """Canonical plot destination: 6_Results/{Bucket}/{Experiment}/Visualizations/."""
+    return experiment_results_root(protocol_bucket, experiment) / VISUALIZATIONS_DIRNAME
+
+
+_VIZ_OUTPUT_DIR_NAMES = {
+    VISUALIZATIONS_DIRNAME,
+    "model_viz",
+    "cv_viz",
+    "cross_dataset_viz",
+    "plots",
+}
+
+
+def _registered_dataset_folders() -> List[str]:
+    folders = [cfg.folder_name for cfg in DATASET_REGISTRY.values()]
+    return folders or list(_CANONICAL_DATASET_FOLDERS)
+
+
+def _dataset_result_dirs(results_root: Path) -> List[Path]:
+    found = []
+    for folder in _registered_dataset_folders():
+        path = results_root / folder
+        if path.is_dir():
+            found.append(path)
+    if found:
+        return found
+    if results_root.is_dir():
+        return sorted(
+            p for p in results_root.iterdir()
+            if p.is_dir() and not p.name.startswith(("_", "."))
+            and p.name not in _VIZ_OUTPUT_DIR_NAMES
+        )
+    return []
+
+
+def _is_metric_dict(obj: Any) -> bool:
+    return isinstance(obj, dict) and bool(_MODEL_METRIC_KEYS & set(obj.keys()))
+
+
+def _normalize_model_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
+    out = dict(stats)
+    if "f1" in out and "f1_score" not in out:
+        out["f1_score"] = out["f1"]
+    return out
+
+
+def normalize_model_results(obj: Any, fallback_label: str) -> Optional[Dict[str, Dict[str, Dict[str, Any]]]]:
+    """Coerce pickle/CSV model blobs into {group: {model: metrics}}."""
+    if not isinstance(obj, dict) or not obj:
+        return None
+    sample = next(iter(obj.values()))
+    if isinstance(sample, dict) and sample:
+        inner_sample = next(iter(sample.values()))
+        if _is_metric_dict(inner_sample):
+            normalized: Dict[str, Dict[str, Dict[str, Any]]] = {}
+            for group, models in obj.items():
+                if not isinstance(models, dict):
+                    continue
+                normalized[str(group)] = {
+                    str(model): _normalize_model_stats(stats)
+                    for model, stats in models.items()
+                    if isinstance(stats, dict)
+                }
+            return normalized or None
+    if any(_is_metric_dict(v) for v in obj.values()):
+        return {
+            fallback_label: {
+                str(model): _normalize_model_stats(stats)
+                for model, stats in obj.items()
+                if isinstance(stats, dict) and _is_metric_dict(stats)
+            }
+        }
+    flattened: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    for key, value in obj.items():
+        nested = normalize_model_results(value, str(key)) if isinstance(value, dict) else None
+        if not nested:
+            continue
+        for group, models in nested.items():
+            label = f"{key}/{group}" if group != str(key) else str(key)
+            flattened[label] = models
+    return flattened or None
+
+
+def _model_results_from_metrics_frame(
+    frame: pd.DataFrame,
+    fallback_label: str,
+) -> Optional[Dict[str, Dict[str, Dict[str, Any]]]]:
+    if frame.empty or "model" not in frame.columns:
+        return None
+    metric_cols = {
+        col: ("f1_score" if col == "f1" else col)
+        for col in frame.columns
+        if col in _MODEL_METRIC_KEYS
+    }
+    if not metric_cols:
+        return None
+    group_col = next(
+        (
+            col for col in (
+                "landmark_percent", "setting", "protocol", "variant",
+                "feature_space", "run_key", "t",
+            )
+            if col in frame.columns and frame[col].nunique(dropna=True) > 1
+        ),
+        None,
+    )
+    grouped: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    for _, row in frame.iterrows():
+        group = fallback_label
+        if group_col is not None and pd.notna(row[group_col]):
+            group = f"{fallback_label} | {group_col}={row[group_col]}"
+        model = str(row["model"])
+        stats = {
+            metric_cols[col]: float(row[col])
+            for col in metric_cols
+            if pd.notna(row[col])
+        }
+        if stats:
+            grouped.setdefault(group, {})[model] = _normalize_model_stats(stats)
+    return grouped or None
+
+
+def _openable(path: Union[str, Path]) -> Path:
+    return win_long_path(path)
+
+
+def _save_current_figure(path: Path, tight: bool = True) -> Path:
+    """Compatibility wrapper; new writers should call `_save_figure`."""
+    fig = plt.gcf()
+    del tight
+    return _save_figure(fig, path)
+
+
+def _bar_from_frame(
+    frame: pd.DataFrame,
+    x: str,
+    y: str,
+    hue: Optional[str],
+    title: str,
+    ylabel: str,
+    save_path: Path,
+    hline: Optional[float] = None,
+    rotate_xticks: int = 35,
+    hline_label: Optional[str] = None,
+    ylim: Optional[Tuple[float, float]] = None,
+    yscale: Optional[str] = None,
+    note: str = "",
+) -> Path:
+    """Publication-quality bar chart; facets automatically when many datasets."""
+    del rotate_xticks
+    data = frame.copy()
+    n_x = int(data[x].nunique(dropna=True)) if x in data.columns else 0
+    n_hue = int(data[hue].nunique(dropna=True)) if hue and hue in data.columns else 0
+    looks_like_dataset = x in {"dataset", "dataset_label", "dataset_folder"}
+    if looks_like_dataset and n_x >= 3 and n_hue >= 1:
+        facet_frame = data.copy()
+        if "dataset_label" not in facet_frame.columns:
+            facet_frame["dataset_label"] = facet_frame[x].map(lambda v: pretty_dataset_label(v, short=True))
+        return plot_faceted_bars(
+            facet_frame,
+            x=hue,
+            y=y,
+            facet="dataset_label",
+            title=title,
+            ylabel=ylabel,
+            save_path=save_path,
+            hline=hline,
+            hline_label=hline_label,
+            ylim=ylim,
+            yscale=yscale,
+            note=note,
+        )
+    return plot_grouped_bars(
+        data,
+        x=x,
+        y=y,
+        hue=hue,
+        title=title,
+        ylabel=ylabel,
+        save_path=save_path,
+        hline=hline,
+        hline_label=hline_label,
+        ylim=ylim,
+        yscale=yscale,
+        note=note,
+    )
+
+
+def _attach_dataset_labels(frame: pd.DataFrame, source_col: Optional[str] = None, dataset_col: str = "dataset") -> pd.DataFrame:
+    out = frame.copy()
+    folders = []
+    for _, row in out.iterrows():
+        folder = ""
+        if source_col and source_col in out.columns:
+            folder = ""
+            for part in re.split(r"[\\/:]+", str(row[source_col])):
+                resolved = _registry_folder_from_token(part)
+                if resolved:
+                    folder = resolved
+                    break
+        if not folder and dataset_col in out.columns:
+            folder = _registry_folder_from_token(row[dataset_col]) or str(row[dataset_col])
+        folders.append(folder)
+    out["dataset_folder"] = folders
+    out["dataset_label"] = [pretty_dataset_label(f, short=True) if f else "Unknown" for f in folders]
+    return out
+
+
+def _points_per_snapshot_label(value: Any) -> str:
+    num = float(value)
+    shown = int(num) if num.is_integer() else num
+    return f"{shown:g} points per snapshot"
+
+
+def _points_count_tick(value: Any) -> str:
+    num = float(value)
+    shown = int(num) if num.is_integer() else num
+    return f"{shown:g}"
+
+
+def _pretty_l_rule(value: Any) -> str:
+    text = str(value)
+    mapping = {
+        "historical_l500": "Historical (500 snapshots)",
+        "revised_ceil_n_over_t": "Revised snapshot count",
+    }
+    for key, label in mapping.items():
+        if key in text:
+            return label
+    return text.replace("_", " ")
+
+
+def visualize_model_pickle_experiment(
+    protocol_bucket: str,
+    experiment: str,
+    hide_axis_labels: bool = False,
+) -> List[Path]:
+    """Plot model_results.pkl / metric CSVs for every dataset folder that has them."""
+    results_root = experiment_results_root(protocol_bucket, experiment)
+    expected = [
+        results_root / folder / name
+        for folder in _registered_dataset_folders()
+        for name in _METRIC_CSV_CANDIDATES
+    ]
+    written: List[Path] = []
+    missing: List[Path] = []
+    cross_groups: Dict[str, Dict[str, Dict[str, Any]]] = {}
+
+    for dataset_dir in _dataset_result_dirs(results_root):
+        pickle_path = dataset_dir / "model_results.pkl"
+        csv_candidates = [
+            dataset_dir / name
+            for name in ("baseline_results.csv", "extended_results.csv", "tda_results.csv", "metrics_table.csv")
+            if (dataset_dir / name).is_file()
+        ]
+        model_results = None
+        if pickle_path.is_file():
+            model_results = normalize_model_results(joblib.load(_openable(pickle_path)), dataset_dir.name)
+        elif csv_candidates:
+            model_results = _model_results_from_metrics_frame(
+                pd.read_csv(csv_candidates[0]), dataset_dir.name
+            )
+        else:
+            missing.append(pickle_path)
+            continue
+        if not model_results:
+            missing.append(pickle_path)
+            continue
+
+        viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+        plot_path = improved_visualize_model_results(
+            model_results=model_results,
+            save_dir=str(viz_dir),
+            compare_datasets=False,
+            export_metrics=True,
+            plot_precision_recall=False,
+            colormap="viridis",
+            hide_axis_labels=hide_axis_labels,
+            filename_prefix=dataset_dir.name,
+            protocol_bucket=protocol_bucket,
+        )
+        if isinstance(plot_path, list):
+            written.extend(Path(p) for p in plot_path)
+        elif plot_path:
+            written.append(Path(plot_path))
+
+        cv_path = dataset_dir / "CV_results.pkl"
+        if cv_path.is_file():
+            cv_results = joblib.load(_openable(cv_path))
+            if isinstance(cv_results, dict) and cv_results and not isinstance(next(iter(cv_results.values())), dict):
+                cv_results = {dataset_dir.name: cv_results}
+            elif isinstance(cv_results, dict) and cv_results:
+                sample = next(iter(cv_results.values()))
+                if isinstance(sample, dict) and sample and not isinstance(next(iter(sample.values()), None), dict):
+                    cv_results = {dataset_dir.name: cv_results}
+            cv_out = visualize_cross_validation_detailed(
+                cross_val_results=cv_results,
+                save_dir=str(viz_dir),
+                colormap="viridis",
+                compare_models=True,
+                protocol_bucket=protocol_bucket,
+            )
+            written.extend(Path(p) for p in (cv_out or []))
+
+        for group, models in model_results.items():
+            group_key = str(group)
+            if dataset_dir.name in group_key:
+                cross_groups[group_key] = models
+            else:
+                cross_groups[f"{dataset_dir.name}:{group_key}"] = models
+
+    if not written and not cross_groups:
+        _results_not_generated(expected)
+
+    if len(cross_groups) >= 2:
+        viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+        plot_path = improved_visualize_model_results(
+            model_results=cross_groups,
+            save_dir=str(viz_dir),
+            compare_datasets=True,
+            export_metrics=True,
+            plot_precision_recall=False,
+            colormap="viridis",
+            hide_axis_labels=False,
+            filename_prefix="cross",
+            protocol_bucket=protocol_bucket,
+        )
+        if isinstance(plot_path, list):
+            written.extend(Path(p) for p in plot_path)
+        elif plot_path:
+            written.append(Path(plot_path))
+
+    for path in missing:
+        print(f"[skip] results not generated yet: {path}")
+    return written
+
+
+def visualize_sampling_ratio_audit_experiment(protocol_bucket: str, experiment: str) -> List[Path]:
+    results_root = experiment_results_root(protocol_bucket, experiment)
+    viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+    per_dataset = [results_root / folder / "sampling_ratio_audit.csv" for folder in _registered_dataset_folders()]
+    expected = per_dataset + [results_root / "sampling_ratio_audit.csv"]
+    frames = []
+    for csv_path in per_dataset:
+        if csv_path.is_file():
+            frame = pd.read_csv(csv_path)
+            if "dataset" not in frame.columns:
+                frame["dataset"] = csv_path.parent.name
+            frames.append(frame)
+    if not frames and (results_root / "sampling_ratio_audit.csv").is_file():
+        frames.append(pd.read_csv(results_root / "sampling_ratio_audit.csv"))
+    if not frames:
+        _results_not_generated(expected)
+    data = _attach_dataset_labels(pd.concat(frames, ignore_index=True))
+    viz_dir.mkdir(parents=True, exist_ok=True)
+    written: List[Path] = []
+    reuse_col = next(
+        (c for c in ("naive_tl_over_n1", "max_t_over_class", "naive_2tl_over_n") if c in data.columns),
+        None,
+    )
+    if reuse_col is not None:
+        plot_df = data.copy()
+        if "l_rule" in plot_df.columns:
+            plot_df = plot_df[plot_df["l_rule"].astype(str).str.contains("historical|revised", case=False, na=False)]
+            plot_df["l_rule_label"] = plot_df["l_rule"].map(_pretty_l_rule)
+        if "class" in plot_df.columns:
+            plot_df = plot_df.drop_duplicates(
+                subset=[c for c in ("dataset_folder", "landmark_percent", "l_rule", "split", "class") if c in plot_df.columns]
+            )
+        if "landmark_percent" in plot_df.columns:
+            plot_df["landmark_label"] = plot_df["landmark_percent"].map(
+                lambda v: f"{v:g}% of class"
+            )
+        hue = "landmark_label" if "landmark_label" in plot_df.columns else None
+        x_col = "l_rule_label" if "l_rule_label" in plot_df.columns else "dataset_label"
+        ctx = protocol_context_sentence(protocol_bucket)
+        written.append(plot_faceted_bars(
+            plot_df,
+            x=x_col,
+            y=reuse_col,
+            facet="dataset_label",
+            hue=hue if x_col != "dataset_label" else ("l_rule_label" if "l_rule_label" in plot_df.columns else hue),
+            title="Expected sampling reuse by snapshot-count rule",
+            ylabel="Expected reuse relative to minority class count",
+            save_path=viz_dir / "sampling_reuse_by_rule_faceted.png",
+            hline=1.0,
+            hline_label="Each minority-class row used about once",
+            yscale="log",
+            wrap_width=22,
+            note=(
+                "Each bar is expected sampling reuse: (points per snapshot times number of snapshots) "
+                "divided by the minority class count. A value of 1 means each minority-class customer is used about once. "
+                "The historical rule always takes 500 snapshots; the revised rule chooses the number of snapshots from "
+                "class size and points per snapshot. The vertical axis is logarithmic so both rules remain visible. "
+                f"{ctx}"
+            ),
+        ))
+        if "l_rule" in plot_df.columns:
+            revised = plot_df[plot_df["l_rule"].astype(str).str.contains("revised", case=False, na=False)]
+            if not revised.empty:
+                written.append(plot_faceted_bars(
+                    revised,
+                    x="landmark_label" if "landmark_label" in revised.columns else "dataset_label",
+                    y=reuse_col,
+                    facet="dataset_label",
+                    hue=None,
+                    title="Revised-rule sampling reuse (linear scale)",
+                    ylabel="Expected reuse relative to minority class count",
+                    save_path=viz_dir / "sampling_reuse_revised_rule_faceted.png",
+                    hline=1.0,
+                    hline_label="Each minority-class row used about once",
+                    wrap_width=18,
+                    note=(
+                        "Same reuse definition as the companion figure, restricted to the revised snapshot-count rule, "
+                        "shown on a linear scale. The dashed line is reuse = 1. "
+                        f"{ctx}"
+                    ),
+                ))
+    written.append(_write_csv(viz_dir / "sampling_ratio_audit_combined.csv", data))
+    return written
+
+
+def visualize_snapshot_mean_variance_experiment(protocol_bucket: str, experiment: str) -> List[Path]:
+    results_root = experiment_results_root(protocol_bucket, experiment)
+    viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+    per_dataset = [results_root / folder / "snapshot_mean_variance.csv" for folder in _registered_dataset_folders()]
+    expected = per_dataset + [results_root / "snapshot_mean_variance.csv"]
+    frames = [pd.read_csv(p) for p in per_dataset if p.is_file()]
+    if not frames and (results_root / "snapshot_mean_variance.csv").is_file():
+        frames.append(pd.read_csv(results_root / "snapshot_mean_variance.csv"))
+    if not frames:
+        _results_not_generated(expected)
+    data = _attach_dataset_labels(pd.concat(frames, ignore_index=True), source_col="source")
+    viz_dir.mkdir(parents=True, exist_ok=True)
+    written: List[Path] = []
+    source = data["source"].astype(str) if "source" in data.columns else pd.Series([""] * len(data))
+    data["landmark_label"] = source.map(pretty_setting_label).replace("", "Unknown snapshot size")
+    if "feature" in data.columns:
+        data["feature_label"] = data["feature"].map(lambda f: COLUMN_DESCRIPTIONS.get(str(f), str(f)))
+    headline = data[data["feature"].isin(["g2_0", "g3_1"])].copy() if "feature" in data.columns else data
+    ctx = protocol_context_sentence(protocol_bucket)
+    if not headline.empty and "mean" in headline.columns:
+        written.append(plot_faceted_bars(
+            headline,
+            x="landmark_label",
+            y="mean",
+            facet="dataset_label",
+            hue="feature_label",
+            title="Headline barcode means (mean death in homology 0, mean persistence in homology 1)",
+            ylabel="Mean statistic",
+            save_path=viz_dir / "barcode_mean_g2_0_g3_1_faceted.png",
+            wrap_width=16,
+            note=(
+                "Each bar is the mean of one barcode statistic across snapshots. "
+                "Mean death in homology 0 and mean persistence in homology 1 are shown. "
+                "Panels are datasets; colours are the two statistics. These are descriptive summaries of the snapshot cloud, not classifier scores. "
+                f"{ctx}"
+            ),
+        ))
+    if not headline.empty and "variance" in headline.columns:
+        written.append(plot_faceted_bars(
+            headline,
+            x="landmark_label",
+            y="variance",
+            facet="dataset_label",
+            hue="feature_label",
+            title="Headline barcode variances (mean death in homology 0, mean persistence in homology 1)",
+            ylabel="Variance",
+            save_path=viz_dir / "barcode_variance_g2_0_g3_1_faceted.png",
+            wrap_width=16,
+            note=(
+                "Each bar is the variance of one barcode statistic across snapshots. "
+                "Large whiskers mean the statistic is unstable from snapshot to snapshot. "
+                f"{ctx}"
+            ),
+        ))
+    if "feature" in data.columns and "mean" in data.columns:
+        apply_publication_viz_style()
+        pivot = data.pivot_table(index="feature_label", columns="dataset_label", values="mean", aggfunc="mean")
+        fig, ax = plt.subplots(figsize=(11.5, max(6.5, 0.32 * len(pivot) + 1.5)))
+        sns.heatmap(pivot, ax=ax, cmap="cividis", linewidths=0.3)
+        ax.set_title("Mean barcode statistics by dataset", fontsize=14)
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+        written.append(_finish_and_save(
+            fig,
+            viz_dir / "barcode_mean_heatmap.png",
+            note=(
+                "Each cell is the mean of one barcode statistic, averaged over snapshots for that dataset. "
+                "Rows are statistics; columns are datasets. Darker or lighter colour is a relative scale, not a classifier score. "
+                f"{ctx}"
+            ),
+        ))
+    written.append(_write_csv(viz_dir / "snapshot_mean_variance_combined.csv", data))
+    return written
+
+
+def visualize_algorithm2_experiment(protocol_bucket: str, experiment: str) -> List[Path]:
+    results_root = experiment_results_root(protocol_bucket, experiment)
+    viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+    per_dataset = [
+        results_root / folder / "algorithm2_permutation_results.csv"
+        for folder in _registered_dataset_folders()
+    ]
+    expected = per_dataset + [results_root / "algorithm2_permutation_results.csv"]
+    frames = [pd.read_csv(p) for p in per_dataset if p.is_file()]
+    if not frames and (results_root / "algorithm2_permutation_results.csv").is_file():
+        frames.append(pd.read_csv(results_root / "algorithm2_permutation_results.csv"))
+    if not frames:
+        _results_not_generated(expected)
+    data = _attach_dataset_labels(pd.concat(frames, ignore_index=True), source_col="source")
+    viz_dir.mkdir(parents=True, exist_ok=True)
+    written: List[Path] = []
+    source = data["source"].astype(str) if "source" in data.columns else pd.Series([""] * len(data))
+    data["landmark_label"] = source.map(pretty_setting_label).replace("", "Unknown snapshot size")
+    if "p" in data.columns and "q" in data.columns:
+        data["F_label"] = [f"Contrast ({int(p)}, {int(q)})" for p, q in zip(data["p"], data["q"])]
+    else:
+        data["F_label"] = "Contrast"
+    ctx = protocol_context_sentence(protocol_bucket)
+    written.append(plot_faceted_bars(
+        data,
+        x="F_label",
+        y="p_value",
+        facet="dataset_label",
+        hue="landmark_label" if data["landmark_label"].nunique() > 1 else None,
+        title="Algorithm 2 permutation p-values",
+        ylabel="p-value",
+        save_path=viz_dir / "algorithm2_pvalues_faceted.png",
+        hline=0.05,
+        hline_label="Significance threshold 0.05",
+        ylim=(0, 1.05),
+        wrap_width=14,
+        note=(
+            "Each bar is a permutation p-value for one barcode-vector contrast. "
+            "The dashed line is 0.05. Small values mean the observed contrast is unusual under a random label shuffle. "
+            "Panels are datasets; colours are snapshot sizes (fraction of the class used as points per snapshot). "
+            f"{ctx}"
+        ),
+    ))
+    if "observed_F_pq" in data.columns:
+        written.append(plot_faceted_bars(
+            data,
+            x="F_label",
+            y="observed_F_pq",
+            facet="dataset_label",
+            hue="landmark_label" if data["landmark_label"].nunique() > 1 else None,
+            title="Algorithm 2 observed contrast statistic",
+            ylabel="Observed contrast statistic",
+            save_path=viz_dir / "algorithm2_observed_F_faceted.png",
+            wrap_width=14,
+            note=(
+                "Each bar is the observed contrast statistic before permutation. "
+                "Read it together with the p-value figure: a large statistic with a small p-value is evidence against the shuffle null. "
+                f"{ctx}"
+            ),
+        ))
+    written.append(_write_csv(viz_dir / "algorithm2_permutation_combined.csv", data))
+    return written
+
+
+def visualize_revised_snapshot_protocol_experiment(protocol_bucket: str, experiment: str) -> List[Path]:
+    results_root = experiment_results_root(protocol_bucket, experiment)
+    viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+    per_dataset = [results_root / folder / "ml_results.csv" for folder in _registered_dataset_folders()]
+    expected = per_dataset + [results_root / "all_ml_results.csv"]
+    frames = []
+    for csv_path in per_dataset:
+        if csv_path.is_file():
+            frame = pd.read_csv(csv_path)
+            if "dataset" not in frame.columns:
+                frame["dataset"] = csv_path.parent.name
+            frames.append(frame)
+    if not frames and (results_root / "all_ml_results.csv").is_file():
+        frames.append(pd.read_csv(results_root / "all_ml_results.csv"))
+    if not frames:
+        _results_not_generated(expected)
+    data = _attach_dataset_labels(pd.concat(frames, ignore_index=True))
+    viz_dir.mkdir(parents=True, exist_ok=True)
+    written: List[Path] = []
+    if "model" in data.columns:
+        data["model_label"] = data["model"].map(pretty_model_label)
+    if "t" in data.columns:
+        data["snapshot_points_label"] = data["t"].map(_points_per_snapshot_label)
+    models = list(dict.fromkeys(data["model"].tolist())) if "model" in data.columns else []
+    model_palette = {pretty_model_label(m): _model_palette(models)[m] for m in models} if models else None
+    ctx = protocol_context_sentence(protocol_bucket)
+
+    for metric in ("balanced_accuracy", "f1", "accuracy"):
+        if metric not in data.columns:
+            continue
+        hue = "snapshot_points_label" if "snapshot_points_label" in data.columns and data["snapshot_points_label"].nunique() > 1 else None
+        written.append(plot_faceted_bars(
+            data,
+            x="model_label" if "model_label" in data.columns else "snapshot_points_label",
+            y=metric,
+            facet="dataset_label",
+            hue=hue if "model_label" in data.columns else None,
+            title=f"Revised snapshot protocol — {pretty_metric_label(metric)}",
+            ylabel=pretty_metric_label(metric),
+            save_path=viz_dir / f"{'f1' if metric == 'f1' else metric}_by_model_faceted.png",
+            ylim=(0, 1.05),
+            palette=model_palette if hue is None and model_palette else None,
+            wrap_width=16,
+            note=(
+                f"Each bar is held-out {pretty_metric_label(metric).lower()} for one classifier under the revised snapshot protocol. "
+                "Colours are points per snapshot (the size of one point cloud). Panels are datasets so models are compared within a table. "
+                f"{ctx}"
+            ),
+        ))
+        break
+    if "f1" in data.columns and "balanced_accuracy" in data.columns:
+        written.append(plot_faceted_bars(
+            data,
+            x="model_label",
+            y="f1",
+            facet="dataset_label",
+            hue="snapshot_points_label" if "snapshot_points_label" in data.columns and data["snapshot_points_label"].nunique() > 1 else None,
+            title="Revised snapshot protocol — F1 score",
+            ylabel="F1 score",
+            save_path=viz_dir / "f1_by_model_faceted.png",
+            ylim=(0, 1.05),
+            wrap_width=16,
+            note=(
+                "Each bar is held-out F1 for one classifier. Colours are points per snapshot. "
+                "Read this next to the balanced-accuracy figure; they are different questions. "
+                f"{ctx}"
+            ),
+        ))
+
+    concern_frames = []
+    for folder in _registered_dataset_folders():
+        path = results_root / folder / "concern_A_formula_rows.csv"
+        if path.is_file():
+            frame = pd.read_csv(path)
+            frame["dataset"] = folder
+            concern_frames.append(frame)
+    if concern_frames:
+        concern = _attach_dataset_labels(pd.concat(concern_frames, ignore_index=True))
+        y = "l_formula" if "l_formula" in concern.columns else concern.columns[-1]
+        x = "t" if "t" in concern.columns else concern.columns[0]
+        if x == "t":
+            concern["points_tick"] = concern[x].map(_points_count_tick)
+            x_order = [_points_count_tick(v) for v in sorted(concern[x].astype(float).unique())]
+        else:
+            concern["points_tick"] = concern[x].astype(str)
+            x_order = None
+        written.append(plot_faceted_bars(
+            concern,
+            x="points_tick",
+            y=y,
+            facet="dataset_label",
+            x_order=x_order,
+            xlabel="Points per snapshot",
+            share_x=False,
+            title="Concern A: formula number of snapshots versus points per snapshot",
+            ylabel="Number of snapshots from the formula",
+            save_path=viz_dir / "concern_A_snapshot_count_faceted.png",
+            note=(
+                "Each bar is the number of snapshots implied by the design formula, given the chosen points per snapshot. "
+                "This is a planning quantity, not a model score. The horizontal axis is points per snapshot. "
+                f"{ctx}"
+            ),
+        ))
+    reuse_frames = []
+    for folder in _registered_dataset_folders():
+        path = results_root / folder / "concern_B_reuse_rows.csv"
+        if path.is_file():
+            frame = pd.read_csv(path)
+            frame["dataset"] = folder
+            reuse_frames.append(frame)
+    if reuse_frames:
+        reuse = _attach_dataset_labels(pd.concat(reuse_frames, ignore_index=True))
+        reuse_y = next((c for c in ("reuse_pos", "reuse_neg", "R", "reuse") if c in reuse.columns), None)
+        reuse_ylabel = {
+            "reuse_pos": "Reuse on the default class",
+            "reuse_neg": "Reuse on the non-default class",
+            "R": "Reuse ratio",
+            "reuse": "Reuse ratio",
+        }.get(str(reuse_y), "Reuse relative to class count")
+        if reuse_y is None:
+            numeric = [c for c in reuse.columns if pd.api.types.is_numeric_dtype(reuse[c]) and c not in {"t", "l", "b"}]
+            reuse_y = numeric[0] if numeric else None
+        if reuse_y is not None:
+            x = "t" if "t" in reuse.columns else "dataset_label"
+            x_order = None
+            xlabel = None
+            if x == "t":
+                reuse["points_tick"] = reuse["t"].map(_points_count_tick)
+                x_order = [_points_count_tick(v) for v in sorted(reuse["t"].astype(float).unique())]
+                x = "points_tick"
+                xlabel = "Points per snapshot"
+            written.append(plot_faceted_bars(
+                reuse,
+                x=x,
+                y=reuse_y,
+                facet="dataset_label",
+                x_order=x_order,
+                xlabel=xlabel,
+                share_x=False,
+                title="Concern B: sampling reuse",
+                ylabel=reuse_ylabel,
+                save_path=viz_dir / "concern_B_reuse_faceted.png",
+                hline=1.0,
+                hline_label="Each class row used about once",
+                note=(
+                    "Each bar is sampling reuse on one class pool. "
+                    "Values near 1 mean each customer is used about once across snapshots; "
+                    "large values mean the same rows reappear in many snapshots. "
+                    "The horizontal axis is points per snapshot. "
+                    f"{ctx}"
+                ),
+            ))
+    overlap_rows = []
+    for folder in _registered_dataset_folders():
+        for json_path in (results_root / folder).glob("overlap_*.json"):
+            payload = json.loads(_openable(json_path).read_text(encoding="utf-8"))
+            for class_name, block in payload.items():
+                if not isinstance(block, dict):
+                    continue
+                summary = block.get("summary") or {}
+                overlap_rows.append({
+                    "dataset": folder,
+                    "file": json_path.name,
+                    "class": class_name,
+                    "mean_overlap_frac": summary.get("mean_overlap_frac"),
+                    "expected_overlap_frac_indep": summary.get("expected_overlap_frac_indep"),
+                    "reuse_ratio_tl_over_n": summary.get("reuse_ratio_tl_over_n"),
+                })
+    if overlap_rows:
+        overlap = _attach_dataset_labels(pd.DataFrame(overlap_rows)).dropna(subset=["mean_overlap_frac"])
+        if not overlap.empty:
+            overlap["class_label"] = overlap["class"].map(lambda c: str(c).replace("_", " ").title())
+            written.append(plot_faceted_bars(
+                overlap,
+                x="class_label",
+                y="mean_overlap_frac",
+                facet="dataset_label",
+                title="Mean pairwise snapshot overlap",
+                ylabel="Mean overlap fraction",
+                save_path=viz_dir / "overlap_mean_fraction_faceted.png",
+                ylim=(0, 1.05),
+                note=(
+                    "Each bar is the mean fraction of points shared by a pair of snapshots of the same class. "
+                    "Independent sampling would share about (points per snapshot / class count). Panels are datasets. "
+                    f"{ctx}"
+                ),
+            ))
+            written.append(_write_csv(viz_dir / "overlap_summary.csv", overlap))
+    written.append(_write_csv(viz_dir / "ml_results_combined.csv", data))
+    return written
+
+
+def visualize_intrinsic_dimension_experiment(
+    protocol_bucket: str = "Statistics",
+    experiment: str = "1_Intrinsic_Dimension_Estimation",
+) -> List[Path]:
+    results_root = experiment_results_root(protocol_bucket, experiment)
+    viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+    expected = [results_root / folder / "intrinsic_dimension_estimates.csv" for folder in _registered_dataset_folders()]
+    expected.append(results_root / "intrinsic_dimension_estimates.csv")
+    rich_frames = []
+    for folder in _registered_dataset_folders():
+        path = results_root / folder / "intrinsic_dimension_estimates.csv"
+        if path.is_file():
+            frame = pd.read_csv(path)
+            if "dataset" not in frame.columns:
+                frame["dataset"] = folder
+            rich_frames.append(frame)
+    if not rich_frames and (results_root / "intrinsic_dimension_estimates.csv").is_file():
+        rich_frames.append(pd.read_csv(results_root / "intrinsic_dimension_estimates.csv"))
+    if not rich_frames:
+        _results_not_generated(expected)
+    data = _attach_dataset_labels(pd.concat(rich_frames, ignore_index=True))
+    viz_dir.mkdir(parents=True, exist_ok=True)
+    written: List[Path] = []
+    rename = {
+        "two_nn_raw": "two_nn_before_pca",
+        "two_nn_pca": "two_nn_after_pca",
+        "levina_bickel_raw": "levina_bickel_before_pca",
+        "levina_bickel_pca": "levina_bickel_after_pca",
+        "pca_components": "pca_components_exp3",
+        "variance_retained_pca": "variance_retained_exp3_pca",
+    }
+    data = data.rename(columns={k: v for k, v in rename.items() if k in data.columns})
+
+    id_map = {
+        "two_nn_before_pca": ("Two-NN (in-house)", "Before PCA"),
+        "two_nn_after_pca": ("Two-NN (in-house)", "After PCA"),
+        "skdim_TwoNN_before_pca": ("Two-NN (skdim)", "Before PCA"),
+        "skdim_TwoNN_after_pca": ("Two-NN (skdim)", "After PCA"),
+        "levina_bickel_before_pca": ("Levina-Bickel", "Before PCA"),
+        "levina_bickel_after_pca": ("Levina-Bickel", "After PCA"),
+        "skdim_MLE_before_pca": ("MLE (skdim)", "Before PCA"),
+        "skdim_MLE_after_pca": ("MLE (skdim)", "After PCA"),
+        "skdim_MiND_ML_before_pca": ("MiND ML", "Before PCA"),
+        "skdim_MiND_ML_after_pca": ("MiND ML", "After PCA"),
+        "skdim_lPCA_before_pca": ("local PCA", "Before PCA"),
+        "skdim_lPCA_after_pca": ("local PCA", "After PCA"),
+    }
+    long_rows = []
+    for col, (family, stage) in id_map.items():
+        if col not in data.columns:
+            continue
+        for _, row in data.iterrows():
+            value = row[col]
+            if pd.isna(value):
+                continue
+            long_rows.append({
+                "dataset_label": row["dataset_label"],
+                "family": family,
+                "stage": stage,
+                "estimate": float(value),
+            })
+    melted = pd.DataFrame(long_rows)
+    ctx = protocol_context_sentence(protocol_bucket)
+    if not melted.empty:
+        two_nn = melted[melted["family"].str.contains("Two-NN", na=False)]
+        if not two_nn.empty:
+            written.append(plot_faceted_bars(
+                two_nn,
+                x="family",
+                y="estimate",
+                facet="dataset_label",
+                hue="stage",
+                title="Two-NN intrinsic dimension before vs after PCA",
+                ylabel="Estimated intrinsic dimension",
+                save_path=viz_dir / "two_nn_before_after_pca.png",
+                wrap_width=16,
+                note=(
+                    "Each bar is an estimated intrinsic dimension. "
+                    "'Before PCA' uses the processed table; 'After PCA' uses the Experiment 3 projection. "
+                    "In-house Two-NN and the skdim Two-NN estimator are shown side by side. Panels are datasets. "
+                    f"{ctx}"
+                ),
+            ))
+        suite = melted[~melted["family"].str.contains("Two-NN", na=False)]
+        if not suite.empty:
+            written.append(plot_faceted_bars(
+                suite,
+                x="family",
+                y="estimate",
+                facet="dataset_label",
+                hue="stage",
+                title="Other intrinsic-dimension estimators before vs after PCA",
+                ylabel="Estimated intrinsic dimension",
+                save_path=viz_dir / "id_estimator_suite_faceted.png",
+                wrap_width=12,
+                note=(
+                    "Each bar is an estimated intrinsic dimension from one estimator. "
+                    "Colours mark before versus after the Experiment 3 PCA projection. Panels are datasets. "
+                    f"{ctx}"
+                ),
+            ))
+    rank_cols = [c for c in ("pca_components_exp3", "n_components_for_90pct") if c in data.columns]
+    if rank_cols:
+        rank = data.melt(id_vars=["dataset_label"], value_vars=rank_cols, var_name="rank_kind", value_name="n_components")
+        rank["rank_label"] = rank["rank_kind"].map({
+            "pca_components_exp3": "Exp 3 PCA rank",
+            "n_components_for_90pct": "Components for 90% variance",
+        })
+        written.append(plot_faceted_bars(
+            rank,
+            x="rank_label",
+            y="n_components",
+            facet="dataset_label",
+            title="PCA rank used in Exp 3 vs components needed for 90% variance",
+            ylabel="Number of components",
+            save_path=viz_dir / "pca_rank_vs_90pct.png",
+            wrap_width=18,
+            note=(
+                "Bars compare the number of principal components actually used in Experiment 3 "
+                "with the number needed to retain 90% of variance. Panels are datasets. "
+                f"{ctx}"
+            ),
+        ))
+    if "variance_retained_exp3_pca" in data.columns:
+        written.append(plot_grouped_bars(
+            data,
+            x="dataset_label",
+            y="variance_retained_exp3_pca",
+            title="Variance retained by Exp 3 PCA rank",
+            ylabel="Variance retained",
+            save_path=viz_dir / "pca_variance_retained.png",
+            hline=0.90,
+            hline_label="90% target",
+            ylim=(0, 1.05),
+            wrap_width=14,
+            note=(
+                "Each bar is the fraction of variance kept by the Experiment 3 PCA rank. "
+                "The dashed line is the 90% target. "
+                f"{ctx}"
+            ),
+        ))
+    written.append(_write_csv(viz_dir / "intrinsic_dimension_estimates_combined.csv", data))
+    return written
+
+
+def visualize_experiment_folder(protocol_bucket: str, experiment: str) -> List[Path]:
+    """Dispatch visualization for one active experiment folder.
+
+    Run from `5_Experiments/{Bucket}/{Experiment}/visualize_results.py`.
+    Writes figures only into `6_Results/{Bucket}/{Experiment}/Visualizations/`.
+    Raises ResultsNotGeneratedError with the expected artefact paths when
+    nothing has been produced yet.
+    """
+    apply_publication_viz_style()
+    viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
+    print(f"Visualizing {protocol_bucket}/{experiment}")
+    print(f"Figures -> {viz_dir}")
+    hide_axes = experiment == "4_Dropping_Correlated_Barcode_Statistics_Columns"
+    if experiment == "6_Sampling_Ratio_Audit":
+        written = visualize_sampling_ratio_audit_experiment(protocol_bucket, experiment)
+    elif experiment == "7_Snapshot_Mean_Variance":
+        written = visualize_snapshot_mean_variance_experiment(protocol_bucket, experiment)
+    elif experiment == "8_Null_Hypothesis_Algorithm2":
+        written = visualize_algorithm2_experiment(protocol_bucket, experiment)
+    elif experiment == "9_Revised_Snapshot_Protocol":
+        written = visualize_revised_snapshot_protocol_experiment(protocol_bucket, experiment)
+    elif protocol_bucket == "Statistics" or experiment == "1_Intrinsic_Dimension_Estimation":
+        written = visualize_intrinsic_dimension_experiment(protocol_bucket, experiment)
+    else:
+        written = visualize_model_pickle_experiment(
+            protocol_bucket, experiment, hide_axis_labels=hide_axes
+        )
+    print(f"Wrote {len(written)} artefact(s) -> {viz_dir}")
+    return written
+
+
+# =============================================================================
+# English snapshot notation (symbol mapping: docs/Notation.md)
+# Additive helpers — names do not collide with existing t/l internals.
+# =============================================================================
+SNAPSHOT_NOTATION_ENGLISH = {
+    "t": "points per snapshot",
+    "l": "number of snapshots",
+    "L": "snapshot size as a percent of the class",
+    "n1": "minority class count",
+    "n2": "majority class count",
+    "R": "reuse ratio = (points per snapshot × number of snapshots) / minority class count",
+}
+
+
+def reuse_ratio_from_counts(
+    points_per_snapshot: int,
+    n_snapshots: int,
+    minority_count: int,
+) -> float:
+    """Reuse ratio = (points per snapshot × number of snapshots) / minority class count."""
+    if minority_count <= 0:
+        return float("nan")
+    return float(points_per_snapshot * n_snapshots) / float(minority_count)

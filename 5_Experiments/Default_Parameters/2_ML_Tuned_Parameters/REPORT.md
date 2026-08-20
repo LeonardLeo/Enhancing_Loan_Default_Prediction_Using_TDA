@@ -30,3 +30,7 @@ Whether tuned F1 on raw features already matches Experiment 3 / 4. Quote both.
 ## How to read the numbers
 
 Accuracy is misleading when few people default. Quote **F1** and **recall**. These scores are on **customers**, not barcode snapshots.
+
+## Where to read the method
+
+Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. `run.py` is an optional convenience launcher and is not the method document.

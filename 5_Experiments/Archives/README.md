@@ -22,4 +22,6 @@ Original numbered folders, kept as a museum. They are **not** part of the active
 
 **Not archived:** old Exp 2 (`Default_Parameters/2_ML_Tuned_Parameters`) and old Exp 28 (`{TDA arm}/9_Revised_Snapshot_Protocol` in all four TDA arms).
 
+Historical scripts in this museum may still use symbols `t`/`l` in code identifiers; see `docs/Notation.md`.
+
 Archived TDA artefacts that those folders generated live under `1_Data/{Landmark_Sets,Barcode_Statistics,TDA_Datasets}/Archives/{OldExperiment}/{Dataset}/`. Scripts remain runnable after the extra `Archives/` path segment (`../../../../1_Data/...`).

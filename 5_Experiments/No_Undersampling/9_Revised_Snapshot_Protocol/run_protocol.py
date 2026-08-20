@@ -347,7 +347,7 @@ def run_split_setting(
     test_classes = split_classes_no_balance(Xte, yte, positive_label=cfg.positive_label)
 
     # Feasibility guard
-    for name, frame in {**{f"train/{k}": v for k, v in train_classes.items()}, **{f"test/{k}": v for k, v in test_classes.items()}}.items():
+    for name, frame in {**{f"train/{k}": v for k, v in train_classes.items()}, **{f"test/{k}": v for k, v in test_classes.items()}.items():
         if len(frame) < t:
             raise ValueError(f"{run_key}: pool {name} has {len(frame)} < t={t}")
 

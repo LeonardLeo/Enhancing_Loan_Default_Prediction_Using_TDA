@@ -4,7 +4,7 @@
 **Audience:** Research team  
 **Scope:** Exploratory experiments that are **not** in the main paper tables, but that shaped what is considered sensible for this project.  
 **Excluded from this report (out of project scope):** Experiment 20 (deep learning placeholder); Experiment 5 Statlog `Full_Feature_Set` / `Balanced_Dataset` Mapper placeholders (`NotImplementedError`).  
-**Layout note:** exploratory arms for the four registry datasets also live under the same mirrored `5_Experiments/{N}/{Folder}/` folders as DCCCD/Statlog.
+**Layout note:** exploratory arms live under `5_Experiments/Archives/{OriginalNumber}/{Folder}/`, mirrored in `6_Results/Archives/`. They are not at the root of `5_Experiments/`.
 
 ---
 
@@ -17,7 +17,7 @@ They form the basis for:
 - choosing Mapper / visualisation parameters,
 - deciding whether barcode features are redundant or geometrically separated,
 - stress-testing PCA dimension and KNN neighbourhood size,
-- motivating the statistical follow-ups (Experiments 24–27) and the early-split protocol (Experiment 23).
+- motivating the statistical follow-ups (arm experiments 6–8, Statistics experiment 1) and the early-split protocol (Early Split TDA experiment 1).
 
 ---
 
@@ -25,17 +25,17 @@ They form the basis for:
 
 | Exp | Folder | Role in the research narrative | Status |
 |-----|--------|--------------------------------|--------|
-| 5 | `5_Mapper` | Shape of **original** features via Kepler Mapper | DCCCD + registry scripts; Statlog Feature_Selection exists; other Statlog arms are placeholders |
-| 7 | `7_EDA_Barcode_Statistics` | EDA of barcode matrices from Exp 3/6 | Complete artefacts in results (incl. registry folders) |
-| 8 | `8_Dimensionality_Reduction_On_Barcode_Statistics` | PCA view of barcode space | Complete |
-| 9 | `9_Dimensionality_Reduction_On_Original_Dataset` | PCA view of original processed data | Complete |
-| 10 | `10_Covariance_Matrix_And_Distances` | Centroid / distance geometry of barcode clouds | Complete |
-| 15 | `15_Working_With_K_in_KNN` | Sensitivity of KNN to `k` on barcodes | Complete |
-| 16 | `16_Variance_Retained_..._Default_...` | PCA component sweep (DCCCD + registry) | Complete |
-| 17 | `17_Distribution_For_Each_Class` | PCA / t-SNE / UMAP class separability | Complete |
-| 18 | `18_Variance_Retained_..._Statlog_...` | PCA component sweep (SGCD + registry) | Complete |
-| 21 | `21_Visualizing_Data_Shape_..._Using_TDA` | Mapper on **barcode** statistics | Complete (HTML outputs) |
-| 22 | `22_Visualizing_Persistence_Diagrams` | Persistence diagrams per class | Complete — Statlog path fixed |
+| 5 | `Archives/5_Mapper` | Shape of **original** features via Kepler Mapper | DCCCD + registry scripts; Statlog Feature_Selection exists; other Statlog arms are placeholders |
+| 7 | `Archives/7_EDA_Barcode_Statistics` | EDA of barcode matrices from Historical Exp 1 / arm Exp 3 | Complete artefacts in results (incl. registry folders) |
+| 8 | `Archives/8_Dimensionality_Reduction_On_Barcode_Statistics` | PCA view of barcode space | Complete |
+| 9 | `Archives/9_Dimensionality_Reduction_On_Original_Dataset` | PCA view of original processed data | Complete |
+| 10 | `Archives/10_Covariance_Matrix_And_Distances` | Centroid / distance geometry of barcode clouds | Complete |
+| 15 | `Archives/15_Working_With_K_in_KNN` | Sensitivity of KNN to `k` on barcodes | Complete |
+| 16 | `Archives/16_Variance_Retained_..._Default_...` | PCA component sweep (DCCCD + registry) | Complete |
+| 17 | `Archives/17_Distribution_For_Each_Class` | PCA / t-SNE / UMAP class separability | Complete |
+| 18 | `Archives/18_Variance_Retained_..._Statlog_...` | PCA component sweep (SGCD + registry) | Complete |
+| 21 | `Archives/21_Visualizing_Data_Shape_..._Using_TDA` | Mapper on **barcode** statistics | Complete (HTML outputs) |
+| 22 | `Archives/22_Visualizing_Persistence_Diagrams` | Persistence diagrams per class | Complete — Statlog path fixed |
 
 ---
 
@@ -129,7 +129,7 @@ They form the basis for:
 
 **Method.** Direct diagram visualisation (not barcode aggregation).
 
-**Why it matters.** Pedagogical and diagnostic: confirms that PH is computing non-trivial structure. Statlog `viz.py` loads `Statlog_German_Credit_Data/processed_data.xlsx` with PCA(15).
+**Why it matters.** Diagnostic: confirms that PH is computing non-trivial structure. Statlog `viz.py` loads `Statlog_German_Credit_Data/processed_data.xlsx` with PCA(15).
 
 ---
 
@@ -137,11 +137,11 @@ They form the basis for:
 
 | Exploratory insight | Follow-up |
 |---------------------|-----------|
-| Full-data PCA/landmarks may leak | **Exp 23** early 80/20 + independent train/test snapshots |
-| `l=500` and large `t` look aggressive | **Exp 24** sampling-ratio audit |
-| Need mean/variance of snapshots for theory | **Exp 25** snapshot statistics / `\barλ` proxy |
-| PCA dims ≠ intrinsic dimension | **Exp 26** Two-NN & Levina–Bickel |
-| Need formal two-sample evidence | **Exp 27** Algorithm 2 / `F_{p,q}` (Robinson & Turner) |
+| Full-data PCA/landmarks may leak | **Early Split TDA Exp 1** (historical Exp 23) |
+| 500 snapshots and large points per snapshot look aggressive | **Arm Exp 6** sampling-ratio audit |
+| Need mean/variance of snapshots for theory | **Arm Exp 7** snapshot statistics / landscape-mean proxy |
+| PCA dims ≠ intrinsic dimension | **Statistics Exp 1** Two-NN & Levina–Bickel |
+| Need formal two-sample evidence | **Arm Exp 8** Algorithm 2 / `F_{p,q}` (Robinson & Turner) |
 
 ---
 
@@ -150,7 +150,7 @@ They form the basis for:
 1. Read `docs/Pipeline_Issues_And_Leakage.md` alongside this report.  
 2. Review CV numbers in `docs/CV_Results.md` (paper experiments).  
 3. Review `docs/Experiment_23_Results.md` and `docs/Statistical_Experiments_24_27_Results.md`.  
-4. For the fixed-`t` redesign across all six datasets, read `docs/Revised_Snapshot_Protocol_Deep_Report.md` (Exp 28).  
+4. For the fixed points-per-snapshot redesign across all six datasets, read `docs/Revised_Snapshot_Protocol_Deep_Report.md` (arm experiment 9).  
 5. Cite Robinson & Turner (arXiv:1310.7467) and Chazal et al. (arXiv:1406.1901) in the write-up; reference Frontiers TDA survey §6.3.1 for snapshot statistics.
 
 ---

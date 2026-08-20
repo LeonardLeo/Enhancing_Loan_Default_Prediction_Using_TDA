@@ -1,12 +1,17 @@
-# Experiment 23 Results — Early Train/Test Split
+# Early Split TDA Experiment 1 (Protocol B) — hold-out results
 
-**Protocol:** 80/20 stratified split on processed tabular data → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes.
+**Former title:** Experiment 23 Results. The live folder is **not** `5_Experiments/23_Early_…`. Code, barcodes, and metrics live under Early Split TDA experiment 1.
 
-**Code / results layout:**
-- Legacy: `5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/{Default_Of_Credit_Card_Client_Data,Statlog_German_Credit_Data}/`
-- Registry (clean-protocol barcodes also namespaced here):  
-  `6_Results/Early_Split_TDA/1_PH_Default_Parameters/{PKDD_Czech_Financial,Polish_Bankruptcy_3Year,Taiwan_Bankruptcy,South_German_Credit}/`  
-  plus matching barcode trees under `1_Data/TDA_Datasets/Early_Split_TDA/1_PH_Default_Parameters/{Folder}/`.
+**Protocol:** 80/20 stratified split on processed tabular data → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes. Majority undersampling still happens independently inside each split.
+
+**Code / results:**
+
+- Scripts: `5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/{Dataset}/`
+- Metrics: `6_Results/Early_Split_TDA/1_PH_Default_Parameters/{Dataset}/`
+- Barcodes: `1_Data/TDA_Datasets/Early_Split_TDA/1_PH_Default_Parameters/{Dataset}/`
+- Method write-up: `5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/REPORT.md`
+
+The four registry datasets use the same namespaced trees. Fixed-points-per-snapshot redesign (all six datasets, all four arms): arm experiment 9 and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 ---
 
@@ -61,7 +66,7 @@
 
 - Most Statlog models sit near 0.50 accuracy with recall ≈ 1.0 (predicting the positive class).
 - This differs sharply from older full-data (leaky) barcode experiments and is an important early-split finding.
-- Registry clean-protocol TDA metrics for the four additional datasets are stored as `tda_results.csv` under each Exp 23 dataset folder (sourced from the Exp 3 clean Protocol B runs).
-- For the meeting-driven fixed-`t` redesign across all six datasets, see Experiment **28** and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
+- Registry clean-protocol TDA metrics for the four additional datasets are stored as `tda_results.csv` under each Early Split TDA Exp 1 dataset folder.
+- For the meeting-driven fixed points-per-snapshot redesign across all six datasets, see arm experiment 9 in every TDA bucket and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 Artefacts: `6_Results/Early_Split_TDA/1_PH_Default_Parameters/`

@@ -10,8 +10,8 @@ Team list from 6 August 2026, mapped onto the implementation. Stage order is in 
 
 | Where | Estimators |
 |-------|------------|
-| Exp 26 `utils.estimate_intrinsic_dimension_skdim` | TwoNN, MLE (Levina–Bickel, k=20), MiND_ML, lPCA |
-| Exp 28 `protocol_lib.estimate_intrinsic_dimensions` | TwoNN, MLE, lPCA, MiND_ML, DANCo when n ≤ 800 |
+| Exp 26 `utils.estimate_intrinsic_dimension_skdim` (`5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/`) | TwoNN, MLE (Levina–Bickel, k=20), MiND_ML, lPCA |
+| Arm Exp 9 `protocol_lib.estimate_intrinsic_dimensions` | TwoNN, MLE, lPCA, MiND_ML, DANCo when n ≤ 800 |
 
 Hand-coded Two-NN / Levina–Bickel in `utils.py` stay as the transparent Facco / LB formulae. Exp 26 writes **both** so a reviewer can see they agree.
 
@@ -44,12 +44,12 @@ Answer for a viva / reviewer: the Facco formula is written out so the methods se
 
 | Arm | What “splitting barcode statistics” means here |
 |-----|------------------------------------------------|
-| **Exp 6** | H0-only columns (drop the 12 H1 stats). |
-| **Exp 19** | Linear model on the full 24-D table and on the H0 slice from Exp 3. |
-| **Exp 23** | Split **customers** before PCA / landmarks (protocol split, not column split). |
-| **Exp 11** | Drop correlated barcode columns (a different split: keep / drop by correlation). |
+| **Arm Exp 3** (`3_H0_Only`) | H0-only columns (drop the 12 H1 stats). |
+| **Arm Exp 5** (`5_Linear_Regression_For_Prediction`; paper Exp 10 / old Exp 19) | Linear model on the full 24-D table and on the H0 slice from Historical Exp 1. |
+| **Early Split TDA Exp 1** (historical Exp 23) | Split **customers** before PCA / landmarks (protocol split, not column split). |
+| **Arm Exp 4** | Drop correlated barcode columns (a different split: keep / drop by correlation). |
 
-If the intended repeat is “rerun Exp 24–27 on H0-only matrices”, that is a cheap follow-up (same scripts, point them at Exp 6 CSVs). It is **not** missing infrastructure.
+If the intended repeat is “rerun arm experiments 6–8 on H0-only matrices”, that is a cheap follow-up (same scripts, point them at arm Exp 3 CSVs). It is **not** missing infrastructure.
 
 ---
 
@@ -59,16 +59,16 @@ If the intended repeat is “rerun Exp 24–27 on H0-only matrices”, that is a
 
 | Layer | What it does |
 |-------|----------------|
-| **Exp 24** | Audits historical `l = 500` vs `l_star = round(n1 / t)`. Does not rebuild Ripser. |
-| **Exp 28** | Rebuilds with a **fixed t**, default `l_train = 60` / `l_test = 15`, no undersampling, customer split first. |
+| **Arm Exp 6** | Audits historical 500 snapshots vs suggested snapshot count ≈ round(minority class count / points per snapshot). Does not rebuild Ripser. |
+| **Arm Exp 9** | Rebuilds with **fixed points per snapshot**, default 60 training / 15 test snapshots, no undersampling on the canonical arm, customer split first. |
 
-Playing with `t` and `l` on the historical percent grid (L10 vs L20, L5 vs L15, …) is already Exp 3’s two-percent design plus Exp 25/27 reading both files.
+Playing with points per snapshot and number of snapshots on the historical percent grid (L10 vs L20, L5 vs L15, …) is already Historical Exp 1’s two-percent design plus arm experiments 7/8 reading both files. The dated 13/08/2026 factorial is `5_Experiments/Snapshot_Sample_Size/`.
 
 ---
 
 ## 6. Focus on intrinsic dimensionality
 
-**Done.** Exp 26 (all six datasets, before **and** after PCA, hand-coded + skdim). Exp 28 **design** stage uses `b` to talk about snapshot size. The “is `b ≈ 7`?” check uses **after-PCA Two-NN**.
+**Done.** Statistics experiment 1 (all six datasets, before **and** after PCA, hand-coded + skdim). Arm experiment 9 **design** stage uses intrinsic dimension to talk about snapshot size. The “is intrinsic dimension ≈ 7?” check uses **after-PCA Two-NN**.
 
 ---
 
@@ -82,19 +82,19 @@ Playing with `t` and `l` on the historical percent grid (L10 vs L20, L5 vs L15, 
 | `docs/Statistical_Experiments_24_27_Results.md` | Worked numbers for all six datasets |
 | `docs/Design_Decisions.md` | Why knobs differ (L, PCA, ID before/after) |
 
-Plus `REPORT.md` in every experiment folder (24–28 also have a short per-dataset report).
+Plus `REPORT.md` in every experiment folder (arm experiments 6–9 and Statistics Exp 1 also have a short per-dataset report).
 
 ---
 
 ## Not missing (already in the pipeline, easy to confuse with the list)
 
-- Early train/test split: Exp 23 and Exp 28.
-- Variance-matched PCA: Exp 13. Component sweeps: Exp 16 / 18.
-- Mapper shape of barcode space: Exp 21 (consumes Exp 3 CSVs).
-- Imbalanced mixed-class training: Exp 14.
+- Early train/test split: Early Split TDA Exp 1 and arm Exp 9.
+- Variance-matched PCA: archived Exp 13. Component sweeps: archived Exp 16 / 18.
+- Mapper shape of barcode space: archived Exp 21 (consumes Historical Exp 1 CSVs).
+- Imbalanced mixed-class training: archived Exp 14.
 
 ## Deliberately not in scope
 
 - **dadapy** (duplicate TwoNN).
-- **Re-ranking Exp 3 PCA** after the fact to force 90% on PKDD / Polish / South German (would invalidate every downstream `data_L*.csv`). Documented miss; Exp 13 is the variance-matched alternative.
-- **TensorFlow deep learning (Exp 20)** — placeholder, out of scope.
+- **Re-ranking Historical Exp 1 PCA** after the fact to force 90% on PKDD / Polish / South German (would invalidate every downstream `data_L*.csv`). Documented miss; archived Exp 13 is the variance-matched alternative.
+- **TensorFlow deep learning (archived Exp 20)** — placeholder, out of scope.

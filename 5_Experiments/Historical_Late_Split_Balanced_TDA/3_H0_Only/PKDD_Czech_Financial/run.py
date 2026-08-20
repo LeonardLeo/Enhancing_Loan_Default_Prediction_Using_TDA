@@ -1,23 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Historical_Late_Split_Balanced_TDA / 3_H0_Only
-Dataset: PKDD_Czech_Financial
-
-Protocol knobs and artefact paths are resolved in utils.run_protocol_experiment.
-This file is a complete, runnable entry point — not a stub.
-"""
-import sys
+"""Convenience launcher. Open `pkdd_czech_financial_H0_only.py` in this folder to read the method."""
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT))
-
-from utils import run_protocol_experiment
+import runpy
 
 if __name__ == "__main__":
-    run_protocol_experiment(
-        dataset_key='pkdd_czech',
-        protocol_bucket='Historical_Late_Split_Balanced_TDA',
-        experiment='3_H0_Only',
-        skip_existing_barcodes=True,
-    )
+    runpy.run_path(str(Path(__file__).with_name('pkdd_czech_financial_H0_only.py')), run_name="__main__")

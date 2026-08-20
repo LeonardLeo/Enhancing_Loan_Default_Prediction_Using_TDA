@@ -2,6 +2,8 @@
 
 Generated from existing `6_Results/**/CV_results.pkl` files only (no new CV runs).
 
+Table labels such as `3_PH_Default_Parameters` and `19_Linear_Regression_For_Prediction` are the **historical pickle experiment names**. Live folders: `Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters` (paper Exp 3) and `Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` (paper Exp 10 / arm Exp 5). Archived paper experiments 12–14 keep their original numbers under `6_Results/Archives/`. Map: `docs/Repository_Layout.md`.
+
 ## Protocol (as implemented)
 
 - **Folds:** 10-fold StratifiedKFold (`shuffle=True`, `random_state=42`).

@@ -64,7 +64,7 @@ except Exception:  # pragma: no cover
 
 
 # -----------------------------------------------------------------------------
-# Canonical sweep grids (meeting answers)
+# Canonical sweep grids
 # -----------------------------------------------------------------------------
 DEFAULT_TRAIN_L = 60
 DEFAULT_TEST_L = 15

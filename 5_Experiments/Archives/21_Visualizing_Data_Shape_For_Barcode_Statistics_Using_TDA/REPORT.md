@@ -22,7 +22,7 @@ Folder names are shortened (`pca_r20_o30_kmeans2`) so Windows path-length limits
 
 ## How to read an HTML
 
-Open it in a browser. Node colour ≈ class mix. A graph that splits into two almost-pure blobs is the picture you want. A single mixed blob is the picture you should not over-claim.
+Open it in a browser. Node colour ≈ class mix. A graph that splits into two almost-pure blobs is the picture this study looks for. A single mixed blob is not evidence of a clear shape difference.
 
 ## Windows note
 

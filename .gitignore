@@ -78,7 +78,7 @@ desktop.ini
 6_Results/**/*.png
 6_Results/**/*.gif
 6_Results/**/*.csv
-!6_Results/clean_experiment_results.csv
+!6_Results/Paper_Tables/clean_experiment_results.csv
 
 # Four-dataset pipeline: retain compact top-level result tables, not run internals
 !6_Results/New_Datasets/*.csv

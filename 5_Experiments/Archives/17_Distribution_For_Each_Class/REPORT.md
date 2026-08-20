@@ -6,7 +6,7 @@ After Experiment 3 squashes each snapshot into 24 numbers, do defaults and non-d
 
 ## Who this is for
 
-If the two colours sit on top of each other in PCA, t-SNE, **and** UMAP, topology is not giving the classifier an easy visual signal. A later model might still find a thin wrinkle — but you should not claim “clear shape difference” from these plots.
+If the two colours sit on top of each other in PCA, t-SNE, **and** UMAP, topology is not giving the classifier an easy visual signal. A later model might still find a thin wrinkle — but this study does not claim a “clear shape difference” from these plots.
 
 ## Datasets
 

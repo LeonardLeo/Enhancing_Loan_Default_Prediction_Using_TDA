@@ -7,14 +7,14 @@
 | Split timing | early — stratified 80/20 on customers BEFORE scaler/PCA/landmarks |
 | Undersample | no — full class pools inside each split |
 | PCA | MinMax + PCA fit on TRAIN only; test is transformed |
-| Snapshot size | t = floor(n_class * L / 100) per class on that split's available pool |
-| Snapshot count `l` | 500 (dataset historical n_files) |
+| Snapshot size | points per snapshot = floor(class count × snapshot size percent / 100) on that split's available pool |
+| Number of snapshots | 500 (dataset historical n_files) |
 
 This experiment BUILDS landmarks and Ripser barcodes. Downstream 2–5, 7–8 consume its `data_L*.csv`.
 
-Same Exp 3 PCA ranks and landmark percents (`docs/Design_Decisions.md`, `utils.DatasetConfig`):
+Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `utils.DatasetConfig`):
 
-| Dataset | Landmark percents | PCA rank | `l` |
+| Dataset | Snapshot size as percent of the class | PCA rank | Number of snapshots |
 |---------|-------------------|----------|-----|
 | Default_Of_Credit_Card_Client_Data | L5 / L15 | 7 | 500 |
 | Statlog_German_Credit_Data | L30 / L60 | 15 | 500 |
@@ -33,6 +33,10 @@ Same Exp 3 PCA ranks and landmark percents (`docs/Design_Decisions.md`, `utils.D
 ```
 
 Consumers 2–5 and 7–8 read this arm's experiment-1 matrices. They must not start 500 Ripser jobs.
+
+## Where to read the method
+
+Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. `run.py` is an optional convenience launcher and is not the method document.
 
 ## How to run
 

@@ -1,63 +1,30 @@
 # -*- coding: utf-8 -*-
+"""Visualize artefacts for Historical_Late_Split_Balanced_TDA / 3_H0_Only.
+
+Runnable from this experiment directory:
+
+    python visualize_results.py
+
+Run this script; figures land in `6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Visualizations/`.
+If results do not exist yet, the script exits with a clear
+"results not generated yet" message naming the expected path.
 """
-Created on Wed Jun 11 10:38:02 2025
+from pathlib import Path
+import sys
 
-@author: leona
-"""
+import matplotlib
+matplotlib.use("Agg")
 
-# =============================================================================
-# Import Libraries
-# =============================================================================
-import joblib
-from utils import (improved_visualize_model_results, 
-                   visualize_cross_validation_detailed)
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 
-# =============================================================================
-# STATLOG GERMAN CREDIT DATASET - Results from Persistent Homology using Default Parameters
-# =============================================================================
-Model_Results = joblib.load("../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/model_results.pkl")
-CV_Results = joblib.load("../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/CV_results.pkl")
+from utils import ResultsNotGeneratedError, visualize_experiment_folder
 
-# Visualize Model Results
-viz_results = improved_visualize_model_results(
-                model_results=Model_Results,
-                save_dir="../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/model_viz",
-                compare_datasets=True,
-                export_metrics=True,
-                plot_precision_recall=False,
-                colormap="viridis",
-                hide_axis_labels=False
-)
-
-# Visualize CV Results.
-cv_results = visualize_cross_validation_detailed(
-                cross_val_results=CV_Results,
-                save_dir="../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/cv_viz",
-                colormap="viridis",
-                compare_models=True
-)
-
-# =============================================================================
-# DEFAULT OF CREDIT CARD CLIENT DATASET - Results from Persistent Homology using Default Parameters
-# =============================================================================
-Model_Results_DCCCD = joblib.load("../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-CV_Results_DCCCD = joblib.load("../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
-
-# Visualize Model Results
-viz_results = improved_visualize_model_results(
-                model_results=Model_Results_DCCCD,
-                save_dir="../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/model_viz",
-                compare_datasets=True,
-                export_metrics=True,
-                plot_precision_recall=False,
-                colormap="viridis",
-                hide_axis_labels=False
-)
-
-# Visualize CV Results.
-cv_results = visualize_cross_validation_detailed(
-                cross_val_results=CV_Results_DCCCD,
-                save_dir="../../../6_Results/Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/cv_viz",
-                colormap="viridis",
-                compare_models=True
-)
+if __name__ == "__main__":
+    try:
+        visualize_experiment_folder(
+            protocol_bucket='Historical_Late_Split_Balanced_TDA',
+            experiment='3_H0_Only',
+        )
+    except ResultsNotGeneratedError as exc:
+        raise SystemExit(str(exc)) from exc

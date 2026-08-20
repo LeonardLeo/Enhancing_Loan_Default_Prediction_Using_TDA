@@ -14,7 +14,7 @@ The project compares baseline classifiers trained on original credit datasets ag
 - [Methodology](#methodology)
 - [Repository Structure](#repository-structure)
 - [Experiments](#experiments)
-- [New Methodology & Statistics Experiments (23–28)](#new-methodology--statistics-experiments-2328)
+- [Protocol buckets and later studies](#protocol-buckets-and-later-studies)
 - [Machine Learning Setup](#machine-learning-setup)
 - [Getting Started](#getting-started)
 - [Running Experiments](#running-experiments)
@@ -36,7 +36,7 @@ Credit default prediction is typically approached as supervised classification o
 4. Summarize each diagram into **12 barcode statistics** per homology dimension (H₀, H₁).
 5. Train standard ML classifiers on the resulting barcode feature matrix.
 
-The pipeline is implemented in **`utils.py`** (~2,500 lines) and orchestrated through numbered folders under **`5_Experiments/`**. Aggregated metrics and LaTeX tables are produced in **`6_Results/`**.
+The pipeline is implemented in **`utils.py`** (~2,500 lines) and orchestrated through **protocol buckets** under **`5_Experiments/`**. Aggregated metrics and LaTeX tables are produced in **`6_Results/`**. Folder map: `docs/Repository_Layout.md`.
 
 ```mermaid
 flowchart TB
@@ -82,16 +82,16 @@ Exploratory experiments (Mapper, PCA/t-SNE/UMAP visualizations, KNN sweeps, cova
 
 Six datasets share the mirrored folder names across `1_Data/`, `5_Experiments/`, and `6_Results/`:
 
-| Dataset | Folder | Raw source | Default target | Landmark sizes | Why those percents |
-|---------|--------|------------|----------------|----------------|--------------------|
-| **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **L5**, **L15** | Original paper. `n1=6630`, so 5% is already `t=331`. |
-| **Statlog German Credit** (SGCD) | `Statlog_German_Credit_Data/` | `german.data-numeric` | Class label (mapped to binary) | **L30**, **L60** | Original paper. `n1=300`, so large percents are required for a usable cloud. |
-| **PKDD'99 Czech Financial** | `PKDD_Czech_Financial/` | `*.asc` (loan/trans/…) | `target` | **L10**, **L20** | Shared new-table grid. 5% of `n1=76` is `t=3` (PH dies). |
-| **Polish Bankruptcy (3-year)** | `Polish_Bankruptcy_3Year/` | `3year.arff` | `target` | **L10**, **L20** | Same grid so the four new tables stay comparable. |
-| **Taiwan Bankruptcy** | `Taiwan_Bankruptcy/` | `data.csv` | `target` | **L10**, **L20** | Same grid. L20 is the 2× companion (as Statlog 30→60). |
-| **South German Credit** | `South_German_Credit/` | `SouthGermanCredit.asc` | `target` | **L10**, **L20** | Coding-sensitivity table — *not* Statlog’s 30/60, so coding is not confounded with landmark size. |
+| Dataset | Folder | Raw source | Default target | Snapshot size as percent of the class | Why those percents |
+|---------|--------|------------|----------------|----------------------------------------|--------------------|
+| **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **5%**, **15%** | Original paper. Minority class count = 6630, so 5% is already 331 points per snapshot. |
+| **Statlog German Credit** (SGCD) | `Statlog_German_Credit_Data/` | `german.data-numeric` | Class label (mapped to binary) | **30%**, **60%** | Original paper. Minority class count = 300, so large percents are required for a usable cloud. |
+| **PKDD'99 Czech Financial** | `PKDD_Czech_Financial/` | `*.asc` (loan/trans/…) | `target` | **10%**, **20%** | Shared new-table grid. 5% of 76 minority rows is 3 points (PH dies). |
+| **Polish Bankruptcy (3-year)** | `Polish_Bankruptcy_3Year/` | `3year.arff` | `target` | **10%**, **20%** | Same grid so the four new tables stay comparable. |
+| **Taiwan Bankruptcy** | `Taiwan_Bankruptcy/` | `data.csv` | `target` | **10%**, **20%** | Same grid. 20% is the 2× companion (as Statlog 30→60). |
+| **South German Credit** | `South_German_Credit/` | `SouthGermanCredit.asc` | `target` | **10%**, **20%** | Coding-sensitivity table — *not* Statlog’s 30/60, so coding is not confounded with snapshot size. |
 
-Why L10/L20 is not a copy of either paper grid: `docs/Design_Decisions.md`.
+Why 10%/20% is not a copy of either paper grid: `docs/Design_Decisions.md`. See `docs/Notation.md` for the symbol mapping used in the methods literature.
 
 Raw files live under `1_Data/Datasets/{Folder}/`.
 
@@ -129,7 +129,7 @@ Processed tables (`processed_data.xlsx` for legacy; `processed_data.csv` for reg
 5. **`compute_barcodes_from_multiple_landmarks()`** — run **Ripser** on each landmark set; compute persistence diagrams.
 6. **`compute_barcode_statistics()`** — summarize each diagram into 12 statistics (mean/median/std of birth, death, persistence, gap-to-max-death).
 7. **`build_final_barcode_statistics_data()`** — merge class-wise barcode CSVs into `data_L{percent}.csv` in `1_Data/TDA_Datasets/`.
-8. **Train classifiers** on barcode features; store metrics in `6_Results/{experiment}/`.
+8. **Train classifiers** on barcode features; store metrics in `6_Results/{Bucket}/{Experiment}/{Dataset}/`.
 
 ### Barcode feature columns
 
@@ -166,7 +166,7 @@ Enhancing_Loan_Default_Prediction_Using_TDA/
 └── 7_Paper/                          # Thesis PDF, LaTeX template, proposal, literature
 ```
 
-Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Parameters/`, `Historical_Late_Split_Balanced_TDA/`, `Early_Split_TDA/`, `No_Undersampling/`, `Early_Split_TDA_And_No_Undersampling/`, `Statistics/`, `Archives/`. Numbered experiments live *inside* a bucket. TDA artefacts are mirrored at `1_Data/{TDA_Datasets,Landmark_Sets,Barcode_Statistics}/{ProtocolBucket}/{ExperimentName}/{Dataset}/`. `1_Data/Processed_Datasets/` is shared and is not re-bucketed.
+Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Parameters/`, `Historical_Late_Split_Balanced_TDA/`, `Early_Split_TDA/`, `No_Undersampling/`, `Early_Split_TDA_And_No_Undersampling/`, `Statistics/`, `Snapshot_Sample_Size/`, `Archives/`. Numbered experiments live *inside* a bucket. TDA artefacts are mirrored at `1_Data/{TDA_Datasets,Landmark_Sets,Barcode_Statistics}/{ProtocolBucket}/{ExperimentName}/{Dataset}/`. `1_Data/Processed_Datasets/` is shared and is not re-bucketed.
 
 ---
 
@@ -174,11 +174,11 @@ Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Paramet
 
 Numbered experiments live **inside** protocol buckets under `5_Experiments/` (mirrored in `6_Results/`). See `5_Experiments/README.md`.
 
-Each dataset folder typically contains a `run.py` entry point (legacy `*_PH.py` / `*_data.py` still exist in older arms), optional `*_CV.py` companions, and optional `visualize_results.py`.
+Each dataset folder contains the method script (for PH default that is `*_PH.py`; tuned uses `*_PH_tuned.py`; H0-only uses `*_H0_only.py`). `run.py` is an optional launcher. Every **active** experiment folder also has `visualize_results.py` at the experiment root.
 
 ### Experiments used in the research paper
 
-These ten folder-level experiments are aggregated in `6_Results/results.py` as **Paper Experiments 1–10**:
+These ten folder-level experiments are aggregated by `6_Results/results.py` as **Paper Experiments 1–10** (tables land in `6_Results/Paper_Tables/`):
 
 | Paper # | Folder | Name | Description | Datasets |
 |---------|--------|------|-------------|----------|
@@ -193,7 +193,7 @@ These ten folder-level experiments are aggregated in `6_Results/results.py` as *
 | 9 | `Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets` | Imbalanced landmarks | 200 default vs. 800 non-default landmark files per class | Both |
 | 10 | `Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | Both |
 
-> **Note:** Paper experiment numbers in `6_Results/results.py` differ from historical folder numbers for experiments 5–10. `results.py` re-labels them sequentially for LaTeX tables.
+> **Note:** Paper experiment numbers in `6_Results/results.py` differ from historical folder numbers for experiments 5–10. `results.py` re-labels them sequentially for LaTeX tables written to `6_Results/Paper_Tables/`.
 
 ### Exploratory experiments (archived; not in main paper tables)
 
@@ -214,20 +214,21 @@ These ten folder-level experiments are aggregated in `6_Results/results.py` as *
 
 ---
 
-## New Methodology & Statistics Experiments (23–28)
+## Protocol buckets and later studies
 
-These address **train/test leakage** and the statistical checklist from the team discussion (Robinson & Turner arXiv:1310.7467; Chazal et al. arXiv:1406.1901; Frontiers survey §6.3.1).
+These address **train/test leakage** and the statistical checklist from the team discussion (Robinson & Turner arXiv:1310.7467; Chazal et al. arXiv:1406.1901; Frontiers survey §6.3.1). Historical checklist numbers 23–28 are **not** live folders at the root of `5_Experiments/`. Map: `docs/Repository_Layout.md`.
 
-| # | Folder | Purpose | Status |
+| Historical # | Live folder | Purpose | Status |
 |---|--------|---------|--------|
 | 23 | `Early_Split_TDA/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | DCCCD + Statlog reused; other four need Ripser |
-| 24 | `{TDA arm}/6_Sampling_Ratio_Audit` | Audit `n`, `t`, `l` and ratios `(t·l)/n₁` | **Ran** on Historical — ratios ≫ 1 with `l=500` |
-| 25 | `{TDA arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; `λ̄` proxy | **Ran** on Historical |
-| 26 | `Statistics/1_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for `b` | **Ran** (protocol-independent) |
+| 24 | `{TDA arm}/6_Sampling_Ratio_Audit` | Audit class counts, points per snapshot, number of snapshots, and the reuse ratio | **Ran** on Historical — reuse ≫ 1 with 500 snapshots |
+| 25 | `{TDA arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; landscape-mean proxy | **Ran** on Historical |
+| 26 | `Statistics/1_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for intrinsic dimension | **Ran** (protocol-independent) |
 | 27 | `{TDA arm}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on Historical — p≈0.005 |
-| 28 | `{TDA arm}/9_Revised_Snapshot_Protocol` | Fixed absolute `t`, default `l_train/l_test = 60/15`, reuse/overlap | Canonical Early+NoUnder reused; other three arms queued |
+| 28 | `{TDA arm}/9_Revised_Snapshot_Protocol` | Fixed points per snapshot, default 60 training snapshots / 15 test snapshots, reuse/overlap | Canonical Early+NoUnder reused; other three arms queued |
+| — | `Snapshot_Sample_Size/` | Dated 13/08/2026. Items 1, 2, and 4 (item 3 is this study, not a third grid) | Queue: `6_Results/Run_Queue/_snapshot_sample_size_queue.py`. Narrative: `5_Experiments/Snapshot_Sample_Size/README.md` |
 
-Active TDA set inside every arm is 1–9. Experiment 2 stays under `Default_Parameters/`. Experiment 28 is **not** archived.
+Active TDA set inside every arm is 1–9. Tabular Experiment 2 stays under `Default_Parameters/`. Arm experiment 9 is **not** archived.
 
 Details: `docs/Pipeline_Issues_And_Leakage.md`, `docs/Statistical_Experiments_24_27_Results.md`, `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
@@ -245,7 +246,7 @@ Details: `docs/Pipeline_Issues_And_Leakage.md`, `docs/Statistical_Experiments_24
 | `logistic` | Logistic Regression | scikit-learn |
 | `random_forest` | Random Forest | scikit-learn |
 
-Experiment 19 replaces these with **Linear Regression** (`train_dataset_tda_linear_regression`).
+Arm experiment 5 / paper experiment 10 replaces these with **Linear Regression** (`train_dataset_tda_linear_regression`).
 
 ### Evaluation metrics
 
@@ -270,9 +271,9 @@ Most PH experiments follow the structure in `5_Experiments/Historical_Late_Split
 4. compute_barcodes_from_multiple_landmarks(...)
 5. build_final_barcode_statistics_data(...)
 6. train_multiple_dataset_tda(...) or train_models_on_multiple_datasets(...)
-7. store_results(...) → 6_Results/{experiment}/{dataset}/model_results.pkl
-8. (Optional) *_CV.py → CV_results.pkl
-9. (Optional) visualize_results.py → comparison plots in 6_Results/
+7. store_results(...) → 6_Results/{Bucket}/{Experiment}/{Dataset}/model_results.pkl
+8. (Optional) *_CV.py → CV_results.pkl  (DCCCD/Statlog historical companions)
+9. visualize_results.py → 6_Results/{Bucket}/{Experiment}/Visualizations/
 ```
 
 ---
@@ -302,16 +303,14 @@ pip install ripser persim kmapper umap-learn
 pip install ydata-profiling
 ```
 
-### Important: run scripts from their experiment directory
+### Important: dataset scripts insert the repo root
 
-Experiment scripts use **relative paths** (e.g. `../../../1_Data/...`). Always `cd` into the script's directory before running:
+Newer dataset scripts add the repository root to `sys.path` and write artefacts through `utils.py` helpers. Running from the dataset folder still works:
 
 ```powershell
 cd "5_Experiments\Historical_Late_Split_Balanced_TDA\1_PH_Default_Parameters\Default_Of_Credit_Card_Client_Data"
-python run.py
+python default_of_credit_cards_client_PH.py
 ```
-
-Alternatively, run from the repo root with `PYTHONPATH` set, but the experiment scripts assume their own working directory for path resolution.
 
 ---
 
@@ -326,16 +325,16 @@ Because later experiments depend on earlier outputs, run in this order:
 | **1** | `5_Experiments/Default_Parameters/1_ML_Default_Parameters/{dataset}/*_data.py` | Processed splits, EDA artifacts, baseline `model_results.pkl` |
 | **2** | `5_Experiments/Default_Parameters/2_ML_Tuned_Parameters/{dataset}/*_data.py` | Tuned baseline results |
 | **3** | `5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/{dataset}/*_PH.py` | Landmark sets, barcode CSVs, TDA datasets, TDA model results |
-| **4** | `5_Experiments/Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/{dataset}/*_PH.py` | Tuned TDA results |
-| **5+** | Remaining experiment scripts | Variants and analyses (many consume Exp 3 outputs) |
+| **4** | `5_Experiments/Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/{dataset}/*_PH_tuned.py` | Tuned TDA results |
+| **5+** | Remaining experiment scripts | Variants and analyses (many consume Historical Exp 1 outputs) |
 
 ### Cross-validation companions
 
-Most ML/TDA experiments have a `*_CV.py` sibling that loads `model_results.pkl` and writes `CV_results.pkl` via `perform_cross_validation_tda()`.
+Most ML/TDA experiments on Default of Credit Card Client and Statlog have a `*_CV.py` sibling that loads `model_results.pkl` and writes `CV_results.pkl` via `perform_cross_validation_tda()`. The other four datasets do not carry that companion; it is not the method document.
 
 ### Visualization
 
-Many experiment folders include `visualize_results.py`, which calls `improved_visualize_model_results()` and saves comparison charts to `6_Results/{experiment}/`.
+Every active experiment folder (`Default_Parameters` Exp 1–2, all four TDA arms Exp 1–9, and `Statistics/1_Intrinsic_Dimension_Estimation`) has `visualize_results.py` at the experiment root. Run that script; figures land only in `6_Results/{Bucket}/{Experiment}/Visualizations/`. Pickle/CSV experiments write per-dataset test dashboards and cross-dataset metric facets (plus CV figures when `CV_results.pkl` exists). Exp 6–9 and intrinsic dimension plot their CSV/JSON artefacts. The catalog is in `6_Results/README.md`. If artefacts are missing, the script exits with `results not generated yet` and the expected path.
 
 ### Regenerating all paper tables
 
@@ -346,11 +345,11 @@ cd 6_Results
 python results.py
 ```
 
-This loads all paper experiment results, builds summary DataFrames via `build_results_dataframe_v3()`, and writes:
+This loads all paper experiment results, builds summary DataFrames via `build_results_dataframe_v3()`, and writes into `Paper_Tables/`:
 
-- `clean_experiment_results.csv`
-- `results_table.tex`, `default_of_credit_card_client_results_table.tex`, `statlog_german_credit_results_table.tex`
-- `results_experiment_1.tex` … `results_experiment_10.tex`
+- `Paper_Tables/clean_experiment_results.csv`
+- `Paper_Tables/results_table.tex`, `Paper_Tables/default_of_credit_card_client_results_table.tex`, `Paper_Tables/statlog_german_credit_results_table.tex`
+- `Paper_Tables/results_experiment_1.tex` … `Paper_Tables/results_experiment_10.tex`
 
 ---
 
@@ -358,9 +357,11 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 
 | Location | Contents |
 |----------|----------|
-| `6_Results/clean_experiment_results.csv` | Flat summary of key experiment metrics |
-| `6_Results/*.tex` | LaTeX tables for the VGTC paper template |
-| `6_Results/{experiment}/` | Per-experiment pickles, plots, Mapper HTML, GIFs |
+| `6_Results/Paper_Tables/clean_experiment_results.csv` | Flat summary of key experiment metrics |
+| `6_Results/Paper_Tables/*.tex` | LaTeX tables for the VGTC paper template |
+| `6_Results/{Bucket}/{Experiment}/` | Per-experiment pickles, plots, Mapper HTML, GIFs |
+| `6_Results/Run_Queue/` | Ripser/consumer queue scripts, logs, and run registries |
+| `6_Results/results.py` | Documented paper-table aggregator (writes into `Paper_Tables/`) |
 | `4_Visualization/` | Curated EDA figures, TDA concept diagrams, LucidChart system designs |
 | `7_Paper/Enhancing_Loan_Default_Prediction_Using_Topological_Data_Analysis.pdf` | Final thesis/paper PDF |
 | `7_Paper/Latex Template/` | VGTC conference LaTeX template |
@@ -370,15 +371,18 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 
 | Document | Contents |
 |----------|----------|
-| `docs/Design_Decisions.md` | **Why** L10/L20, why PCA 7 vs 15 vs 10, why ID before *and* after PCA |
-| `docs/Statistical_Approach_Flow.md` | Stage-by-stage: Exp 3 → 24 → 26 → 25 → 27 → 28 (when we do what) |
+| `docs/Repository_Layout.md` | Buckets, method scripts, figures, barcodes, paper tables, queues |
+| `docs/Notation.md` | Snapshot glossary: English names used in this study, and the t/l mapping from the methods literature |
+| `docs/Design_Decisions.md` | **Why** 10%/20% snapshot size, why PCA 7 vs 15 vs 10, why ID before *and* after PCA |
+| `docs/Statistical_Approach_Flow.md` | Stage-by-stage: Historical Exp 1 → arm Exp 6 → Statistics Exp 1 → arm Exp 7 → arm Exp 8 → arm Exp 9 → Snapshot_Sample_Size |
 | `docs/Statistical_Experiments_24_27_Results.md` | Sampling / ID / NHST worked numbers (all six datasets) |
 | `docs/Methodology_Checklist_06_08_2026.md` | scikit-dimension / dadapy / H0-split / snapshots — done vs skipped |
 | `docs/Pipeline_Issues_And_Leakage.md` | Leakage analysis, statistical gaps, engineering status |
 | `docs/CV_Results.md` | K-fold means, fold scores, vs hold-out |
-| `docs/Exploratory_Experiments_Team_Report.md` | Exploratory experiment narrative |
-| `docs/Experiment_23_Results.md` | Early train/test split results (legacy + registry pointers) |
-| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Experiment 28 protocol report (all six datasets) |
+| `docs/Exploratory_Experiments_Team_Report.md` | Exploratory experiment narrative (Archives) |
+| `docs/Experiment_23_Results.md` | Early Split TDA Exp 1 / Protocol B hold-out numbers |
+| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Arm experiment 9 protocol report (all six datasets, all four arms) |
+| `5_Experiments/Snapshot_Sample_Size/README.md` | Dated sample-size study (items 1, 2, and 4) |
 
 ---
 
@@ -418,7 +422,7 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 - `1_Data/Landmark_Sets/`, `Barcode_Statistics/`, `TDA_Datasets/`, `Processed_Datasets/`
 - `2_Pandas_Profiling_Report/`, `3_Python_Objects/`
 - `*.pkl`, `*.joblib`, `*.html` (experiment outputs)
-- Most generated plots/CSVs/JSON under `6_Results/` (except `clean_experiment_results.csv`)
+- Most generated plots/CSVs/JSON under `6_Results/` (except `Paper_Tables/clean_experiment_results.csv`)
 - KeplerMapper `parameters.txt` dumps and `6_Results/Archives/5_Mapper/`
 - `4_Visualization/Visualization/` bulk figure exports
 - `7_Paper/Datasets/` and literature PDFs
@@ -430,7 +434,7 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 ## Four-dataset extension (2026)
 
 Four additional datasets share the same mirrored layout as the legacy pair
-(`5_Experiments/{N}/{Folder}/` ↔ `6_Results/{N}/{Folder}/` ↔ `1_Data/.../{Folder}/`):
+(`5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/{Experiment}/{Folder}/` ↔ `1_Data/.../{Folder}/`):
 
 | Dataset | Folder under `1_Data/Datasets/` |
 |---------|----------------------------------|
@@ -441,8 +445,7 @@ Four additional datasets share the same mirrored layout as the legacy pair
 
 Processed tables live in `1_Data/Processed_Datasets/{Folder}/`.
 
-Each experiment folder contains **real per-dataset scripts** (same pattern as
-the legacy Statlog / DCCCD scripts), for example:
+Layout: `5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/{Experiment}/{Folder}/` ↔ `1_Data/.../{ProtocolBucket}/{Experiment}/{Folder}/`. There is no `5_Experiments/common/pipeline.py`; shared helpers are `utils.py`.
 
 ```
 5_Experiments/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial.py
@@ -456,7 +459,7 @@ Raw→processed ingestion for the four registry datasets is
 
 ```powershell
 .\tda_env\Scripts\python.exe 1_Data\ingest_registry_datasets.py
-.\tda_env\Scripts\python.exe 5_Experiments\1_ML_Default_Parameters\PKDD_Czech_Financial\pkdd_czech_financial.py
+.\tda_env\Scripts\python.exe 5_Experiments\Default_Parameters\1_ML_Default_Parameters\PKDD_Czech_Financial\pkdd_czech_financial.py
 .\tda_env\Scripts\python.exe -m pytest test_datasets.py -q
 ```
 
