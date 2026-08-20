@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Item 4 — Number of snapshots vs F1/accuracy, families of cloud size.
+"""Item 4 — Number of snapshots on the x-axis; one curve per cloud size.
+Not a duplicate of item 1 (which holds cloud size at the default).
 
 This experiment is a view of the shared sample-size grid. Item 3 is the
 study made of items 1, 2, and 4; it is not a third independent grid.

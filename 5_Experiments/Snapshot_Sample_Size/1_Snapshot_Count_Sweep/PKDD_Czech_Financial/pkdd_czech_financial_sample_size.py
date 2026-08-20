@@ -3,7 +3,9 @@
 Snapshot sample size / 1_Snapshot_Count_Sweep
 Dataset: PKDD'99 Czech Financial
 
-This experiment holds points per snapshot fixed at the dataset-aware default (largest surviving value in 15/30/45/60) and varies the number of snapshots.
+x-axis = number of snapshots {15, 30, 45, 60}. Points per snapshot is held
+fixed at the dataset-aware default. This is item 1, not item 2 (which instead
+holds 60 snapshots and moves points per snapshot).
 
 I report F1 as the headline metric because several tables are class-imbalanced;
 accuracy is shown as well. Items 1, 2, and 4 share one compute grid. The shared

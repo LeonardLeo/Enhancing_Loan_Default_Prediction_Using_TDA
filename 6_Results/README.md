@@ -70,9 +70,9 @@ Every active experiment has `5_Experiments/{Bucket}/{Experiment}/visualize_resul
 | `No_Undersampling` | `1_PH_Default_Parameters` … `9_Revised_Snapshot_Protocol` | `6_Results/No_Undersampling/{Experiment}/Visualizations/` | Same figure types as the Historical arm, experiment by experiment |
 | `Early_Split_TDA_And_No_Undersampling` | `1_PH_Default_Parameters` … `9_Revised_Snapshot_Protocol` | `6_Results/Early_Split_TDA_And_No_Undersampling/{Experiment}/Visualizations/` | Same figure types as the Historical arm, experiment by experiment |
 | `Statistics` | `1_Intrinsic_Dimension_Estimation` | `6_Results/Statistics/1_Intrinsic_Dimension_Estimation/Visualizations/` | `two_nn_before_after_pca.png`, `id_estimator_suite_faceted.png`, `pca_rank_vs_90pct.png`, `pca_variance_retained.png` |
-| `Snapshot_Sample_Size` | `1_Snapshot_Count_Sweep` | `6_Results/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/Visualizations/` | Number of snapshots vs F1/accuracy (points per snapshot fixed); methodology notes under every graph |
-| `Snapshot_Sample_Size` | `2_Points_Per_Snapshot_Sweep` | `6_Results/Snapshot_Sample_Size/2_Points_Per_Snapshot_Sweep/Visualizations/` | Points per snapshot vs F1/accuracy (60 snapshots); dataset-aware grid footnote |
-| `Snapshot_Sample_Size` | `3_Snapshot_Count_Across_Cloud_Sizes` | `6_Results/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/Visualizations/` | Families of cloud size; SVM/Logistic focus + 5×2 small multiples; 95% CI bands |
+| `Snapshot_Sample_Size` | `1_Snapshot_Count_Sweep` | `6_Results/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/Visualizations/` | Number of snapshots on the x-axis; each cloud has the default point count. Combined overlay = mean trend (no error bars); companion `*_ci_panels.png` hold 95% ribbons |
+| `Snapshot_Sample_Size` | `2_Points_Per_Snapshot_Sweep` | `6_Results/Snapshot_Sample_Size/2_Points_Per_Snapshot_Sweep/Visualizations/` | Points per snapshot on the x-axis; always 60 snapshots. Combined overlay = mean trend (no error bars); companion panels hold 95% ribbons |
+| `Snapshot_Sample_Size` | `3_Snapshot_Count_Across_Cloud_Sizes` | `6_Results/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/Visualizations/` | Number of snapshots on the x-axis; one curve per cloud size. SVM/Logistic focus + 5×2 small multiples as mean trends; companion ribbons faceted by model × cloud size |
 
 Example:
 

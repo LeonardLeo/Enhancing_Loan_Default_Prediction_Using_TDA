@@ -4,23 +4,24 @@ Dated 13/08/2026. English wording throughout. The symbol mapping used in the met
 
 ## What this folder is
 
-Number of snapshots vs F1/accuracy, families of cloud size.
+**Number of snapshots on the x-axis; one curve per surviving points-per-snapshot value (families of cloud size).** Item 4 of the study.
+
+This is **not** a duplicate of item 1. Item 1 holds cloud size at the dataset-aware default and draws one curve per classifier. Item 4 draws one curve per cloud size. Item 2 is the other 1-D slice (points per snapshot on x, always 60 snapshots).
 
 **Item 3 is not a third grid.** It is the sample-size study made of items 1, 2, and 4. All three consume the same Ripser cache.
 
 ## Design
 
-- x-axis values for snapshot count: 15, 30, 45, 60
-- Candidate points per snapshot: 15, 30, 45, 60, **dropped** when the value is at least the protocol's binding class count (no silent clipping)
-- Item 1 holds points per snapshot at the largest surviving candidate
-- Item 2 holds number of snapshots at 60
-- Item 4 draws one curve per surviving points-per-snapshot value
+- **x-axis:** number of snapshots `{15, 30, 45, 60}`
+- **Families:** one curve per surviving points-per-snapshot value in `{15, 30, 45, 60}` (dropped when the value is at least the protocol's binding class count; no silent clipping)
 - Headline metric: **F1** (imbalanced tables, especially with no undersampling). Accuracy is always plotted as well.
 - One customer split (`random_state=0`). Ten snapshot-draw repeats. Nested prefixes 15 subset 30 subset 45 subset 60 from a shuffled pool of 60 training snapshots. Fifteen test snapshots drawn independently and held fixed across the snapshot-count sweep.
 - 95% CI = mean ± 1.96 × SE across the 10 repeats (percentile interval also stored). This is snapshot-sampling uncertainty, not customer-split uncertainty. This study does not also run five customer splits on the full grid.
-- Classifiers: SVM, KNN, XGBoost, Logistic Regression, Random Forest with Exp 1 TDA default hyperparameters. SVM and Logistic are highlighted; the other three are muted.
+- Classifiers: SVM, KNN, XGBoost, Logistic Regression, Random Forest with Exp 1 TDA default hyperparameters. SVM and Logistic are thicker; KNN, XGBoost, and Random Forest use full-saturation Okabe–Ito colours (not muted). Combined overlays are mean trends only (no error bars); companion panels use one CI ribbon per (model, points-per-snapshot) cell.
 - PCA ranks: same as `DatasetConfig` / `docs/Design_Decisions.md` (historical Exp 3 ranks).
 - Early-split arms: split customers first, PCA on train only. Late-split arms: full-table PCA, then snapshot-level train/test.
+
+CSV: `6_Results/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/all_summary.csv` — full (`points_per_snapshot` × `n_snapshots`) family.
 
 ## Where to read the method
 
@@ -28,7 +29,7 @@ Open the dataset script in this folder — for Default of Credit Card Client:
 
 `Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_sample_size.py`
 
-That file shows the protocol arm, customer split, PCA fit, how points-per-snapshot values are chosen (and which are dropped), the 60-snapshot draw, nested prefixes 15 subset 30 subset 45 subset 60, the five classifiers, the 10 repeats, and how the CI is built. The shared-pool builder is `../0_Shared_Pools/<Dataset>/<stem>_shared_pools.py`. `run.py` is an optional convenience launcher.
+That file shows the protocol arm, customer split, PCA fit, how points-per-snapshot values are chosen (and which are dropped), the 60-snapshot draw, nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60, the five classifiers, the 10 repeats, and how the CI is built. The shared-pool builder is `../0_Shared_Pools/<Dataset>/<stem>_shared_pools.py`. `run.py` is an optional convenience launcher.
 
 ## How to run
 
@@ -40,4 +41,4 @@ That file shows the protocol arm, customer split, PCA fit, how points-per-snapsh
 
 Figures: `6_Results/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/Visualizations/`
 
-Each graph has a methodology note underneath (what, why, nested prefixes, 10 repeats, F1 vs accuracy, dataset-aware grid).
+Each graph has a methodology note underneath (what, why, nested prefixes, 10 repeats, F1 vs accuracy, dataset-aware grid). Combined titles say “Number of snapshots on the x-axis; one curve per cloud size”.

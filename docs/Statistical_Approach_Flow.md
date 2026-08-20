@@ -157,7 +157,7 @@ Points per snapshot is an absolute count, not a percent of class size. PCA ranks
 
 **Live folder:** `5_Experiments/Snapshot_Sample_Size/`
 
-A separate factorial on **all four protocol arms**. Items 1, 2, and 4 are views of one compute grid (item 3 is this study, not a third grid). Shared Ripser pools sit in `0_Shared_Pools`. Thesis-length narrative: `5_Experiments/Snapshot_Sample_Size/README.md`.
+A separate factorial on **all four protocol arms**. Items 1 and 2 are different x-factors (snapshot count vs points per snapshot), not the same sweep twice; item 4 is families of cloud size. Item 3 is this study, not a third grid. Shared Ripser pools sit in `0_Shared_Pools`. Thesis-length narrative: `5_Experiments/Snapshot_Sample_Size/README.md`.
 
 ---
 
@@ -184,4 +184,4 @@ A separate factorial on **all four protocol arms**. Items 1, 2, and 4 are views 
 | 25 | Arm Exp 7 | Yes (read) | Are barcode numbers stable? |
 | 27 | Arm Exp 8 | Yes (read) | Do the two classes differ under Algorithm 2? |
 | 28 | Arm Exp 9 | Builds new ones | Honest points per snapshot, small snapshot counts |
-| — | Snapshot_Sample_Size | Builds shared pools | F1 vs number of snapshots / points per snapshot |
+| — | Snapshot_Sample_Size | Builds shared pools | Item 1: F1 vs number of snapshots (cloud size fixed). Item 2: F1 vs points per snapshot (always 60 snapshots). Item 4: families of cloud size |

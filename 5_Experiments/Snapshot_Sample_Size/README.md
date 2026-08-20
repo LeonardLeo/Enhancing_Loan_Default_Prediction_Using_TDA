@@ -1,10 +1,25 @@
 # Snapshot sample size (13/08/2026)
 
-A top-level bucket — **not** inside Archives and **not** nested inside the four TDA protocol folders. The same grid is repeated on all four protocol arms.
+A top-level bucket — **not** inside Archives and **not** nested inside the four TDA protocol folders. The same compute grid is repeated on all four protocol arms.
 
 This study uses English names: **points per snapshot** and **number of snapshots**. In the snapshot-size literature these quantities are sometimes written t and l; that mapping is recorded once in `docs/Notation.md`.
 
 I report F1 as the headline metric because several tables are class-imbalanced; accuracy is shown as well.
+
+## Item 1 and item 2 are different x-factors
+
+They share one Ripser cache. They are **not** the same sweep plotted twice.
+
+| | Item 1 `1_Snapshot_Count_Sweep/` | Item 2 `2_Points_Per_Snapshot_Sweep/` |
+|--|--|--|
+| **x-axis** | Number of snapshots `{15, 30, 45, 60}` | Points per snapshot `{15, 30, 45, 60}` where they fit |
+| **Held fixed** | Points per snapshot = dataset-aware default (`is_default_points_per_snapshot` is always 1) | Number of snapshots = **60** |
+| **Figure title** | “Number of snapshots on the x-axis; each cloud has *N* points” | “Points per snapshot on the x-axis; always 60 snapshots” |
+| **CSV** | `n_snapshots` moves; `points_per_snapshot` is one value per dataset×protocol | `points_per_snapshot` moves; `n_snapshots` is always 60 |
+
+Folder `3_Snapshot_Count_Across_Cloud_Sizes/` is item 4: number of snapshots on x, **one curve per cloud size**. Do not treat it as a duplicate of item 1.
+
+DCCCD Early Split example (logistic, mean accuracy across 10 repeats): item 1 holds clouds at **60 points** and moves snapshot count — 0.800 at 15 snapshots, 0.830 at 60 snapshots. Item 2 holds **60 snapshots** and moves cloud size — 0.647 at 15 points per snapshot, 0.830 at 60 points. The shared cell (60 points × 60 snapshots) matches; the rest of each grid does not.
 
 ## Where to read the method
 
@@ -30,10 +45,10 @@ This bucket implements items **1, 2, and 4**. **Item 3 is the sample-size study 
 
 | Item | Folder | What it plots |
 |------|--------|----------------|
-| 1 | `1_Snapshot_Count_Sweep/` | Number of snapshots on x; points per snapshot **fixed** at the dataset-aware default (largest surviving 15/30/45/60 value). F1 headline, accuracy secondary. No cloud-size families. |
-| 2 | `2_Points_Per_Snapshot_Sweep/` | Points per snapshot on x; number of snapshots **fixed at 60**. Dataset-aware grid (see below). |
+| 1 | `1_Snapshot_Count_Sweep/` | **Number of snapshots on the x-axis**; each cloud has the dataset-aware default number of points (largest surviving 15/30/45/60 value). F1 headline, accuracy secondary. No cloud-size families. Combined overlay = mean trend across 10 repeats (no error bars); companion `*_ci_panels.png` hold the 95% ribbons. |
+| 2 | `2_Points_Per_Snapshot_Sweep/` | **Points per snapshot on the x-axis**; always 60 snapshots. Dataset-aware grid (see below). Same combined / CI-panel split as item 1. |
 | 3 | — | Absorbed: this whole bucket. Figure notes say so. |
-| 4 | `3_Snapshot_Count_Across_Cloud_Sizes/` | Number of snapshots on x; **one curve per surviving points-per-snapshot value**. Accuracy and F1. SVM and Logistic focus panels; the other three classifiers as small multiples. 95% CI bands. |
+| 4 | `3_Snapshot_Count_Across_Cloud_Sizes/` | **Number of snapshots on the x-axis**; **one curve per surviving points-per-snapshot value**. Accuracy and F1. SVM and Logistic focus overlays; the other three classifiers as small multiples at full saturation. Combined overlays are mean trends only; companion panels use one CI ribbon per series. |
 
 ## Dataset-aware grid
 
@@ -71,7 +86,7 @@ That table is why item 2’s figure footnote says a universal 15/30/45/60 cloud-
 - Repeat **snapshot draws** 10 times: draw a pool of 60 training snapshots per class, shuffle, then train on nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60.
 - Hold out **15 test snapshots** drawn independently and kept fixed across the snapshot-count sweep.
 - 95% CI = mean ± 1.96 × SE across the 10 repeats. A 2.5–97.5 percentile interval is also stored.
-- Caption: this CI is **snapshot-sampling uncertainty**, not customer-split uncertainty.
+- Combined overlay plots are the **mean trend** across those 10 repeats (five models, no error bars). Companion `*_ci_panels.png` draw the same interval as a **ribbon**, one series per panel. There are no stacked translucent fill bands on a shared overlay.
 - This study does **not** also run five customer splits on the full grid (cost explosion). That limitation is intentional.
 
 ## Compute
@@ -80,7 +95,7 @@ For each `(dataset, protocol, points_per_snapshot, repeat)` generate the 60 trai
 
 PCA ranks: same as `DatasetConfig` / `docs/Design_Decisions.md` (historical Exp 3 ranks).
 
-Classifiers: `svm`, `knn`, `xgb`, `logistic`, `random_forest` — Exp 1 TDA default hyperparameters. SVM and Logistic are highlighted (thicker, saturated); KNN, XGBoost, and Random Forest are visible but muted.
+Classifiers: `svm`, `knn`, `xgb`, `logistic`, `random_forest` — Exp 1 TDA default hyperparameters. Figures use a locked colourblind-safe mapping (Okabe–Ito: SVM blue, Logistic vermillion, KNN bluish green, XGBoost dark gold, Random Forest reddish purple). SVM and Logistic are thicker with filled circle markers; KNN / XGBoost / Random Forest stay at full saturation (square / triangle / diamond). Combined plots show mean trends only; companion panels show one 95% ribbon per series.
 
 ## Protocols
 
@@ -108,6 +123,12 @@ The dataset scripts loop these four arms:
 ```
 
 `0_Shared_Pools` is shared because items 1, 2, and 4 are views of one grid (item 3 is absorbed).
+
+CSV one-liners:
+
+- `1_Snapshot_Count_Sweep/all_summary.csv` — item 1: `n_snapshots` ∈ {15,30,45,60}; `points_per_snapshot` fixed at the default (`is_default_points_per_snapshot` always 1).
+- `2_Points_Per_Snapshot_Sweep/all_summary.csv` — item 2: `points_per_snapshot` varies; `n_snapshots` always 60.
+- `3_Snapshot_Count_Across_Cloud_Sizes/all_summary.csv` — item 4: full (`points_per_snapshot` × `n_snapshots`) family.
 
 ## How to run
 

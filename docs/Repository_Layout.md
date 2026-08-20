@@ -18,7 +18,7 @@ Compact snapshot symbols from the methods literature are recorded once in `docs/
 | `No_Undersampling/` | Late split, no majority downsample. Experiments 1–9 |
 | `Early_Split_TDA_And_No_Undersampling/` | Early split + no undersample. Experiments 1–9 |
 | `Statistics/` | `1_Intrinsic_Dimension_Estimation` (protocol-independent) |
-| `Snapshot_Sample_Size/` | Dated 13/08/2026 sample-size study (`0_Shared_Pools`, `1_Snapshot_Count_Sweep`, `2_Points_Per_Snapshot_Sweep`, `3_Snapshot_Count_Across_Cloud_Sizes`) |
+| `Snapshot_Sample_Size/` | Dated 13/08/2026 sample-size study. `1_Snapshot_Count_Sweep` = x is number of snapshots (cloud size fixed); `2_Points_Per_Snapshot_Sweep` = x is points per snapshot (always 60 snapshots); `3_Snapshot_Count_Across_Cloud_Sizes` = item 4 families |
 | `Archives/` | Retired experiments (old 5, 7–10, 12–18, 20–22). Original numbers kept. A museum, not the live factorial |
 
 `6_Results/` also has:

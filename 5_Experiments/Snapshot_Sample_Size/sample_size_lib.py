@@ -2,8 +2,11 @@
 """
 Snapshot sample-size study (dated 13/08/2026).
 
-Items 1, 2, and 4 share one compute grid. Item 3 is that study — not a
-third independent grid.
+Items 1, 2, and 4 share one compute grid but are different x-factor views:
+  1_Snapshot_Count_Sweep          — x = number of snapshots; points per snapshot fixed
+  2_Points_Per_Snapshot_Sweep     — x = points per snapshot; number of snapshots fixed at 60
+  3_Snapshot_Count_Across_Cloud_Sizes — x = number of snapshots; one curve per cloud size
+Item 3 is that study — not a third independent grid.
 
 English identifiers (see docs/Notation.md):
   points_per_snapshot, n_snapshots, minority_count, majority_count, reuse_ratio
@@ -21,6 +24,7 @@ import json
 import math
 import os
 import sys
+import textwrap
 import time
 import traceback
 from pathlib import Path
@@ -30,6 +34,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
@@ -118,27 +123,43 @@ CLASSIFIER_DISPLAY = {
     "random_forest": "Random Forest",
 }
 HIGHLIGHT_MODELS = {"svm", "logistic"}
+# Okabe–Ito (Wong 2011), colourblind-safe. Yellow is replaced by dark gold so every
+# hue holds on white. This mapping is locked for every Snapshot Sample Size figure.
+# SVM / Logistic take the two strongest hues; the other three are full saturation.
 MODEL_COLORS = {
-    "svm": "#1f4e79",
-    "logistic": "#c0392b",
-    "knn": "#8aa0b4",
-    "xgb": "#7fb3d5",
-    "random_forest": "#d4a574",
+    "svm": "#0072B2",  # blue
+    "logistic": "#D55E00",  # vermillion
+    "knn": "#009E73",  # bluish green
+    "xgb": "#C78D00",  # dark gold
+    "random_forest": "#CC79A7",  # reddish purple
 }
 MODEL_LINEWIDTH = {
-    "svm": 2.8,
-    "logistic": 2.8,
-    "knn": 1.15,
-    "xgb": 1.15,
-    "random_forest": 1.15,
+    "svm": 2.4,
+    "logistic": 2.4,
+    "knn": 1.8,
+    "xgb": 1.8,
+    "random_forest": 1.8,
 }
-MODEL_ALPHA = {
-    "svm": 1.0,
-    "logistic": 1.0,
-    "knn": 0.55,
-    "xgb": 0.55,
-    "random_forest": 0.55,
+MODEL_MARKERS = {
+    "svm": "o",
+    "logistic": "o",
+    "knn": "s",
+    "xgb": "^",
+    "random_forest": "D",
 }
+MODEL_MARKERSIZE = {
+    "svm": 8.0,
+    "logistic": 8.0,
+    "knn": 6.6,
+    "xgb": 7.0,
+    "random_forest": 6.6,
+}
+MODEL_LINE_ALPHA = 1.0  # never fade the lines themselves (no alpha < 0.9)
+CI_RIBBON_ALPHA = 0.28
+# Families of cloud size (item 4) — same Okabe–Ito family, assigned by rank when a
+# protocol drops a candidate or uses a documented clip (for example 14 on PKDD).
+CLOUD_SIZE_COLOR_CYCLE = ("#0072B2", "#009E73", "#C78D00", "#CC79A7", "#D55E00")
+CLOUD_SIZE_MARKER_CYCLE = ("o", "s", "^", "D", "v")
 
 METRIC_DISPLAY = {"f1": "F1", "accuracy": "Accuracy"}
 BARCODE_COLUMNS = [f"g{i}_{j}" for j in range(HOMOLOGY_DIM) for i in range(1, 13)]
@@ -1054,6 +1075,10 @@ def export_experiment_tables(item: str, frame: Optional[pd.DataFrame] = None) ->
     if frame.empty:
         return frame
     item_folder = ITEM_FOLDERS[item]
+    # Three views of one grid, different x-factors:
+    #   item 1 — n_snapshots moves; points_per_snapshot locked at the default
+    #   item 2 — points_per_snapshot moves; n_snapshots locked at 60
+    #   item 4 — full (points_per_snapshot, n_snapshots) family
     if item == "1":
         sliced = frame[frame["is_default_points_per_snapshot"].astype(int) == 1].copy()
     elif item == "2":
@@ -1139,53 +1164,62 @@ def write_master_design_table(
 # =============================================================================
 ITEM_NOTES = {
     "1": (
-        "Item 1 — number of snapshots vs metrics, with points per snapshot held at the "
-        "dataset-aware default (largest surviving value in 15/30/45/60 that still fits "
-        "this protocol's class pool). Item 3 is this sample-size study (items 1, 2, and 4 "
-        "together), not a third independent grid.\n"
+        "Item 1 — number of snapshots on the x-axis; each cloud has the dataset-aware "
+        "default number of points (largest surviving value in 15/30/45/60 that still fits "
+        "this protocol's class pool; 60 on DCCCD). Points per snapshot is held fixed. "
+        "This is not item 2, which instead holds 60 snapshots and moves points per snapshot. "
+        "Item 3 is this sample-size study (items 1, 2, and 4 together), not a third "
+        "independent grid.\n"
         "Headline is F1 because several tables are imbalanced, especially with no "
         "undersampling. Accuracy is plotted as the secondary metric.\n"
         "Nested prefixes: 15 ⊂ 30 ⊂ 45 ⊂ 60 from a shuffled pool of 60 training snapshots. "
         "Ten repeats redraw that pool. The customer train/test split is fixed "
-        "(random_state=0). The 95% band is mean ± 1.96×SE across snapshot draws — "
-        "snapshot-sampling uncertainty, not customer-split uncertainty. A 2.5–97.5 "
-        "percentile interval is stored in the summary CSV. This study does not also run five "
-        "customer splits on the full grid."
+        "(random_state=0). The combined overlay is the mean trend across those 10 repeats "
+        "(five models, no error bars). 95% intervals (mean ± 1.96×SE) live on the companion "
+        "per-model CI panels as ribbons. A 2.5–97.5 percentile interval is stored in the "
+        "summary CSV. This study does not also run five customer splits on the full grid."
     ),
     "2": (
-        "Item 2 — points per snapshot vs metrics, with number of snapshots held at 60. "
+        "Item 2 — points per snapshot on the x-axis; always 60 snapshots. Number of "
+        "snapshots is held fixed. This is not item 1, which instead holds points per "
+        "snapshot at the dataset-aware default and moves the number of snapshots. "
         "A universal 15/30/45/60 cloud-size grid is not used: PKDD's class pool cannot "
         "host the larger steps that DCCCD can. Candidates with points per snapshot "
         "≥ class count are dropped (no silent clipping). Item 3 is this sample-size "
         "study (items 1, 2, and 4 together), not a third independent grid.\n"
         "Headline is F1; accuracy is always shown. Nested prefixes and 10 snapshot-draw "
-        "repeats match item 1. Customer split is fixed (random_state=0). The 95% band is "
-        "snapshot-sampling uncertainty, not customer-split uncertainty."
+        "repeats match item 1. Customer split is fixed (random_state=0). The combined "
+        "overlay is the mean trend across 10 repeats (five models, no error bars). "
+        "95% intervals live on the companion per-model CI panels as ribbons."
     ),
     "4": (
-        "Item 4 — number of snapshots vs accuracy and F1, one curve per surviving "
+        "Item 4 — number of snapshots on the x-axis; one curve per surviving "
         "points-per-snapshot value (families of cloud size). SVM and Logistic Regression "
-        "are the focus panels; KNN, XGBoost, and Random Forest are included as muted "
-        "small multiples. Item 3 is this sample-size study (items 1, 2, and 4 together), "
-        "not a third independent grid.\n"
+        "are the focus overlay; KNN, XGBoost, and Random Forest are the same colour and "
+        "marker language, not washed out. Item 3 is this sample-size study (items 1, 2, "
+        "and 4 together), not a third independent grid.\n"
         "Nested prefixes: 15 ⊂ 30 ⊂ 45 ⊂ 60 from one pool of 60 training snapshots per "
-        "repeat. Ten repeats. Customer split fixed (random_state=0). 95% CI = mean ± "
-        "1.96×SE across snapshot draws (percentile interval also stored). This CI is "
-        "snapshot-sampling uncertainty, not customer-split uncertainty."
+        "repeat. Ten repeats. Customer split fixed (random_state=0). Combined overlays "
+        "are mean trends only (no error bars). Companion CI panels use a single ribbon "
+        "per (model, points-per-snapshot) cell (mean ± 1.96×SE across snapshot draws). "
+        "This CI is snapshot-sampling uncertainty, not customer-split uncertainty."
     ),
 }
 
 
+def _wrap_note(text: str, width: int = 148) -> str:
+    """Pre-wrap methodology notes. matplotlib wrap=True is extremely slow with tight bbox."""
+    return "\n".join(textwrap.fill(part, width=width) for part in text.split("\n"))
+
+
 def _footnote(ax, text: str) -> None:
-    wrapped = text
     ax.figure.text(
         0.02,
         0.01,
-        wrapped,
+        _wrap_note(text),
         ha="left",
         va="bottom",
         fontsize=7.2,
-        wrap=True,
         color="#2d3748",
     )
 
@@ -1197,42 +1231,230 @@ def _style_axes(ax, xlabel: str, ylabel: str, title: str) -> None:
     ax.grid(True, alpha=0.25)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+    ax.margins(x=0.06)
 
 
-def _line_with_ci(
+def _model_legend_handle(model: str) -> Line2D:
+    """Colour + marker only for a stable legend."""
+    return Line2D(
+        [0],
+        [0],
+        color=MODEL_COLORS[model],
+        linewidth=MODEL_LINEWIDTH[model],
+        linestyle="-",
+        marker=MODEL_MARKERS[model],
+        markersize=MODEL_MARKERSIZE[model],
+        markerfacecolor=MODEL_COLORS[model],
+        markeredgecolor=MODEL_COLORS[model],
+        markeredgewidth=0.6,
+        alpha=MODEL_LINE_ALPHA,
+        label=CLASSIFIER_DISPLAY[model],
+    )
+
+
+def _legend_below(ax, ncol: int = 5, bbox_y: float = -0.18) -> None:
+    handles = [_model_legend_handle(model) for model in CLASSIFIER_ORDER]
+    ax.legend(
+        handles=handles,
+        labels=[CLASSIFIER_DISPLAY[m] for m in CLASSIFIER_ORDER],
+        loc="upper center",
+        bbox_to_anchor=(0.5, bbox_y),
+        ncol=ncol,
+        frameon=False,
+        fontsize=9,
+        handlelength=2.6,
+        columnspacing=1.6,
+        borderaxespad=0.0,
+    )
+
+
+def _cloud_size_style(pps_values: Sequence[float]) -> Dict[int, Dict[str, Any]]:
+    ordered = [int(v) for v in pps_values]
+    styles: Dict[int, Dict[str, Any]] = {}
+    for i, pps in enumerate(ordered):
+        styles[pps] = {
+            "color": CLOUD_SIZE_COLOR_CYCLE[i % len(CLOUD_SIZE_COLOR_CYCLE)],
+            "marker": CLOUD_SIZE_MARKER_CYCLE[i % len(CLOUD_SIZE_MARKER_CYCLE)],
+        }
+    return styles
+
+
+def _cloud_size_legend_handles(pps_values: Sequence[float]) -> List[Line2D]:
+    styles = _cloud_size_style(pps_values)
+    handles = []
+    for pps in pps_values:
+        spec = styles[int(pps)]
+        handles.append(
+            Line2D(
+                [0],
+                [0],
+                color=spec["color"],
+                linewidth=2.0,
+                linestyle="-",
+                marker=spec["marker"],
+                markersize=7.0,
+                markerfacecolor=spec["color"],
+                markeredgecolor=spec["color"],
+                label=f"{int(pps)} points per snapshot",
+            )
+        )
+    return handles
+
+
+def _plot_mean_trend(
     ax,
     summary: pd.DataFrame,
     x_col: str,
     metric: str,
     model: str,
+    *,
     label: Optional[str] = None,
 ) -> None:
+    """Mean trend line only. Combined overlays never draw error bars."""
     sub = summary[summary["model"] == model].sort_values(x_col)
     if sub.empty:
         return
-    x = sub[x_col].to_numpy()
-    y = sub[f"{metric}_mean"].to_numpy()
-    lo = sub[f"{metric}_ci95_low"].to_numpy()
-    hi = sub[f"{metric}_ci95_high"].to_numpy()
+    x = sub[x_col].to_numpy(dtype=float)
+    y = sub[f"{metric}_mean"].to_numpy(dtype=float)
+    highlight = model in HIGHLIGHT_MODELS
     ax.plot(
         x,
         y,
         color=MODEL_COLORS[model],
-        lw=MODEL_LINEWIDTH[model],
-        alpha=MODEL_ALPHA[model],
-        marker="o",
+        linewidth=MODEL_LINEWIDTH[model],
+        linestyle="-",
+        marker=MODEL_MARKERS[model],
+        markersize=MODEL_MARKERSIZE[model],
+        markerfacecolor=MODEL_COLORS[model],
+        markeredgecolor=MODEL_COLORS[model],
+        markeredgewidth=0.6,
+        alpha=MODEL_LINE_ALPHA,
         label=label or CLASSIFIER_DISPLAY[model],
-        zorder=3 if model in HIGHLIGHT_MODELS else 2,
+        zorder=3 if highlight else 2,
     )
-    ax.fill_between(
+
+
+def _plot_mean_ribbon(
+    ax,
+    summary: pd.DataFrame,
+    x_col: str,
+    metric: str,
+    model: str,
+    *,
+    color: Optional[str] = None,
+    marker: Optional[str] = None,
+    lw: Optional[float] = None,
+    label: Optional[str] = None,
+) -> None:
+    """Single-series ribbon. Use only when one CI is drawn on the axes."""
+    sub = summary[summary["model"] == model].sort_values(x_col)
+    if sub.empty:
+        return
+    x = sub[x_col].to_numpy(dtype=float)
+    y = sub[f"{metric}_mean"].to_numpy(dtype=float)
+    lo = sub[f"{metric}_ci95_low"].to_numpy(dtype=float)
+    hi = sub[f"{metric}_ci95_high"].to_numpy(dtype=float)
+    color = color or MODEL_COLORS[model]
+    marker = marker or MODEL_MARKERS[model]
+    lw = MODEL_LINEWIDTH[model] if lw is None else float(lw)
+    ax.fill_between(x, lo, hi, color=color, alpha=CI_RIBBON_ALPHA, linewidth=0, zorder=1)
+    ax.plot(
         x,
-        lo,
-        hi,
-        color=MODEL_COLORS[model],
-        alpha=0.12 if model in HIGHLIGHT_MODELS else 0.06,
-        linewidth=0,
-        zorder=1,
+        y,
+        color=color,
+        lw=lw,
+        alpha=MODEL_LINE_ALPHA,
+        marker=marker,
+        markersize=MODEL_MARKERSIZE[model],
+        markerfacecolor=color,
+        markeredgecolor=color,
+        markeredgewidth=0.6,
+        label=label or CLASSIFIER_DISPLAY[model],
+        zorder=3,
     )
+
+
+def _plot_pps_trend(
+    ax,
+    frame: pd.DataFrame,
+    metric: str,
+    model: str,
+    pps: int,
+    *,
+    color: str,
+    marker: str,
+    label: Optional[str] = None,
+) -> None:
+    """Mean trend for one cloud size. Combined overlays never draw error bars."""
+    sub = frame[
+        (frame["model"] == model) & (frame["points_per_snapshot"] == pps)
+    ].sort_values("n_snapshots")
+    if sub.empty:
+        return
+    x = sub["n_snapshots"].to_numpy(dtype=float)
+    y = sub[f"{metric}_mean"].to_numpy(dtype=float)
+    highlight = model in HIGHLIGHT_MODELS
+    ax.plot(
+        x,
+        y,
+        color=color,
+        linewidth=2.4 if highlight else 1.8,
+        linestyle="-",
+        marker=marker,
+        markersize=8.0 if highlight else 6.6,
+        markerfacecolor=color,
+        markeredgecolor=color,
+        markeredgewidth=0.6,
+        alpha=MODEL_LINE_ALPHA,
+        label=label,
+        zorder=3 if highlight else 2,
+    )
+
+
+def _as_axes_grid(axes, n_rows: int, n_cols: int) -> np.ndarray:
+    grid = np.array(axes, dtype=object)
+    if n_rows == 1 and n_cols == 1:
+        return np.array([[grid]], dtype=object)
+    if n_rows == 1:
+        return grid.reshape(1, n_cols)
+    if n_cols == 1:
+        return grid.reshape(n_rows, 1)
+    return grid.reshape(n_rows, n_cols)
+
+
+def _plot_ci_panels(
+    summary: pd.DataFrame,
+    viz: Path,
+    *,
+    x_col: str,
+    metric: str,
+    path: Path,
+    xlabel: str,
+    title: str,
+    note: str,
+    xticks: Optional[Sequence[float]] = None,
+) -> Path:
+    fig, axes = plt.subplots(1, len(CLASSIFIER_ORDER), figsize=(15.4, 4.9), sharey=True)
+    fig.subplots_adjust(bottom=0.36, wspace=0.16, top=0.80, left=0.06, right=0.99)
+    for i, model in enumerate(CLASSIFIER_ORDER):
+        ax = axes[i]
+        _plot_mean_ribbon(ax, summary, x_col, metric, model)
+        _style_axes(
+            ax,
+            xlabel=xlabel,
+            ylabel=METRIC_DISPLAY[metric] if i == 0 else "",
+            title=CLASSIFIER_DISPLAY[model],
+        )
+        if xticks is not None:
+            ax.set_xticks(list(xticks))
+        else:
+            vals = sorted(summary[x_col].unique())
+            ax.set_xticks(vals)
+    fig.suptitle(title)
+    fig.text(0.02, 0.01, _wrap_note(note), ha="left", va="bottom", fontsize=7.2, color="#2d3748")
+    written = _save_figure(fig, path, dpi=160)
+    plt.close(fig)
+    return written
 
 
 def _require_summary(item_folder: str) -> pd.DataFrame:
@@ -1265,10 +1487,10 @@ def _plot_item1(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
     written = []
     for (folder, protocol), grp in summary.groupby(["folder_name", "protocol"]):
         for metric in ("f1", "accuracy"):
-            fig, ax = plt.subplots(figsize=(9.2, 6.4))
-            fig.subplots_adjust(bottom=0.32)
+            fig, ax = plt.subplots(figsize=(10.2, 6.8))
+            fig.subplots_adjust(bottom=0.38, top=0.88)
             for model in CLASSIFIER_ORDER:
-                _line_with_ci(ax, grp, "n_snapshots", metric, model)
+                _plot_mean_trend(ax, grp, "n_snapshots", metric, model)
             pps = int(grp["points_per_snapshot"].iloc[0])
             _style_axes(
                 ax,
@@ -1276,16 +1498,33 @@ def _plot_item1(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
                 ylabel=METRIC_DISPLAY[metric],
                 title=(
                     f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
-                    f"{METRIC_DISPLAY[metric]} vs number of snapshots "
-                    f"(points per snapshot fixed at {pps})"
+                    f"{METRIC_DISPLAY[metric]} vs number of snapshots\n"
+                    f"Number of snapshots on the x-axis; each cloud has {pps} points"
                 ),
             )
-            ax.legend(frameon=False, ncol=2)
+            _legend_below(ax, ncol=5, bbox_y=-0.20)
             ax.set_xticks(list(N_SNAPSHOTS_GRID))
             _footnote(ax, note)
             path = viz / f"{folder}_{protocol}_{metric}_by_n_snapshots.png"
             written.append(_save_figure(fig, path, dpi=160))
             plt.close(fig)
+            written.append(
+                _plot_ci_panels(
+                    grp,
+                    viz,
+                    x_col="n_snapshots",
+                    metric=metric,
+                    path=viz / f"{folder}_{protocol}_{metric}_by_n_snapshots_ci_panels.png",
+                    xlabel="Number of snapshots (training)",
+                    title=(
+                        f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
+                        f"{METRIC_DISPLAY[metric]} vs number of snapshots, one model per panel "
+                        f"(95% ribbon). Number of snapshots on the x-axis; each cloud has {pps} points"
+                    ),
+                    note=note,
+                    xticks=list(N_SNAPSHOTS_GRID),
+                )
+            )
     written.extend(_plot_cross_dataset_facet(summary, viz, "1", "n_snapshots", note))
     return written
 
@@ -1293,71 +1532,152 @@ def _plot_item1(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
 def _plot_item2(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
     written = []
     for (folder, protocol), grp in summary.groupby(["folder_name", "protocol"]):
+        xticks = sorted(int(v) for v in grp["points_per_snapshot"].unique())
+        dropped = ""
+        if int(grp["binding_class_count"].iloc[0]) <= 60:
+            dropped = (
+                f" Binding class count on this arm is "
+                f"{int(grp['binding_class_count'].iloc[0])}, so any candidate "
+                f"≥ that count was dropped."
+            )
+        panel_note = note + dropped
         for metric in ("f1", "accuracy"):
-            fig, ax = plt.subplots(figsize=(9.2, 6.6))
-            fig.subplots_adjust(bottom=0.34)
+            fig, ax = plt.subplots(figsize=(10.2, 7.0))
+            fig.subplots_adjust(bottom=0.40, top=0.88)
             for model in CLASSIFIER_ORDER:
-                _line_with_ci(ax, grp, "points_per_snapshot", metric, model)
+                _plot_mean_trend(ax, grp, "points_per_snapshot", metric, model)
             _style_axes(
                 ax,
                 xlabel="Points per snapshot",
                 ylabel=METRIC_DISPLAY[metric],
                 title=(
                     f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
-                    f"{METRIC_DISPLAY[metric]} vs points per snapshot "
-                    "(number of snapshots fixed at 60)"
+                    f"{METRIC_DISPLAY[metric]} vs points per snapshot\n"
+                    "Points per snapshot on the x-axis; always 60 snapshots"
                 ),
             )
-            ax.legend(frameon=False, ncol=2)
-            ax.set_xticks(sorted(grp["points_per_snapshot"].unique()))
-            dropped = ""
-            if int(grp["binding_class_count"].iloc[0]) <= 60:
-                dropped = (
-                    f" Binding class count on this arm is "
-                    f"{int(grp['binding_class_count'].iloc[0])}, so any candidate "
-                    f"≥ that count was dropped."
-                )
-            _footnote(ax, note + dropped)
+            _legend_below(ax, ncol=5, bbox_y=-0.22)
+            ax.set_xticks(xticks)
+            _footnote(ax, panel_note)
             path = viz / f"{folder}_{protocol}_{metric}_by_points_per_snapshot.png"
             written.append(_save_figure(fig, path, dpi=160))
             plt.close(fig)
+            written.append(
+                _plot_ci_panels(
+                    grp,
+                    viz,
+                    x_col="points_per_snapshot",
+                    metric=metric,
+                    path=viz
+                    / f"{folder}_{protocol}_{metric}_by_points_per_snapshot_ci_panels.png",
+                    xlabel="Points per snapshot",
+                    title=(
+                        f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
+                        f"{METRIC_DISPLAY[metric]} vs points per snapshot, one model per panel "
+                        "(95% ribbon). Points per snapshot on the x-axis; always 60 snapshots"
+                    ),
+                    note=panel_note,
+                    xticks=xticks,
+                )
+            )
     written.extend(
         _plot_cross_dataset_facet(summary, viz, "2", "points_per_snapshot", note)
     )
     return written
 
 
+def _plot_item4_cloud_size_ci_panels(
+    grp: pd.DataFrame,
+    viz: Path,
+    folder: str,
+    protocol: str,
+    metric: str,
+    note: str,
+) -> Path:
+    pps_values = [int(v) for v in sorted(grp["points_per_snapshot"].unique())]
+    n_pps = max(1, len(pps_values))
+    n_models = len(CLASSIFIER_ORDER)
+    fig, axes = plt.subplots(
+        n_models,
+        n_pps,
+        figsize=(3.35 * n_pps, 2.45 * n_models),
+        sharex=True,
+        sharey="row",
+    )
+    fig.subplots_adjust(bottom=0.14, hspace=0.38, wspace=0.16, top=0.90, left=0.08, right=0.99)
+    grid = _as_axes_grid(axes, n_models, n_pps)
+    styles = _cloud_size_style(pps_values)
+    for row_i, model in enumerate(CLASSIFIER_ORDER):
+        for col_i, pps in enumerate(pps_values):
+            ax = grid[row_i, col_i]
+            sub = grp[grp["points_per_snapshot"] == pps]
+            spec = styles[int(pps)]
+            _plot_mean_ribbon(
+                ax,
+                sub,
+                "n_snapshots",
+                metric,
+                model,
+                color=spec["color"],
+                marker=spec["marker"],
+            )
+            title = ""
+            if row_i == 0:
+                title = f"{int(pps)} points per snapshot"
+            ylabel = METRIC_DISPLAY[metric] if col_i == 0 else ""
+            _style_axes(
+                ax,
+                xlabel="Number of snapshots" if row_i == n_models - 1 else "",
+                ylabel=ylabel,
+                title=title,
+            )
+            if col_i == 0:
+                ax.text(
+                    -0.28,
+                    0.5,
+                    CLASSIFIER_DISPLAY[model],
+                    transform=ax.transAxes,
+                    rotation=90,
+                    va="center",
+                    ha="center",
+                    fontsize=9,
+                    color=MODEL_COLORS[model],
+                    fontweight="bold" if model in HIGHLIGHT_MODELS else "normal",
+                )
+            ax.set_xticks(list(N_SNAPSHOTS_GRID))
+    fig.suptitle(
+        f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
+        f"{METRIC_DISPLAY[metric]} families of cloud size, one 95% ribbon per panel"
+    )
+    fig.text(0.02, 0.01, _wrap_note(note), ha="left", va="bottom", fontsize=7.0, color="#2d3748")
+    path = viz / f"{folder}_{protocol}_{metric}_cloud_size_ci_panels.png"
+    written = _save_figure(fig, path, dpi=150)
+    plt.close(fig)
+    return written
+
+
 def _plot_item4(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
     written = []
-    cmap = plt.get_cmap("viridis")
     for (folder, protocol), grp in summary.groupby(["folder_name", "protocol"]):
-        pps_values = sorted(grp["points_per_snapshot"].unique())
-        # Focus: SVM + Logistic × F1 + accuracy
-        fig, axes = plt.subplots(2, 2, figsize=(11.2, 8.2), sharex=True)
-        fig.subplots_adjust(bottom=0.28, hspace=0.28, wspace=0.22)
+        pps_values = [int(v) for v in sorted(grp["points_per_snapshot"].unique())]
+        styles = _cloud_size_style(pps_values)
+        # Focus overlay: SVM + Logistic × F1 + accuracy, mean trends only.
+        fig, axes = plt.subplots(2, 2, figsize=(11.6, 8.6), sharex=True)
+        fig.subplots_adjust(bottom=0.30, hspace=0.30, wspace=0.22, top=0.86)
         for row_i, model in enumerate(("svm", "logistic")):
             for col_i, metric in enumerate(("f1", "accuracy")):
                 ax = axes[row_i][col_i]
-                for j, pps in enumerate(pps_values):
-                    sub = grp[
-                        (grp["model"] == model) & (grp["points_per_snapshot"] == pps)
-                    ].sort_values("n_snapshots")
-                    color = cmap(0.15 + 0.75 * j / max(1, len(pps_values) - 1))
-                    ax.plot(
-                        sub["n_snapshots"],
-                        sub[f"{metric}_mean"],
-                        color=color,
-                        lw=2.2,
-                        marker="o",
+                for pps in pps_values:
+                    spec = styles[int(pps)]
+                    _plot_pps_trend(
+                        ax,
+                        grp,
+                        metric,
+                        model,
+                        pps,
+                        color=spec["color"],
+                        marker=spec["marker"],
                         label=f"{int(pps)} points per snapshot",
-                    )
-                    ax.fill_between(
-                        sub["n_snapshots"],
-                        sub[f"{metric}_ci95_low"],
-                        sub[f"{metric}_ci95_high"],
-                        color=color,
-                        alpha=0.12,
-                        linewidth=0,
                     )
                 _style_axes(
                     ax,
@@ -1366,44 +1686,44 @@ def _plot_item4(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
                     title=f"{CLASSIFIER_DISPLAY[model]} — {METRIC_DISPLAY[metric]}",
                 )
                 ax.set_xticks(list(N_SNAPSHOTS_GRID))
-        handles, labels = axes[0][0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc="upper center", ncol=min(4, len(labels)), frameon=False)
+        fig.legend(
+            handles=_cloud_size_legend_handles(pps_values),
+            loc="upper center",
+            bbox_to_anchor=(0.5, 0.98),
+            ncol=min(4, len(pps_values)),
+            frameon=False,
+        )
         fig.suptitle(
             f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
-            "Families of cloud size (item 4). SVM and Logistic Regression are the focus."
+            "Families of cloud size (item 4). Number of snapshots on the x-axis; "
+            "one curve per cloud size. SVM and Logistic Regression are the focus. "
+            "Mean trend across 10 repeats; 95% intervals are on the CI panels.",
+            y=1.02,
         )
-        fig.text(0.02, 0.01, note, ha="left", va="bottom", fontsize=7.2, wrap=True)
+        fig.text(0.02, 0.01, _wrap_note(note), ha="left", va="bottom", fontsize=7.2, color="#2d3748")
         path = viz / f"{folder}_{protocol}_svm_logistic_cloud_size_families.png"
         written.append(_save_figure(fig, path, dpi=160))
         plt.close(fig)
 
-        # Small multiples: 5 classifiers × 2 metrics
-        fig, axes = plt.subplots(5, 2, figsize=(10.6, 13.4), sharex=True)
-        fig.subplots_adjust(bottom=0.16, hspace=0.38, wspace=0.22, top=0.93)
+        # Overlay small multiples: 5 classifiers × 2 metrics, mean trends only.
+        fig, axes = plt.subplots(5, 2, figsize=(10.8, 13.8), sharex=True)
+        fig.subplots_adjust(bottom=0.16, hspace=0.40, wspace=0.22, top=0.91)
         for row_i, model in enumerate(CLASSIFIER_ORDER):
             for col_i, metric in enumerate(("f1", "accuracy")):
                 ax = axes[row_i][col_i]
-                for j, pps in enumerate(pps_values):
-                    sub = grp[
-                        (grp["model"] == model) & (grp["points_per_snapshot"] == pps)
-                    ].sort_values("n_snapshots")
-                    color = cmap(0.15 + 0.75 * j / max(1, len(pps_values) - 1))
-                    ax.plot(
-                        sub["n_snapshots"],
-                        sub[f"{metric}_mean"],
-                        color=color,
-                        lw=MODEL_LINEWIDTH[model],
-                        alpha=MODEL_ALPHA[model] if model not in HIGHLIGHT_MODELS else 1.0,
-                        marker="o",
-                        label=f"{int(pps)} pts" if row_i == 0 and col_i == 0 else None,
-                    )
-                    ax.fill_between(
-                        sub["n_snapshots"],
-                        sub[f"{metric}_ci95_low"],
-                        sub[f"{metric}_ci95_high"],
-                        color=color,
-                        alpha=0.10,
-                        linewidth=0,
+                for pps in pps_values:
+                    spec = styles[int(pps)]
+                    _plot_pps_trend(
+                        ax,
+                        grp,
+                        metric,
+                        model,
+                        pps,
+                        color=spec["color"],
+                        marker=spec["marker"],
+                        label=f"{int(pps)} points per snapshot"
+                        if row_i == 0 and col_i == 0
+                        else None,
                     )
                 _style_axes(
                     ax,
@@ -1412,16 +1732,28 @@ def _plot_item4(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
                     title=f"{CLASSIFIER_DISPLAY[model]} — {METRIC_DISPLAY[metric]}",
                 )
                 ax.set_xticks(list(N_SNAPSHOTS_GRID))
-        handles, labels = axes[0][0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc="upper center", ncol=min(4, len(labels)), frameon=False)
+        fig.legend(
+            handles=_cloud_size_legend_handles(pps_values),
+            loc="upper center",
+            ncol=min(4, len(pps_values)),
+            frameon=False,
+        )
         fig.suptitle(
             f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
-            "All five classifiers (SVM / Logistic highlighted; others muted)"
+            "All five classifiers (SVM / Logistic thicker; KNN, XGBoost, and "
+            "Random Forest at full saturation). Number of snapshots on the x-axis; "
+            "one curve per cloud size. Mean trend across 10 repeats; 95% intervals "
+            "are on the CI panels."
         )
-        fig.text(0.02, 0.01, note, ha="left", va="bottom", fontsize=7.0, wrap=True)
+        fig.text(0.02, 0.01, _wrap_note(note), ha="left", va="bottom", fontsize=7.0, color="#2d3748")
         path = viz / f"{folder}_{protocol}_all_classifiers_small_multiples.png"
         written.append(_save_figure(fig, path, dpi=150))
         plt.close(fig)
+
+        for metric in ("f1", "accuracy"):
+            written.append(
+                _plot_item4_cloud_size_ci_panels(grp, viz, folder, protocol, metric, note)
+            )
     return written
 
 
@@ -1433,26 +1765,30 @@ def _plot_cross_dataset_facet(
     note: str,
 ) -> List[Path]:
     written = []
-    xlabel = (
-        "Number of snapshots (training)"
-        if x_col == "n_snapshots"
-        else "Points per snapshot"
-    )
+    if x_col == "n_snapshots":
+        xlabel = "Number of snapshots (training)"
+        axis_note = (
+            "Number of snapshots on the x-axis; each cloud uses the dataset-aware "
+            "default point count (held fixed)"
+        )
+    else:
+        xlabel = "Points per snapshot"
+        axis_note = "Points per snapshot on the x-axis; always 60 snapshots"
     for protocol, proto_grp in summary.groupby("protocol"):
         datasets = list(proto_grp["folder_name"].unique())
         n = len(datasets)
         if n == 0:
             continue
-        fig, axes = plt.subplots(n, 2, figsize=(10.8, 3.1 * n), sharex=True)
+        fig, axes = plt.subplots(n, 2, figsize=(11.2, 3.2 * n), sharex=True)
         if n == 1:
             axes = np.array([axes])
-        fig.subplots_adjust(bottom=0.18, hspace=0.45, wspace=0.22, top=0.93)
+        fig.subplots_adjust(bottom=0.20, hspace=0.48, wspace=0.22, top=0.90)
         for i, folder in enumerate(datasets):
             sub = proto_grp[proto_grp["folder_name"] == folder]
             for j, metric in enumerate(("f1", "accuracy")):
                 ax = axes[i][j]
                 for model in CLASSIFIER_ORDER:
-                    _line_with_ci(ax, sub, x_col, metric, model)
+                    _plot_mean_trend(ax, sub, x_col, metric, model)
                 _style_axes(
                     ax,
                     xlabel=xlabel,
@@ -1461,12 +1797,18 @@ def _plot_cross_dataset_facet(
                 )
                 if x_col == "n_snapshots":
                     ax.set_xticks(list(N_SNAPSHOTS_GRID))
-        handles, labels = axes[0][0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc="upper center", ncol=5, frameon=False)
-        fig.suptitle(
-            f"{PROTOCOLS[protocol]['display']} — item {item} across datasets"
+                else:
+                    ax.set_xticks(sorted(sub[x_col].unique()))
+        fig.legend(
+            handles=[_model_legend_handle(m) for m in CLASSIFIER_ORDER],
+            loc="upper center",
+            ncol=5,
+            frameon=False,
         )
-        fig.text(0.02, 0.01, note, ha="left", va="bottom", fontsize=7.0, wrap=True)
+        fig.suptitle(
+            f"{PROTOCOLS[protocol]['display']} — item {item} across datasets\n{axis_note}"
+        )
+        fig.text(0.02, 0.01, _wrap_note(note), ha="left", va="bottom", fontsize=7.0, color="#2d3748")
         path = viz / f"cross_dataset_{protocol}_item{item}.png"
         written.append(_save_figure(fig, path, dpi=150))
         plt.close(fig)

@@ -3,7 +3,9 @@
 Snapshot sample size / 2_Points_Per_Snapshot_Sweep
 Dataset: PKDD'99 Czech Financial
 
-This experiment holds the number of snapshots fixed at 60 and varies points per snapshot.
+x-axis = points per snapshot {15, 30, 45, 60 where they fit}. Number of
+snapshots is held fixed at 60. This is item 2, not item 1 (which instead holds
+the default cloud size and moves snapshot count).
 
 I report F1 as the headline metric because several tables are class-imbalanced;
 accuracy is shown as well. Items 1, 2, and 4 share one compute grid. The shared

@@ -3,7 +3,9 @@
 Snapshot sample size / 3_Snapshot_Count_Across_Cloud_Sizes
 Dataset: Default of Credit Card Client
 
-This experiment varies the number of snapshots and draws one curve per surviving points-per-snapshot value (families of cloud size).
+x-axis = number of snapshots {15, 30, 45, 60}; one curve per surviving
+points-per-snapshot value (families of cloud size). This is item 4, not a
+duplicate of item 1 (which holds cloud size at the default).
 
 I report F1 as the headline metric because several tables are class-imbalanced;
 accuracy is shown as well. Items 1, 2, and 4 share one compute grid. The shared

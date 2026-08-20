@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Item 1 — Number of snapshots vs F1/accuracy (points per snapshot fixed).
+"""Item 1 — Number of snapshots on the x-axis; each cloud uses the dataset-aware
+default point count (held fixed). Not item 2 (which holds 60 snapshots and
+moves points per snapshot).
 
 This experiment is a view of the shared sample-size grid. Item 3 is the
 study made of items 1, 2, and 4; it is not a third independent grid.
