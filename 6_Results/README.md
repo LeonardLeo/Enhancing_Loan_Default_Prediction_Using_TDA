@@ -16,7 +16,7 @@ Do not look in `model_viz/`, `cv_viz/`, `cross_dataset_viz/`, or `plots/` on the
 | `No_Undersampling/` | Late split, no majority downsample. |
 | `Early_Split_TDA_And_No_Undersampling/` | Early split + no undersample. |
 | `Statistics/` | Protocol-independent geometry (intrinsic dimension). |
-| `Snapshot_Sample_Size/` | Dated 13/08/2026 sample-size study (items 1, 2, and 4; item 3 is absorbed). |
+| `Snapshot_Sample_Size/` | Sample-size study. |
 | `Archives/` | Retired exploratory experiments (original numbers). |
 | `Paper_Tables/` | Aggregated LaTeX/CSV tables for the paper. |
 | `Run_Queue/` | Operational Ripser/consumer queues, logs, and run registries. |
