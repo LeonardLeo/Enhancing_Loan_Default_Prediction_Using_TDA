@@ -6,34 +6,40 @@
   "n_neg": 606,
   "default_rate": 0.11143695014662756,
   "pca_components": 10,
-  "pca_variance_retained_train_fit": 0.8864485841599379,
+  "pca_variance_retained": 0.4726086125919339,
+  "pca_fit": "train_only",
+  "protocol_bucket": "Early_Split_TDA_And_No_Undersampling",
+  "split_timing": "early",
+  "undersample": false,
   "intrinsic_dim_raw": {
     "n_points_used": 682,
-    "n_features": 30,
+    "n_features": 268,
     "package": "scikit-dimension",
     "estimators": {
-      "TwoNN": 3.8032242856932954,
-      "MLE_LevinaBickel": "error:MLE.__init__() got an unexpected keyword argument 'k'",
+      "TwoNN": 3.8032243029287645,
+      "MLE_LevinaBickel": 3.076777554654925,
       "lPCA": 2.0,
-      "DANCo": 5.434654610185194
+      "MiND_ML": 3.3926767343044433,
+      "DANCo": 5.42581183034392
     },
-    "b_primary_TwoNN": 3.8032242856932954,
-    "b_median_available": 3.8032242856932954
+    "b_primary_TwoNN": 3.8032243029287645,
+    "b_median_available": 3.3926767343044433
   },
   "intrinsic_dim_pca_train": {
     "n_points_used": 545,
     "n_features": 10,
     "package": "scikit-dimension",
     "estimators": {
-      "TwoNN": 5.870409595547848,
-      "MLE_LevinaBickel": "error:MLE.__init__() got an unexpected keyword argument 'k'",
+      "TwoNN": 3.5134913838472457,
+      "MLE_LevinaBickel": 3.3492666537868194,
       "lPCA": 10.0,
-      "DANCo": 7.312874969407333
+      "MiND_ML": 3.435952603712944,
+      "DANCo": 5.040422598847376
     },
-    "b_primary_TwoNN": 5.870409595547848,
-    "b_median_available": 7.312874969407333
+    "b_primary_TwoNN": 3.5134913838472457,
+    "b_median_available": 3.5134913838472457
   },
-  "b_used": 5.870409595547848,
+  "b_used": 3.5134913838472457,
   "split_counts": {
     "train_pos": 61,
     "train_neg": 484,
@@ -86,30 +92,30 @@
       "rows": [
         {
           "t": 3,
-          "b": 5.870409595547848,
-          "l_formula": 1.4081077812303686,
-          "vs_train_default_60": -58.59189221876963,
-          "vs_test_default_15": -13.591892218769631
+          "b": 3.5134913838472457,
+          "l_formula": 1.7715105532787692,
+          "vs_train_default_60": -58.228489446721234,
+          "vs_test_default_15": -13.22848944672123
         },
         {
           "t": 5,
-          "b": 5.870409595547848,
-          "l_formula": 1.4713672995031395,
-          "vs_train_default_60": -58.52863270049686,
-          "vs_test_default_15": -13.52863270049686
+          "b": 3.5134913838472457,
+          "l_formula": 1.9064774324536435,
+          "vs_train_default_60": -58.09352256754636,
+          "vs_test_default_15": -13.093522567546357
         },
         {
           "t": 10,
-          "b": 5.870409595547848,
-          "l_formula": 1.64925511731198,
-          "vs_train_default_60": -58.35074488268802,
-          "vs_test_default_15": -13.35074488268802
+          "b": 3.5134913838472457,
+          "l_formula": 2.3070060889388677,
+          "vs_train_default_60": -57.69299391106113,
+          "vs_test_default_15": -12.692993911061132
         }
       ],
       "at_chosen_t": {
         "t": 10,
-        "b": 5.870409595547848,
-        "l_formula": 1.64925511731198,
+        "b": 3.5134913838472457,
+        "l_formula": 2.3070060889388677,
         "interpretation": "Formula-suggested snapshot count at chosen t. Compare to meeting defaults (train 60 / test 15) separately from reuse feasibility."
       }
     },
@@ -292,7 +298,7 @@
         "max_reuse_target": 1.0,
         "max_t_frac_target": 0.2
       },
-      "formula_l_at_chosen_t": 1.64925511731198,
+      "formula_l_at_chosen_t": 2.3070060889388677,
       "why": "Pick the largest reuse-safe t at the (possibly adapted) train_l (binding class = minority). Keep the SAME t for test. Report formula l separately; do not override meeting 60/15 with the formula alone \u2014 only Concern B (reuse) may reduce l.",
       "adaptation_notes": [
         "train_l reduced 60\u21926 so t\u226510 keeps reuse\u22641.0 on n_min=61",
@@ -322,37 +328,37 @@
       "rows": [
         {
           "t": 3,
-          "b": 5.870409595547848,
-          "l_formula": 1.4081077812303686,
-          "vs_train_default_60": -58.59189221876963,
-          "vs_test_default_15": -13.591892218769631
+          "b": 3.5134913838472457,
+          "l_formula": 1.7715105532787692,
+          "vs_train_default_60": -58.228489446721234,
+          "vs_test_default_15": -13.22848944672123
         },
         {
           "t": 7,
-          "b": 5.870409595547848,
-          "l_formula": 1.5467359224721513,
-          "vs_train_default_60": -58.45326407752785,
-          "vs_test_default_15": -13.453264077527848
+          "b": 3.5134913838472457,
+          "l_formula": 2.0724316513544676,
+          "vs_train_default_60": -57.92756834864553,
+          "vs_test_default_15": -12.927568348645533
         },
         {
           "t": 10,
-          "b": 5.870409595547848,
-          "l_formula": 1.64925511731198,
-          "vs_train_default_60": -58.35074488268802,
-          "vs_test_default_15": -13.35074488268802
+          "b": 3.5134913838472457,
+          "l_formula": 2.3070060889388677,
+          "vs_train_default_60": -57.69299391106113,
+          "vs_test_default_15": -12.692993911061132
         },
         {
           "t": 15,
-          "b": 5.870409595547848,
-          "l_formula": 1.7917689331026974,
-          "vs_train_default_60": -58.208231066897305,
-          "vs_test_default_15": -13.208231066897303
+          "b": 3.5134913838472457,
+          "l_formula": 2.6496498452528257,
+          "vs_train_default_60": -57.350350154747176,
+          "vs_test_default_15": -12.350350154747174
         }
       ],
       "at_chosen_t": {
         "t": 15,
-        "b": 5.870409595547848,
-        "l_formula": 1.7917689331026974,
+        "b": 3.5134913838472457,
+        "l_formula": 2.6496498452528257,
         "interpretation": "Formula-suggested snapshot count at chosen t. Compare to meeting defaults (train 60 / test 15) separately from reuse feasibility."
       }
     },
@@ -575,7 +581,7 @@
         "max_reuse_target": 1.0,
         "max_t_frac_target": 0.2
       },
-      "formula_l_at_chosen_t": 1.7917689331026974,
+      "formula_l_at_chosen_t": 2.6496498452528257,
       "why": "Pick the largest reuse-safe t at the (possibly adapted) train_l (binding class = minority). Keep the SAME t for test. Report formula l separately; do not override meeting 60/15 with the formula alone \u2014 only Concern B (reuse) may reduce l.",
       "adaptation_notes": [
         "train_l reduced 60\u21921 so t\u226510 keeps reuse\u22641.0 on n_min=15",
@@ -604,37 +610,37 @@
     3,
     5
   ],
-  "formula_at_chosen_t": 1.4713672995031395,
+  "formula_at_chosen_t": 1.9064774324536435,
   "full_data_rec": {
     "concern_A_formula": {
       "definition": "l \u2248 (t / log t)^{2/b}",
       "rows": [
         {
           "t": 3,
-          "b": 5.870409595547848,
-          "l_formula": 1.4081077812303686,
-          "vs_train_default_60": -58.59189221876963,
-          "vs_test_default_15": -13.591892218769631
+          "b": 3.5134913838472457,
+          "l_formula": 1.7715105532787692,
+          "vs_train_default_60": -58.228489446721234,
+          "vs_test_default_15": -13.22848944672123
         },
         {
           "t": 5,
-          "b": 5.870409595547848,
-          "l_formula": 1.4713672995031395,
-          "vs_train_default_60": -58.52863270049686,
-          "vs_test_default_15": -13.52863270049686
+          "b": 3.5134913838472457,
+          "l_formula": 1.9064774324536435,
+          "vs_train_default_60": -58.09352256754636,
+          "vs_test_default_15": -13.093522567546357
         },
         {
           "t": 10,
-          "b": 5.870409595547848,
-          "l_formula": 1.64925511731198,
-          "vs_train_default_60": -58.35074488268802,
-          "vs_test_default_15": -13.35074488268802
+          "b": 3.5134913838472457,
+          "l_formula": 2.3070060889388677,
+          "vs_train_default_60": -57.69299391106113,
+          "vs_test_default_15": -12.692993911061132
         }
       ],
       "at_chosen_t": {
         "t": 10,
-        "b": 5.870409595547848,
-        "l_formula": 1.64925511731198,
+        "b": 3.5134913838472457,
+        "l_formula": 2.3070060889388677,
         "interpretation": "Formula-suggested snapshot count at chosen t. Compare to meeting defaults (train 60 / test 15) separately from reuse feasibility."
       }
     },
@@ -817,7 +823,7 @@
         "max_reuse_target": 1.0,
         "max_t_frac_target": 0.2
       },
-      "formula_l_at_chosen_t": 1.64925511731198,
+      "formula_l_at_chosen_t": 2.3070060889388677,
       "why": "Pick the largest reuse-safe t at the (possibly adapted) train_l (binding class = minority). Keep the SAME t for test. Report formula l separately; do not override meeting 60/15 with the formula alone \u2014 only Concern B (reuse) may reduce l.",
       "adaptation_notes": [
         "train_l reduced 60\u21927 so t\u226510 keeps reuse\u22641.0 on n_min=76",
@@ -846,11 +852,11 @@
       "step": "A1_formula",
       "expression": "l = (t / ln(t))^(2/b)",
       "t": 5,
-      "b": 5.870409595547848,
+      "b": 3.5134913838472457,
       "ln_t": 1.6094379124341003,
       "t_over_ln_t": 3.1066746727980594,
-      "exponent_2_over_b": 0.3406917298439978,
-      "result_l_formula": 1.4713672995031395,
+      "exponent_2_over_b": 0.5692343545211759,
+      "result_l_formula": 1.9064774324536435,
       "notes": "Concern A only \u2014 theoretical snapshot count suggestion"
     },
     {

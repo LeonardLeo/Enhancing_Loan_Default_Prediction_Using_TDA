@@ -77,7 +77,7 @@ model_L5.fit(X_train_L5, y_train_L5)
 scores_L5 = model_L5.predict(X_test_L5)
 y_pred_L5 = (scores_L5 >= 0.5).astype(int)
 y_true_L5 = y_test_L5.astype(int)
-model_results[f"data_L5"] = {
+model_results[f"data_L5.csv"] = {
     "linear_regression": {
         "model": model_L5,
         "accuracy": accuracy_score(y_true_L5, y_pred_L5),
@@ -119,7 +119,7 @@ model_L15.fit(X_train_L15, y_train_L15)
 scores_L15 = model_L15.predict(X_test_L15)
 y_pred_L15 = (scores_L15 >= 0.5).astype(int)
 y_true_L15 = y_test_L15.astype(int)
-model_results[f"data_L15"] = {
+model_results[f"data_L15.csv"] = {
     "linear_regression": {
         "model": model_L15,
         "accuracy": accuracy_score(y_true_L15, y_pred_L15),

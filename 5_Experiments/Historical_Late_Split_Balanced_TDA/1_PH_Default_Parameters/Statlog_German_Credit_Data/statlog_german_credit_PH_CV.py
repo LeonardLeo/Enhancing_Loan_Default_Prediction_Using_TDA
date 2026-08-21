@@ -5,8 +5,13 @@ Created on Sat Oct 12 22:59:58 2024
 @author: lEO
 """
 
+import os
+import sys
 import joblib
 import warnings
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+sys.path.insert(0, ROOT)
 from utils import (store_results, 
                    perform_cross_validation_tda)
 
@@ -15,15 +20,29 @@ warnings.filterwarnings("ignore")
 # =============================================================================
 # Get Dataset
 # =============================================================================
-data_paths = ["../../../../1_Data/TDA_Datasets/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/data_L30.csv", 
-              "../../../../1_Data/TDA_Datasets/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/data_L60.csv"]
+data_dir = os.path.join(
+    ROOT,
+    "1_Data",
+    "TDA_Datasets",
+    "Historical_Late_Split_Balanced_TDA",
+    "1_PH_Default_Parameters",
+    "Statlog_German_Credit_Data",
+)
+data_paths = [os.path.join(data_dir, "data_L30.csv"),
+              os.path.join(data_dir, "data_L60.csv")]
 
 # =============================================================================
 # Load Python Object
 # =============================================================================
 try:
-    path = "../../../../6_Results/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data"
-    evaluation_results = joblib.load(f"{path}/model_results.pkl")
+    path = os.path.join(
+        ROOT,
+        "6_Results",
+        "Historical_Late_Split_Balanced_TDA",
+        "1_PH_Default_Parameters",
+        "Statlog_German_Credit_Data",
+    )
+    evaluation_results = joblib.load(os.path.join(path, "model_results.pkl"))
 except FileNotFoundError:
     print("Evaluation results file not found!")
     evaluation_results = {}
@@ -37,7 +56,13 @@ model_results = perform_cross_validation_tda(datasets = data_paths,
 # =============================================================================
 # Store Python Object
 # =============================================================================
-save_path = "../../../../6_Results/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data"
+save_path = os.path.join(
+    ROOT,
+    "6_Results",
+    "Historical_Late_Split_Balanced_TDA",
+    "1_PH_Default_Parameters",
+    "Statlog_German_Credit_Data",
+)
 
 store_results(path = save_path, 
               save_name = "CV_results", 

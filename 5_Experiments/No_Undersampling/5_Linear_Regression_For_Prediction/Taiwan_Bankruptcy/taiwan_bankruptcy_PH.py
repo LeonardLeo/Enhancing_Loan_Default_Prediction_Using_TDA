@@ -77,7 +77,7 @@ model_L10.fit(X_train_L10, y_train_L10)
 scores_L10 = model_L10.predict(X_test_L10)
 y_pred_L10 = (scores_L10 >= 0.5).astype(int)
 y_true_L10 = y_test_L10.astype(int)
-model_results[f"data_L10"] = {
+model_results[f"data_L10.csv"] = {
     "linear_regression": {
         "model": model_L10,
         "accuracy": accuracy_score(y_true_L10, y_pred_L10),
@@ -119,7 +119,7 @@ model_L20.fit(X_train_L20, y_train_L20)
 scores_L20 = model_L20.predict(X_test_L20)
 y_pred_L20 = (scores_L20 >= 0.5).astype(int)
 y_true_L20 = y_test_L20.astype(int)
-model_results[f"data_L20"] = {
+model_results[f"data_L20.csv"] = {
     "linear_regression": {
         "model": model_L20,
         "accuracy": accuracy_score(y_true_L20, y_pred_L20),

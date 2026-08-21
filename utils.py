@@ -1338,6 +1338,23 @@ def store_data_as_csv_or_json(
 
         print(f"Saved: {save_file}")
     
+def _model_results_entry(model_results: Dict[str, Any], data_name: str) -> Any:
+    """Match a barcode CSV path to the pickle key used when that file was trained."""
+    data_key = os.path.basename(str(data_name).replace("\\\\?\\", "").replace("//", "/"))
+    candidates = [data_key]
+    stem, ext = os.path.splitext(data_key)
+    if ext.lower() == ".csv":
+        candidates.append(stem)
+    else:
+        candidates.append(data_key + ".csv")
+    for key in candidates:
+        if key in model_results:
+            return model_results[key]
+    raise KeyError(
+        f"{data_key!r} not in model_results (available: {list(model_results.keys())})"
+    )
+
+
 def perform_cross_validation_tda(datasets: List[str],
                                  model_results: Dict[str, Dict[str, Dict[str, Any]]],
                                  n_splits: int = 10,
@@ -1362,7 +1379,7 @@ def perform_cross_validation_tda(datasets: List[str],
         )
 
         results = {}
-        for model_name, model_info in model_results[data_key].items():
+        for model_name, model_info in _model_results_entry(model_results, data_name).items():
             print(f"  Cross-validating model: {model_name}")
             scores = cross_val_score(
                 estimator = model_info["model"],

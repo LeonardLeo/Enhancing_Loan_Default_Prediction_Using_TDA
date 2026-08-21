@@ -6,18 +6,23 @@
   "n_neg": 23335,
   "default_rate": 0.22125813449023862,
   "pca_components": 7,
-  "pca_variance_retained_train_fit": 0.9391902980185501,
+  "pca_variance_retained": 0.9391902980185501,
+  "pca_fit": "train_only",
+  "protocol_bucket": "Early_Split_TDA_And_No_Undersampling",
+  "split_timing": "early",
+  "undersample": false,
   "intrinsic_dim_raw": {
     "n_points_used": 2000,
     "n_features": 25,
     "package": "scikit-dimension",
     "estimators": {
       "TwoNN": 4.6192805764086335,
-      "MLE_LevinaBickel": "error:MLE.__init__() got an unexpected keyword argument 'k'",
-      "lPCA": 3.0
+      "MLE_LevinaBickel": 3.067880026178838,
+      "lPCA": 3.0,
+      "MiND_ML": 4.112829476210853
     },
     "b_primary_TwoNN": 4.6192805764086335,
-    "b_median_available": 3.8096402882043168
+    "b_median_available": 3.5903547511948455
   },
   "intrinsic_dim_pca_train": {
     "n_points_used": 2000,
@@ -25,11 +30,12 @@
     "package": "scikit-dimension",
     "estimators": {
       "TwoNN": 3.092996178341677,
-      "MLE_LevinaBickel": "error:MLE.__init__() got an unexpected keyword argument 'k'",
-      "lPCA": 6.0
+      "MLE_LevinaBickel": 3.5191550528858695,
+      "lPCA": 6.0,
+      "MiND_ML": 3.506296980215533
     },
     "b_primary_TwoNN": 3.092996178341677,
-    "b_median_available": 4.546498089170838
+    "b_median_available": 3.512726016550701
   },
   "b_used": 3.092996178341677,
   "split_counts": {

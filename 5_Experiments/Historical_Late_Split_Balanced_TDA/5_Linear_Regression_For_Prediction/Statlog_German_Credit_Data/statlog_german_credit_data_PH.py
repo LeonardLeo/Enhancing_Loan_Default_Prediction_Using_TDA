@@ -77,7 +77,7 @@ model_L30.fit(X_train_L30, y_train_L30)
 scores_L30 = model_L30.predict(X_test_L30)
 y_pred_L30 = (scores_L30 >= 0.5).astype(int)
 y_true_L30 = y_test_L30.astype(int)
-model_results[f"data_L30"] = {
+model_results[f"data_L30.csv"] = {
     "linear_regression": {
         "model": model_L30,
         "accuracy": accuracy_score(y_true_L30, y_pred_L30),
@@ -119,7 +119,7 @@ model_L60.fit(X_train_L60, y_train_L60)
 scores_L60 = model_L60.predict(X_test_L60)
 y_pred_L60 = (scores_L60 >= 0.5).astype(int)
 y_true_L60 = y_test_L60.astype(int)
-model_results[f"data_L60"] = {
+model_results[f"data_L60.csv"] = {
     "linear_regression": {
         "model": model_L60,
         "accuracy": accuracy_score(y_true_L60, y_pred_L60),
