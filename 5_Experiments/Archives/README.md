@@ -19,8 +19,9 @@ Original numbered folders, kept as a museum. They are **not** part of the active
 | `20_Deep_Learning_For_Prediction` | Exploratory DL. |
 | `21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA` | Exploratory Mapper on barcodes. |
 | `22_Visualizing_Persistence_Diagrams` | Exploratory diagrams. |
+| `Four_Arm_Nested_Experiments/` | Nested extras retired from the four old TDA arms: `3_H0_Only` copies, `4_Dropping_Correlated_Barcode_Statistics_Columns`, `5_Linear_Regression_For_Prediction`, `7_Snapshot_Mean_Variance`. Grouped by the old folder names (`Historical_Late_Split_Balanced_TDA`, `Early_Split_TDA`, `No_Undersampling`, `Early_Split_TDA_And_No_Undersampling`). The live just-H0 processes are the four `*_H0` folders, not these copies. |
 
-**Not archived:** old Exp 2 (`Default_Parameters/2_ML_Tuned_Parameters`) and old Exp 28 (`{TDA arm}/9_Revised_Snapshot_Protocol` in all four TDA arms).
+**Not archived:** old Exp 2 (`Default_Parameters/2_ML_Tuned_Parameters`) and old Exp 28 (`{H0-and-H1 process}/9_Revised_Snapshot_Protocol`).
 
 Historical scripts in this museum may still use symbols `t`/`l` in code identifiers; see `docs/Notation.md`.
 

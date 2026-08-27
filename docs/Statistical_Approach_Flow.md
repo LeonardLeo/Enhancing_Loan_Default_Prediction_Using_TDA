@@ -6,17 +6,18 @@ Older notes still say Experiments 23–28. Those labels are **historical checkli
 
 | Historical checklist # | Live path |
 |------------------------|-----------|
-| Paper Exp 3 (builds barcodes) | `Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters` |
-| Exp 23 (Protocol B) | `Early_Split_TDA/1_PH_Default_Parameters` |
-| Exp 24 | `{TDA arm}/6_Sampling_Ratio_Audit` |
-| Exp 25 | `{TDA arm}/7_Snapshot_Mean_Variance` |
+| Paper Exp 3 (builds barcodes) | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
+| Exp 23 (Protocol B) | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
+| Exp 24 | `{H0-and-H1 process}/6_Sampling_Ratio_Audit` |
+| Exp 25 | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` |
 | Exp 26 | `Statistics/1_Intrinsic_Dimension_Estimation` |
-| Exp 27 | `{TDA arm}/8_Null_Hypothesis_Algorithm2` |
-| Exp 28 | `{TDA arm}/9_Revised_Snapshot_Protocol` |
+| Exp 27 | `{process}/8_Null_Hypothesis_Algorithm2` |
+| Exp 28 | `{H0-and-H1 process}/9_Revised_Snapshot_Protocol` |
 | Sample-size study (13/08/2026) | `Snapshot_Sample_Size/` |
 
-Active TDA arms (same experiments 1–9 inside each):
-`Historical_Late_Split_Balanced_TDA`, `Early_Split_TDA`, `No_Undersampling`, `Early_Split_TDA_And_No_Undersampling`.
+The eight live processes (split × undersample × just H0 vs both H0 and H1). H0-and-H1 folders:
+`Late_Split_And_Undersample_H0_And_H1`, `Early_Split_And_Undersample_H0_And_H1`, `Late_Split_No_Undersample_H0_And_H1`, `Early_Split_No_Undersample_H0_And_H1`.
+Just-H0 siblings: `Late_Split_And_Undersample_H0`, `Early_Split_And_Undersample_H0`, `Late_Split_No_Undersample_H0`, `Early_Split_No_Undersample_H0`.
 
 ```text
 processed table
@@ -52,7 +53,7 @@ This is the common starting file for tabular Default Parameters and for every TD
 
 **When:** first TDA run on a dataset. Everything statistical later either audits this run or replaces it.
 
-**Live folder:** `5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/`
+**Live folder:** `5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`
 
 **Order inside the script:**
 
@@ -64,7 +65,7 @@ This is the common starting file for tabular Default Parameters and for every TD
 6. Write matrices:
 
 ```text
-1_Data/TDA_Datasets/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/{Folder}/data_L{percent}.csv
+1_Data/TDA_Datasets/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/{Folder}/data_L{percent}.csv
 ```
 
 1,000 rows (500 + 500) × 24 features + `label`.
@@ -141,7 +142,7 @@ Tiny p-value ⇒ the two clouds are probably not the same process. It does **not
 
 **When:** after arm experiment 6 / Statistics experiment 1 have told us that 500 snapshots over-reuse and what intrinsic dimension looks like.
 
-**Does not consume** Historical Exp 1 `data_L*.csv`. Starts from the processed table. Lives as `9_Revised_Snapshot_Protocol` in every TDA bucket. The original meeting protocol (early split + no undersample) is `Early_Split_TDA_And_No_Undersampling`; the other three arms reuse the same engine with that arm's split/undersample knobs.
+**Does not consume** Historical Exp 1 `data_L*.csv`. Starts from the processed table. Lives as `9_Revised_Snapshot_Protocol` in every H0-and-H1 process folder. The original meeting protocol (early split, no undersample, using both H0 and H1) is `Early_Split_No_Undersample_H0_And_H1`; the other three arms reuse the same engine with that arm's split/undersample knobs.
 
 **Stages inside arm experiment 9:**
 
@@ -170,7 +171,7 @@ A separate factorial on **all four protocol arms**. Items 1 and 2 are different 
 | **Archived Exp 13** | `Archives/13_Similar_Variance_Retained_After_PCA` | Match **PCA variance** across datasets instead of matching component **count**. |
 | **Archived Exp 16 / 18** | `Archives/16_…` and `Archives/18_…` | Sweep PCA rank. |
 | **Arm Exp 5** | `{TDA arm}/5_Linear_Regression_For_Prediction` | Linear regression on the same barcode table. |
-| **Early Split TDA Exp 1** | `Early_Split_TDA/1_PH_Default_Parameters` | Historical snapshot percents, but train/test customers **before** PCA / landmarks (Protocol B). |
+| **Early Split TDA Exp 1** | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | Historical snapshot percents, but train/test customers **before** PCA / landmarks (Protocol B). |
 
 ---
 

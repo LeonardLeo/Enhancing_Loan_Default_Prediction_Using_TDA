@@ -1,8 +1,8 @@
 # Repository layout
 
-A map of where code, figures, barcodes, paper tables, and queues live after the 2026 bucket restructure. This is the live layout. Old numbered folders such as `5_Experiments/3_PH_Default_Parameters` or `5_Experiments/23_Early_…` are **not** at the repository root of `5_Experiments/` any more.
+A map of where code, figures, barcodes, paper tables, and queues live after the eight named processes. This is the live layout. Old numbered folders such as `5_Experiments/3_PH_Default_Parameters` or `5_Experiments/23_Early_…` are **not** at the repository root of `5_Experiments/` any more.
 
-Compact snapshot symbols from the methods literature are recorded once in `docs/Notation.md`. Stage order: `docs/Statistical_Approach_Flow.md`.
+Compact snapshot symbols from the methods literature are recorded once in `docs/Notation.md`. Stage order: `docs/Statistical_Approach_Flow.md`. Public process names always use “and”, never “+”, and are defined once in `utils.TDA_PROCESS_REGISTRY`.
 
 ---
 
@@ -13,13 +13,17 @@ Compact snapshot symbols from the methods literature are recorded once in `docs/
 | Bucket | What it holds |
 |--------|----------------|
 | `Default_Parameters/` | Tabular ML: `1_ML_Default_Parameters`, `2_ML_Tuned_Parameters` |
-| `Historical_Late_Split_Balanced_TDA/` | Original TDA pipeline (full-table PCA, undersample, late 80/20 on barcode rows). Experiments 1–9 |
-| `Early_Split_TDA/` | Split customers first; still undersample inside each split. Experiments 1–9 |
-| `No_Undersampling/` | Late split, no majority downsample. Experiments 1–9 |
-| `Early_Split_TDA_And_No_Undersampling/` | Early split + no undersample. Experiments 1–9 |
+| `Early_Split_And_Undersample_H0/` | Early split and undersample, using just H0 |
+| `Early_Split_And_Undersample_H0_And_H1/` | Early split and undersample, using both H0 and H1 |
+| `Early_Split_No_Undersample_H0/` | Early split, no undersample, using just H0 |
+| `Early_Split_No_Undersample_H0_And_H1/` | Early split, no undersample, using both H0 and H1 |
+| `Late_Split_And_Undersample_H0/` | Late split and undersample (the original historical run), using just H0 |
+| `Late_Split_And_Undersample_H0_And_H1/` | Late split and undersample (the original historical run), using both H0 and H1 |
+| `Late_Split_No_Undersample_H0/` | Late split, no undersample, using just H0 |
+| `Late_Split_No_Undersample_H0_And_H1/` | Late split, no undersample, using both H0 and H1 |
 | `Statistics/` | `1_Intrinsic_Dimension_Estimation` (protocol-independent) |
-| `Snapshot_Sample_Size/` | Dated 13/08/2026 sample-size study. `1_Snapshot_Count_Sweep` = x is number of snapshots (cloud size fixed); `2_Points_Per_Snapshot_Sweep` = x is points per snapshot (always 60 snapshots); `3_Snapshot_Count_Across_Cloud_Sizes` = item 4 families |
-| `Archives/` | Retired experiments (old 5, 7–10, 12–18, 20–22). Original numbers kept. A museum, not the live factorial |
+| `Snapshot_Sample_Size/` | Dated 13/08/2026 sample-size study. Shared pools still use the four historical protocol keys |
+| `Archives/` | Retired experiments (old 5, 7–10, 12–18, 20–22) and `Four_Arm_Nested_Experiments/` |
 
 `6_Results/` also has:
 
@@ -30,6 +34,8 @@ Compact snapshot symbols from the methods literature are recorded once in `docs/
 
 Root shims `6_Results/_ripser_queue.py` and `6_Results/_consumer_queue.py` forward to `Run_Queue/`. They are the public entry if an in-flight command still uses the old path. Prefer `6_Results/Run_Queue/`.
 
+H0-and-H1 folders keep default classifiers, retuned classifiers, sampling-ratio audit, Algorithm 2, and the revised snapshot protocol. H0 folders keep default classifiers and Algorithm 2 on sliced H0 tables. Sampling-ratio audit and revised snapshot protocol are not duplicated eight ways — they live next to the H0-and-H1 folder for that split/undersample pair.
+
 ---
 
 ## Where the method is written
@@ -39,11 +45,10 @@ Every dataset folder contains a readable pipeline script. That file is the metho
 | Kind of experiment | Typical script name |
 |--------------------|---------------------|
 | Tabular ML | `*_data.py` / `*_tuned.py` |
-| PH default / drop-correlated / linear | `*_PH.py` (linear also has a thin `*_linear.py` launcher) |
+| PH default (H0 and H1) | `*_PH.py` |
 | PH tuned | `*_PH_tuned.py` |
-| H0-only | `*_H0_only.py` |
+| H0-only default | `*_H0_only.py` |
 | Sampling-ratio audit | `*_audit.py` |
-| Snapshot mean/variance | `*_mean_variance.py` |
 | Algorithm 2 | `*_algorithm2.py` |
 | Revised snapshot protocol | `*_protocol.py` |
 | Intrinsic dimension | `run_intrinsic_dimension.py` |
@@ -52,13 +57,12 @@ Every dataset folder contains a readable pipeline script. That file is the metho
 Example:
 
 ```
-5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py
+5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py
+5_Experiments/Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_H0_only.py
 5_Experiments/Snapshot_Sample_Size/0_Shared_Pools/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_shared_pools.py
 ```
 
 Heavy Ripser and IO helpers live in `utils.py`. The sample-size study uses `5_Experiments/Snapshot_Sample_Size/utils.py` the same way. To see how barcodes were built for the sample-size study, open `0_Shared_Pools`. The numbered experiment scripts only select which rows go on which figure.
-
-Active TDA experiments 1–9 inside every arm: PH default, PH tuned, H0-only, drop correlated, linear regression, sampling-ratio audit, snapshot mean/variance, Algorithm 2, revised snapshot protocol.
 
 ---
 
@@ -72,7 +76,8 @@ All generated figures for an experiment land in **one** folder:
 
 Examples:
 
-- `6_Results/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Visualizations/`
+- `6_Results/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Visualizations/`
+- `6_Results/Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Visualizations/`
 - `6_Results/Statistics/1_Intrinsic_Dimension_Estimation/Visualizations/`
 - `6_Results/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/Visualizations/`
 
@@ -82,7 +87,7 @@ Run `5_Experiments/{Bucket}/{Experiment}/visualize_results.py`. Do not look in `
 
 ## Where barcodes and landmarks live
 
-TDA artefacts are namespaced by protocol bucket and experiment:
+TDA artefacts are namespaced by process folder and experiment:
 
 ```
 1_Data/Landmark_Sets/{ProtocolBucket}/{Experiment}/{Dataset}/
@@ -92,7 +97,7 @@ TDA artefacts are namespaced by protocol bucket and experiment:
 
 Processed tables are **shared** and are not re-bucketed: `1_Data/Processed_Datasets/{Dataset}/`.
 
-Historical arm experiment 1 is the barcode factory for that arm. Experiments 2–5 and 7–8 read `data_L*.csv`; they must not regenerate 500 Ripser jobs.
+The four `*_H0_And_H1` experiment-1 folders are the barcode factories. H0 processes read those tables and write 12-statistic slices under their own `1_PH_Default_Parameters`. They must not regenerate Ripser jobs.
 
 ---
 
@@ -103,7 +108,7 @@ Historical arm experiment 1 is the barcode factory for that arm. Experiments 2�
 - `6_Results/Paper_Tables/clean_experiment_results.csv`
 - `6_Results/Paper_Tables/results_table.tex` and the per-dataset / per-paper-experiment `.tex` files
 
-Paper experiment numbers 1–10 in those tables are **not** the same as arm experiment numbers 1–9. Mapping: root `README.md` § Experiments.
+Paper experiment numbers 1–10 in those tables are **not** the same as arm experiment numbers. Mapping: root `README.md` § Experiments.
 
 ---
 
@@ -124,10 +129,17 @@ Logs and registry JSON/CSV sit beside those scripts.
 | Old root folder people still mention | Live home |
 |--------------------------------------|-----------|
 | `1_ML_Default_Parameters` | `Default_Parameters/1_ML_Default_Parameters` |
-| `3_PH_Default_Parameters` | `Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters` |
-| `23_Early_…` | `Early_Split_TDA/1_PH_Default_Parameters` |
-| `24_…` / `25_…` / `27_…` | arm experiments 6 / 7 / 8 |
+| `3_PH_Default_Parameters` | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
+| `3_H0_Only` (just H0 default models) | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` |
+| `23_Early_…` | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
+| `24_…` | `{H0-and-H1 process}/6_Sampling_Ratio_Audit` |
+| `25_…` | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` |
 | `26_Intrinsic_…` | `Statistics/1_Intrinsic_Dimension_Estimation` |
-| `28_Revised_…` | `{TDA arm}/9_Revised_Snapshot_Protocol` |
+| `27_…` | `{process}/8_Null_Hypothesis_Algorithm2` |
+| `28_Revised_…` | `{H0-and-H1 process}/9_Revised_Snapshot_Protocol` |
+| `Historical_Late_Split_Balanced_TDA` | `Late_Split_And_Undersample_H0_And_H1` |
+| `Early_Split_TDA` | `Early_Split_And_Undersample_H0_And_H1` |
+| `No_Undersampling` | `Late_Split_No_Undersample_H0_And_H1` |
+| `Early_Split_TDA_And_No_Undersampling` | `Early_Split_No_Undersample_H0_And_H1` |
 
-`Archives/` keeps original numbers for retired work on purpose.
+`Archives/` keeps original numbers for retired work on purpose. Nested four-arm extras (drop-correlated, linear, mean/variance, nested H0 copies) are under `Archives/Four_Arm_Nested_Experiments/`.

@@ -19,10 +19,15 @@ RESULTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RESULTS_DIR.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from utils import build_results_dataframe_v3
+from utils import build_results_dataframe_v3, win_long_path
 
 PAPER_TABLES = RESULTS_DIR / "Paper_Tables"
 PAPER_TABLES.mkdir(parents=True, exist_ok=True)
+
+
+def load_pkl(relative: str):
+    """Load a pickle under 6_Results/, including Windows long archive paths."""
+    return joblib.load(str(win_long_path(RESULTS_DIR / relative)))
 
 # =============================================================================
 # Experiment 1 - 1_ML_Default_Parameters
@@ -63,28 +68,28 @@ Experiment_2_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experi
 # CHECK RESULTS FOLDER FOR GRAPHS
 
 # =============================================================================
-# Experiment 3 - Historical_Late_Split_Balanced_TDA / 1_PH_Default_Parameters
+# Experiment 3 - Late_Split_And_Undersample_H0_And_H1 / 1_PH_Default_Parameters
 # =============================================================================
 # --- Statlog
-Experiment_3_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_3_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_3_Model_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_3_CV_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_3_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_3_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_3_Model_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_3_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
 # =============================================================================
-# Experiment 4 - Historical_Late_Split_Balanced_TDA / 2_PH_Tuned_Parameters
+# Experiment 4 - Late_Split_And_Undersample_H0_And_H1 / 2_PH_Tuned_Parameters
 # =============================================================================
 # --- Statlog
-Experiment_4_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_4_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_4_Model_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_4_CV_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_4_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_4_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_4_Model_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_4_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -94,15 +99,15 @@ Experiment_4_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/
 # --- Mapper Algorithm. Refer to results folder
 
 # =============================================================================
-# Experiment 6 - Historical_Late_Split_Balanced_TDA / 3_H0_Only  (paper table #5)
+# Experiment 6 - Late_Split_And_Undersample_H0 / 1_PH_Default_Parameters  (paper table #5)
 # =============================================================================
 # --- Statlog
-Experiment_6_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_6_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_6_Model_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_6_CV_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_6_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_6_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/3_H0_Only/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_6_Model_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_6_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -164,10 +169,10 @@ Experiment_10_data_L60_random_centriod = joblib.load("Archives/10_Covariance_Mat
 # Experiment 11 - 11_Dropping_Correlated_Barcode_Statistics_Columns
 # =============================================================================
 # --- Statlog
-Experiment_11_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_11_Model_Results_SGCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Statlog_German_Credit_Data/model_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_11_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_11_Model_Results_DCCCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Default_Of_Credit_Card_Client_Data/model_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 
@@ -252,12 +257,12 @@ Experiment_18_Model_Results_19_Components_SGCD = joblib.load("Archives/18_Varian
 # Experiment 19 - 19_Linear_Regression_For_Prediction
 # =============================================================================
 # --- Statlog
-Experiment_19_Model_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_19_CV_Results_SGCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/CV_results.pkl")
+Experiment_19_Model_Results_SGCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/model_results.pkl")
+Experiment_19_CV_Results_SGCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Statlog_German_Credit_Data/CV_results.pkl")
 
 # --- Default of Credit Card Client
-Experiment_19_Model_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/model_results.pkl")
-Experiment_19_CV_Results_DCCCD = joblib.load("Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
+Experiment_19_Model_Results_DCCCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/model_results.pkl")
+Experiment_19_CV_Results_DCCCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
 
 # CHECK RESULTS FOLDER FOR GRAPHS
 

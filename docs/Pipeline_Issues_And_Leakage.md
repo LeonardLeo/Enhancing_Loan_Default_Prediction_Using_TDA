@@ -16,7 +16,7 @@ Shared helpers live in **`utils.py`** (same as Statlog / DCCCD). Registry raw→
 **Where:** Historical Late Split Balanced TDA experiments 1–5 and archived TDA scripts that call `generate_landmark_sets` on the full table.  
 **Issue:** `MinMaxScaler` and `PCA` are fit on **all** rows of `processed_data.xlsx` / `processed_data.csv` before landmark generation. Hold-out information can influence the principal axes used for every snapshot.  
 **Mitigation:**
-- **Early Split TDA experiment 1** (Protocol B; historical Exp 23) fits scaler + PCA on the **train** split only (`stratified_early_split` + `fit_scaler_pca_on_train` in `utils.py`). Live path: `5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/`.
+- **Early split and undersample, using both H0 and H1** (Protocol B; historical Exp 23) fits scaler + PCA on the **train** split only (`stratified_early_split` + `fit_scaler_pca_on_train` in `utils.py`). Live path: `5_Experiments/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`.
 - **Arm experiment 9** (historical Exp 28) follows the revised protocol for all six datasets in every TDA arm.
 
 ### 1.2 Landmarks drawn from the full (balanced) pool
@@ -49,10 +49,10 @@ Shared helpers live in **`utils.py`** (same as Statlog / DCCCD). Registry raw→
 
 ### 2.1 Sampling ratios too large
 With 500 snapshots and snapshot-size percents 5%/15% (DCCCD) or 30%/60% (SGCD), naive reuse ratios (points per snapshot × number of snapshots) / minority class count are typically **≫ 1**.  
-**Arm experiment 6** (historical Exp 24) audits class counts, points per snapshot, and number of snapshots, and suggests a revised snapshot count ≈ ceil(minority class count / points per snapshot). Registry results live under `6_Results/Historical_Late_Split_Balanced_TDA/6_Sampling_Ratio_Audit/{Folder}/`.
+**Arm experiment 6** (historical Exp 24) audits class counts, points per snapshot, and number of snapshots, and suggests a revised snapshot count ≈ ceil(minority class count / points per snapshot). Registry results live under `6_Results/Late_Split_And_Undersample_H0_And_H1/6_Sampling_Ratio_Audit/{Folder}/`.
 
 ### 2.2 Snapshot mean / variance
-**Arm experiment 7** (historical Exp 25) records mean/variance of barcode-statistic columns (vector proxy for `\barλ`). Artefacts: `6_Results/Historical_Late_Split_Balanced_TDA/7_Snapshot_Mean_Variance/`.
+**Arm experiment 7** (historical Exp 25) records mean/variance of barcode-statistic columns (vector proxy for `\barλ`). Artefacts: `6_Results/Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/7_Snapshot_Mean_Variance/`.
 
 ### 2.3 Intrinsic dimension
 PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrinsic dimension.  
@@ -62,7 +62,7 @@ PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrins
 **Arm experiment 8** (historical Exp 27) implements Robinson & Turner Algorithm 2 with `F_{p,q}` on barcode-statistic vectors (proxy). Cite the paper; note the proxy when publishing.
 
 ### 2.5 Revised snapshot protocol
-**Arm experiment 9** (historical Exp 28) replaces percentage landmarks + 500 snapshots with fixed points per snapshot, default 60 training / 15 test snapshots, and reuse/overlap reporting. It lives in all four TDA arms; the original (early split + no undersample) is `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/`. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`. English names: `docs/Notation.md`.
+**Arm experiment 9** (historical Exp 28) replaces percentage landmarks + 500 snapshots with fixed points per snapshot, default 60 training / 15 test snapshots, and reuse/overlap reporting. It lives in the four H0-and-H1 process folders; the original (early split, no undersample, using both H0 and H1) is `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`. English names: `docs/Notation.md`.
 
 ---
 

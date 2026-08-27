@@ -166,7 +166,7 @@ Enhancing_Loan_Default_Prediction_Using_TDA/
 └── 7_Paper/                          # Thesis PDF, LaTeX template, proposal, literature
 ```
 
-Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Parameters/`, `Historical_Late_Split_Balanced_TDA/`, `Early_Split_TDA/`, `No_Undersampling/`, `Early_Split_TDA_And_No_Undersampling/`, `Statistics/`, `Snapshot_Sample_Size/`, `Archives/`. Numbered experiments live *inside* a bucket. TDA artefacts are mirrored at `1_Data/{TDA_Datasets,Landmark_Sets,Barcode_Statistics}/{ProtocolBucket}/{ExperimentName}/{Dataset}/`. `1_Data/Processed_Datasets/` is shared and is not re-bucketed.
+Top-level buckets under both `5_Experiments/` and `6_Results/`: `Default_Parameters/`, the eight TDA processes (`Early_Split_And_Undersample_H0/`, `Early_Split_And_Undersample_H0_And_H1/`, `Early_Split_No_Undersample_H0/`, `Early_Split_No_Undersample_H0_And_H1/`, `Late_Split_And_Undersample_H0/`, `Late_Split_And_Undersample_H0_And_H1/`, `Late_Split_No_Undersample_H0/`, `Late_Split_No_Undersample_H0_And_H1/`), `Statistics/`, `Snapshot_Sample_Size/`, `Archives/`. Numbered experiments live *inside* a bucket. TDA artefacts are mirrored at `1_Data/{TDA_Datasets,Landmark_Sets,Barcode_Statistics}/{ProtocolBucket}/{ExperimentName}/{Dataset}/`. `1_Data/Processed_Datasets/` is shared and is not re-bucketed. Public process names always use “and”, never “+”; see `utils.process_display_name()`.
 
 ---
 
@@ -184,14 +184,14 @@ These ten folder-level experiments are aggregated by `6_Results/results.py` as *
 |---------|--------|------|-------------|----------|
 | 1 | `Default_Parameters/1_ML_Default_Parameters` | ML baseline (default params) | Classifiers on **original** features, default hyperparameters | Both |
 | 2 | `Default_Parameters/2_ML_Tuned_Parameters` | ML baseline (tuned) | GridSearchCV on original features | Both |
-| 3 | `Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters` | TDA + ML (default params) | Full PH pipeline → classifiers with default params | Both |
-| 4 | `Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters` | TDA + ML (tuned) | Consumes Exp 3 barcodes → GridSearchCV | Both |
-| 5 | `Historical_Late_Split_Balanced_TDA/3_H0_Only` | H₀-only barcodes | Same as Exp 3 but H₀ columns only | Both |
-| 6 | `Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | Both |
+| 3 | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | TDA and ML (default params) | Full PH pipeline → classifiers with default params | Both |
+| 4 | `Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters` | TDA and ML (tuned) | Consumes Exp 3 barcodes → GridSearchCV | Both |
+| 5 | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` | H0-only barcodes | Same as Exp 3 but H0 columns only | Both |
+| 6 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | Both |
 | 7 | `Archives/12_Equivalent_Sample_Size_For_Each_Dataset` | Matched sample size | DCCCD landmarks at **1.36% / 2.71%** to match SGCD L30/L60 counts | DCCCD only |
 | 8 | `Archives/13_Similar_Variance_Retained_After_PCA` | Matched PCA variance | DCCCD with **5 PCA components** (~89% variance, matching SGCD) | DCCCD only |
 | 9 | `Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets` | Imbalanced landmarks | 200 default vs. 800 non-default landmark files per class | Both |
-| 10 | `Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | Both |
+| 10 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | Both |
 
 > **Note:** Paper experiment numbers in `6_Results/results.py` differ from historical folder numbers for experiments 5–10. `results.py` re-labels them sequentially for LaTeX tables written to `6_Results/Paper_Tables/`.
 
@@ -220,12 +220,12 @@ These address **train/test leakage** and the statistical checklist from the team
 
 | Historical # | Live folder | Purpose | Status |
 |---|--------|---------|--------|
-| 23 | `Early_Split_TDA/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | DCCCD + Statlog reused; other four need Ripser |
-| 24 | `{TDA arm}/6_Sampling_Ratio_Audit` | Audit class counts, points per snapshot, number of snapshots, and the reuse ratio | **Ran** on Historical — reuse ≫ 1 with 500 snapshots |
-| 25 | `{TDA arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; landscape-mean proxy | **Ran** on Historical |
+| 23 | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | DCCCD + Statlog reused; other four need Ripser |
+| 24 | `{H0-and-H1 process}/6_Sampling_Ratio_Audit` | Audit class counts, points per snapshot, number of snapshots, and the reuse ratio | **Ran** on the historical late-split-and-undersample process — reuse ≫ 1 with 500 snapshots |
+| 25 | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; landscape-mean proxy | Archived nested extra |
 | 26 | `Statistics/1_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for intrinsic dimension | **Ran** (protocol-independent) |
-| 27 | `{TDA arm}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on Historical — p≈0.005 |
-| 28 | `{TDA arm}/9_Revised_Snapshot_Protocol` | Fixed points per snapshot, default 60 training snapshots / 15 test snapshots, reuse/overlap | Canonical Early+NoUnder reused; other three arms queued |
+| 27 | `{process}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on the historical process — p≈0.005 |
+| 28 | `{H0-and-H1 process}/9_Revised_Snapshot_Protocol` | Fixed points per snapshot, default 60 training snapshots / 15 test snapshots, reuse/overlap | Canonical early-split, no undersample, using both H0 and H1 |
 | — | `Snapshot_Sample_Size/` | Dated 13/08/2026. Items 1, 2, and 4 (item 3 is this study, not a third grid) | Queue: `6_Results/Run_Queue/_snapshot_sample_size_queue.py`. Narrative: `5_Experiments/Snapshot_Sample_Size/README.md` |
 
 Active TDA set inside every arm is 1–9. Tabular Experiment 2 stays under `Default_Parameters/`. Arm experiment 9 is **not** archived.
@@ -262,7 +262,7 @@ Hyperparameter tuning (Experiments 2 and 4) uses **5-fold stratified cross-valid
 
 ### Typical TDA experiment script layout
 
-Most PH experiments follow the structure in `5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/`:
+Most PH experiments follow the structure in `5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`:
 
 ```
 1. Load processed_data.xlsx
@@ -308,7 +308,7 @@ pip install ydata-profiling
 Newer dataset scripts add the repository root to `sys.path` and write artefacts through `utils.py` helpers. Running from the dataset folder still works:
 
 ```powershell
-cd "5_Experiments\Historical_Late_Split_Balanced_TDA\1_PH_Default_Parameters\Default_Of_Credit_Card_Client_Data"
+cd "5_Experiments\Late_Split_And_Undersample_H0_And_H1\1_PH_Default_Parameters\Default_Of_Credit_Card_Client_Data"
 python default_of_credit_cards_client_PH.py
 ```
 
@@ -324,8 +324,8 @@ Because later experiments depend on earlier outputs, run in this order:
 |------|-----------|----------|
 | **1** | `5_Experiments/Default_Parameters/1_ML_Default_Parameters/{dataset}/*_data.py` | Processed splits, EDA artifacts, baseline `model_results.pkl` |
 | **2** | `5_Experiments/Default_Parameters/2_ML_Tuned_Parameters/{dataset}/*_data.py` | Tuned baseline results |
-| **3** | `5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/{dataset}/*_PH.py` | Landmark sets, barcode CSVs, TDA datasets, TDA model results |
-| **4** | `5_Experiments/Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/{dataset}/*_PH_tuned.py` | Tuned TDA results |
+| **3** | `5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/{dataset}/*_PH.py` | Landmark sets, barcode CSVs, TDA datasets, TDA model results |
+| **4** | `5_Experiments/Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/{dataset}/*_PH_tuned.py` | Tuned TDA results |
 | **5+** | Remaining experiment scripts | Variants and analyses (many consume Historical Exp 1 outputs) |
 
 ### Cross-validation companions
@@ -449,7 +449,7 @@ Layout: `5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/
 
 ```
 5_Experiments/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial.py
-5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial_PH.py
+5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial_PH.py
 6_Results/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/baseline_results.csv
 ```
 

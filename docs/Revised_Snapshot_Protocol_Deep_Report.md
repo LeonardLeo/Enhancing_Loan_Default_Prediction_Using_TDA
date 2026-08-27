@@ -1,8 +1,8 @@
-# Revised snapshot protocol — arm experiment 9 (all four TDA arms)
+# Revised snapshot protocol — arm experiment 9 (the four H0-and-H1 process folders)
 ## Deep Explanation Report (What / How / Why / Formulas / Calculations)
 
-**Status:** design + ML complete for the canonical arm (early split + no undersample) under `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/`. The same Exp 9 engine is cloned into the other three TDA arms (`Historical_Late_Split_Balanced_TDA`, `Early_Split_TDA`, `No_Undersampling`) with that arm's split/undersample knobs.  
-**Canonical code:** `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/`  
+**Status:** design + ML complete for the canonical arm (early split, no undersample, using both H0 and H1) under `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. The same Exp 9 engine is cloned into the other three TDA arms (`Late_Split_And_Undersample_H0_And_H1`, `Early_Split_And_Undersample_H0_And_H1`, `Late_Split_No_Undersample_H0_And_H1`) with that arm's split/undersample knobs.  
+**Canonical code:** `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`  
 **Package for intrinsic dimension:** [scikit-dimension](https://pypi.org/project/scikit-dimension/) (`TwoNN`, `MLE`, `lPCA`, optional `DANCo`).
 
 English names are used throughout. Compact symbols from the methods literature are recorded once in `docs/Notation.md`.
@@ -253,7 +253,7 @@ Null: snapshots behave like independent uniform draws of size points per snapsho
 
 **How to read:** large `p` → overlap looks like chance (good). Small `p` → systematic excess dependence.
 
-JSON outputs: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/<dataset>/overlap_*.json`.
+JSON outputs: `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/<dataset>/overlap_*.json`.
 
 ---
 
@@ -298,8 +298,8 @@ So **90 snapshots is skipped** under reuse ≤ 1.
 
 Sources:
 
-- Per dataset: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/<Folder>/ml_results.csv`  
-- Aggregate: `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/all_ml_results.csv`  
+- Per dataset: `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/<Folder>/ml_results.csv`  
+- Aggregate: `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/all_ml_results.csv`  
 
 Numbers below use the **final design’s effective `(training_snapshot_count, test_snapshot_count)`**.
 
@@ -394,9 +394,9 @@ We sit exactly on the minority bound for 60 training snapshots. That is intentio
 
 | Path | Role |
 |------|------|
-| `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/utils.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling |
-| `5_Experiments/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/run_protocol.py` | Orchestrator |
-| `6_Results/Early_Split_TDA_And_No_Undersampling/9_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
+| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/utils.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling |
+| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/run_protocol.py` | Orchestrator |
+| `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
 | `.../<dataset>/worked_calculations.csv` | Step-by-step numeric audit |
 | `.../<dataset>/concern_A_formula_rows.csv` | Formula table |
 | `.../<dataset>/concern_B_reuse_rows.csv` | Reuse table |
