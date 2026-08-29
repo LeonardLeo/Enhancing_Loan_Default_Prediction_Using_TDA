@@ -163,14 +163,12 @@ See also:
 - 5_Experiments/Snapshot_Sample_Size/README.md
 
 
-(FOUR-DATASET EXTENSION)
-Datasets:
-- PKDD'99 Czech Financial (loan-level; transactions strictly before loan date)
-- Polish Companies Bankruptcy (3year.arff only)
-- Taiwanese Bankruptcy Prediction
-- South German Credit (updated-German sensitivity analysis)
+Live datasets:
 
-Protocols (factorial, not a sixth arm):
+- Statlog German Credit
+- Default of Credit Card Clients
+
+Protocols (factorial):
 - Historical_Late_Split_Balanced_TDA: comparability-only; explicitly leakage-prone
 - Early_Split_TDA: 80/20 split before fitted preprocessing/PCA/landmarks; still undersamples
 - No_Undersampling: late split, full class pools

@@ -26,7 +26,7 @@ What this script does (in order)
 4. Estimate b on the scaled table (before PCA).
 5. Fit the same PCA Exp 3 uses (15 components) and estimate b again.
 6. Record how many components would be needed to keep ~90% variance
-   (the design target for the four new tables).
+   (the ~90% variance design target).
 
 This experiment does *not* need Experiment 3 artefacts.
 Results: 6_Results/Statistics/1_Intrinsic_Dimension_Estimation/Statlog_German_Credit_Data/

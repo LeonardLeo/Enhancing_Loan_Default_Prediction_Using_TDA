@@ -9,7 +9,10 @@ This process **slices** homology-0 columns from the sibling `Early_Split_And_Und
 ## Live experiments
 
 1. `1_PH_Default_Parameters` — keep H0 statistics (12 columns + label) and train default classifiers
-2. `8_Null_Hypothesis_Algorithm2` — permutation test on those H0 barcode vectors
+2. `2_PH_Tuned_Parameters` — GridSearchCV on those H0 matrices
+3. `6_Sampling_Ratio_Audit` — class counts, snapshot-size percents, number of snapshots (no Ripser)
+4. `8_Null_Hypothesis_Algorithm2` — permutation test on those H0 barcode vectors
+5. `9_Revised_Snapshot_Protocol` — slice H0 columns from the sibling revised-protocol barcodes and retrain (no Ripser)
 
 Nested extras live under `Archives/Four_Arm_Nested_Experiments/Early_Split_TDA/`.
 

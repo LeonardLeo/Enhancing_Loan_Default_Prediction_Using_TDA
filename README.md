@@ -80,31 +80,27 @@ Exploratory experiments (Mapper, PCA/t-SNE/UMAP visualizations, KNN sweeps, cova
 
 ## Datasets
 
-Six datasets share the mirrored folder names across `1_Data/`, `5_Experiments/`, and `6_Results/`:
+Two public UCI tables share mirrored folder names across `1_Data/`, `5_Experiments/`, and `6_Results/`:
 
 | Dataset | Folder | Raw source | Default target | Snapshot size as percent of the class | Why those percents |
 |---------|--------|------------|----------------|----------------------------------------|--------------------|
 | **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **5%**, **15%** | Original paper. Minority class count = 6630, so 5% is already 331 points per snapshot. |
 | **Statlog German Credit** (SGCD) | `Statlog_German_Credit_Data/` | `german.data-numeric` | Class label (mapped to binary) | **30%**, **60%** | Original paper. Minority class count = 300, so large percents are required for a usable cloud. |
-| **PKDD'99 Czech Financial** | `PKDD_Czech_Financial/` | `*.asc` (loan/trans/…) | `target` | **10%**, **20%** | Shared new-table grid. 5% of 76 minority rows is 3 points (PH dies). |
-| **Polish Bankruptcy (3-year)** | `Polish_Bankruptcy_3Year/` | `3year.arff` | `target` | **10%**, **20%** | Same grid so the four new tables stay comparable. |
-| **Taiwan Bankruptcy** | `Taiwan_Bankruptcy/` | `data.csv` | `target` | **10%**, **20%** | Same grid. 20% is the 2× companion (as Statlog 30→60). |
-| **South German Credit** | `South_German_Credit/` | `SouthGermanCredit.asc` | `target` | **10%**, **20%** | Coding-sensitivity table — *not* Statlog’s 30/60, so coding is not confounded with snapshot size. |
 
-Why 10%/20% is not a copy of either paper grid: `docs/Design_Decisions.md`. See `docs/Notation.md` for the symbol mapping used in the methods literature.
+Why the percents differ: `docs/Design_Decisions.md`. See `docs/Notation.md` for the symbol mapping used in the methods literature.
 
 Raw files live under `1_Data/Datasets/{Folder}/`.
 
 ### Dataset-specific preprocessing defaults
 
-| Setting | DCCCD | SGCD | Four new tables |
-|---------|-------|------|-----------------|
-| PCA components in Exp 3 | 7 (~94% variance) | 15 (~89% variance) | **10** (shared Ripser box; target was ~90%, Taiwan ~88%, others miss — see `docs/Design_Decisions.md`) |
-| Landmark files per percentage | 500 (balanced across classes) | 500 | 500 |
-| Homology dimensions | H₀ + H₁ (`dim=2`) unless noted | H₀ + H₁ | H₀ + H₁ |
-| Class balancing (TDA stage) | Undersample majority to minority count | Same | Same |
+| Setting | DCCCD | SGCD |
+|---------|-------|------|
+| PCA components in Exp 3 | 7 (~94% variance) | 15 (~89% variance) |
+| Landmark files per percentage | 500 (balanced across classes) | 500 |
+| Homology dimensions | H₀ + H₁ (`dim=2`) unless noted | H₀ + H₁ |
+| Class balancing (TDA stage) | Undersample majority to minority count | Same |
 
-Processed tables (`processed_data.xlsx` for legacy; `processed_data.csv` for registry datasets) live under `1_Data/Processed_Datasets/{Folder}/` and are consumed by later experiments.
+Processed tables (`processed_data.xlsx`) live under `1_Data/Processed_Datasets/{Folder}/` and are consumed by later experiments.
 
 ---
 
@@ -373,15 +369,15 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 |----------|----------|
 | `docs/Repository_Layout.md` | Buckets, method scripts, figures, barcodes, paper tables, queues |
 | `docs/Notation.md` | Snapshot glossary: English names used in this study, and the t/l mapping from the methods literature |
-| `docs/Design_Decisions.md` | **Why** 10%/20% snapshot size, why PCA 7 vs 15 vs 10, why ID before *and* after PCA |
+| `docs/Design_Decisions.md` | **Why** Statlog 30%/60% vs DCCCD 5%/15%, why PCA 7 vs 15, why ID before *and* after PCA |
 | `docs/Statistical_Approach_Flow.md` | Stage-by-stage: Historical Exp 1 → arm Exp 6 → Statistics Exp 1 → arm Exp 7 → arm Exp 8 → arm Exp 9 → Snapshot_Sample_Size |
-| `docs/Statistical_Experiments_24_27_Results.md` | Sampling / ID / NHST worked numbers (all six datasets) |
+| `docs/Statistical_Experiments_24_27_Results.md` | Sampling / ID / NHST worked numbers (both datasets) |
 | `docs/Methodology_Checklist_06_08_2026.md` | scikit-dimension / dadapy / H0-split / snapshots — done vs skipped |
 | `docs/Pipeline_Issues_And_Leakage.md` | Leakage analysis, statistical gaps, engineering status |
 | `docs/CV_Results.md` | K-fold means, fold scores, vs hold-out |
 | `docs/Exploratory_Experiments_Team_Report.md` | Exploratory experiment narrative (Archives) |
 | `docs/Experiment_23_Results.md` | Early Split TDA Exp 1 / Protocol B hold-out numbers |
-| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Arm experiment 9 protocol report (all six datasets, all four arms) |
+| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Arm experiment 9 protocol report (both datasets, all four arms) |
 | `5_Experiments/Snapshot_Sample_Size/README.md` | Dated sample-size study (items 1, 2, and 4) |
 
 ---
@@ -428,43 +424,6 @@ See `.gitignore`. In summary, the following are **excluded** from version contro
 - `7_Paper/Datasets/` and literature PDFs
 
 **Tracked** content includes: Python source, raw UCI datasets, curated visualization assets, LaTeX tables, and the thesis PDF.
-
----
-
-## Four-dataset extension (2026)
-
-Four additional datasets share the same mirrored layout as the legacy pair
-(`5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/{Experiment}/{Folder}/` ↔ `1_Data/.../{Folder}/`):
-
-| Dataset | Folder under `1_Data/Datasets/` |
-|---------|----------------------------------|
-| PKDD'99 Czech Financial | `PKDD_Czech_Financial/` |
-| Polish Companies Bankruptcy (3-year) | `Polish_Bankruptcy_3Year/` |
-| Taiwanese Bankruptcy Prediction | `Taiwan_Bankruptcy/` |
-| South German Credit | `South_German_Credit/` |
-
-Processed tables live in `1_Data/Processed_Datasets/{Folder}/`.
-
-Layout: `5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/{Experiment}/{Folder}/` ↔ `1_Data/.../{ProtocolBucket}/{Experiment}/{Folder}/`. There is no `5_Experiments/common/pipeline.py`; shared helpers are `utils.py`.
-
-```
-5_Experiments/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial.py
-5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/PKDD_Czech_Financial/pkdd_czech_financial_PH.py
-6_Results/Default_Parameters/1_ML_Default_Parameters/PKDD_Czech_Financial/baseline_results.csv
-```
-
-Shared helpers are the same **`utils.py`** used by Statlog / DCCCD.
-Raw→processed ingestion for the four registry datasets is
-`1_Data/ingest_registry_datasets.py`.
-
-```powershell
-.\tda_env\Scripts\python.exe 1_Data\ingest_registry_datasets.py
-.\tda_env\Scripts\python.exe 5_Experiments\Default_Parameters\1_ML_Default_Parameters\PKDD_Czech_Financial\pkdd_czech_financial.py
-.\tda_env\Scripts\python.exe -m pytest test_datasets.py -q
-```
-
-Mirror checksums are verified against `1_Data/Datasets/MANIFEST.csv`;
-primary-source and licence verification remain required before publication.
 
 ---
 

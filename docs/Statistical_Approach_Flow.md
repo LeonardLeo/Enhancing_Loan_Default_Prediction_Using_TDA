@@ -8,11 +8,11 @@ Older notes still say Experiments 23–28. Those labels are **historical checkli
 |------------------------|-----------|
 | Paper Exp 3 (builds barcodes) | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
 | Exp 23 (Protocol B) | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
-| Exp 24 | `{H0-and-H1 process}/6_Sampling_Ratio_Audit` |
+| Exp 24 | `{process}/6_Sampling_Ratio_Audit` |
 | Exp 25 | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` |
 | Exp 26 | `Statistics/1_Intrinsic_Dimension_Estimation` |
 | Exp 27 | `{process}/8_Null_Hypothesis_Algorithm2` |
-| Exp 28 | `{H0-and-H1 process}/9_Revised_Snapshot_Protocol` |
+| Exp 28 | `{process}/9_Revised_Snapshot_Protocol` |
 | Sample-size study (13/08/2026) | `Snapshot_Sample_Size/` |
 
 The eight live processes (split × undersample × just H0 vs both H0 and H1). H0-and-H1 folders:
@@ -41,7 +41,7 @@ Barcode **consumers** (arm experiments 2–5, 7–8) **read** that arm's experim
 
 ## Stage 0 — Processed table (before any TDA)
 
-`1_Data/ingest_registry_datasets.py` (four new tables) or the historical Excel processors (Default of Credit Card Client, Statlog) write:
+The historical Excel processors (Default of Credit Card Client, Statlog) write:
 
 `1_Data/Processed_Datasets/{Folder}/processed_data.{xlsx|csv}`
 
@@ -185,4 +185,4 @@ A separate factorial on **all four protocol arms**. Items 1 and 2 are different 
 | 25 | Arm Exp 7 | Yes (read) | Are barcode numbers stable? |
 | 27 | Arm Exp 8 | Yes (read) | Do the two classes differ under Algorithm 2? |
 | 28 | Arm Exp 9 | Builds new ones | Honest points per snapshot, small snapshot counts |
-| — | Snapshot_Sample_Size | Builds shared pools | Item 1: F1 vs number of snapshots (cloud size fixed). Item 2: F1 vs points per snapshot (always 60 snapshots). Item 4: families of cloud size |
+| — | Snapshot_Sample_Size | Builds shared pools | Item 1: F1 vs number of snapshots (cloud size fixed). Item 2: F1 vs points per snapshot (always 180 snapshots). Item 4: families of cloud size |

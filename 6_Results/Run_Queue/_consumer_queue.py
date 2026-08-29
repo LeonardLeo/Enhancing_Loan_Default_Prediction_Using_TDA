@@ -28,30 +28,21 @@ H0H1_EXPERIMENTS = (
 )
 H0_EXPERIMENTS = (
     "1_PH_Default_Parameters",
+    "2_PH_Tuned_Parameters",
+    "6_Sampling_Ratio_Audit",
     "8_Null_Hypothesis_Algorithm2",
+    "9_Revised_Snapshot_Protocol",
 )
 DATASETS = (
-    "pkdd_czech",
-    "south_german_credit",
     "statlog_german",
-    "taiwan_bankruptcy",
-    "polish_bankruptcy",
     "credit_card_default",
 )
 FOLDERS = {
-    "pkdd_czech": "PKDD_Czech_Financial",
-    "south_german_credit": "South_German_Credit",
     "statlog_german": "Statlog_German_Credit_Data",
-    "taiwan_bankruptcy": "Taiwan_Bankruptcy",
-    "polish_bankruptcy": "Polish_Bankruptcy_3Year",
     "credit_card_default": "Default_Of_Credit_Card_Client_Data",
 }
 STEMS = {
-    "pkdd_czech": "pkdd_czech_financial",
-    "south_german_credit": "south_german_credit",
     "statlog_german": "statlog_german_credit_data",
-    "taiwan_bankruptcy": "taiwan_bankruptcy",
-    "polish_bankruptcy": "polish_bankruptcy_3year",
     "credit_card_default": "default_of_credit_cards_client",
 }
 H0H1_SUFFIX = {
@@ -62,13 +53,21 @@ H0H1_SUFFIX = {
 }
 H0_SUFFIX = {
     "1_PH_Default_Parameters": "_H0_only.py",
+    "2_PH_Tuned_Parameters": "_PH_tuned.py",
+    "6_Sampling_Ratio_Audit": "_audit.py",
     "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+    "9_Revised_Snapshot_Protocol": "_protocol.py",
+}
+PROTOCOL_SCRIPTS = {
+    "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_protocol.py"),
+    "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_protocol.py"),
 }
 PICKLES = {
     "1_PH_Default_Parameters": "model_results.pkl",
     "2_PH_Tuned_Parameters": "model_results.pkl",
     "6_Sampling_Ratio_Audit": "sampling_ratio_audit.csv",
     "8_Null_Hypothesis_Algorithm2": "algorithm2_permutation_results.pkl",
+    "9_Revised_Snapshot_Protocol": "ml_results.csv",
 }
 
 
@@ -87,6 +86,14 @@ def already_done(arm, exp, dataset_key):
     return path.exists()
 
 
+def dataset_script(arm, dataset_key, exp, suffixes):
+    if exp == "9_Revised_Snapshot_Protocol":
+        folder, fname = PROTOCOL_SCRIPTS[dataset_key]
+        return ROOT / "5_Experiments" / arm / exp / folder / fname
+    folder = FOLDERS[dataset_key]
+    return ROOT / "5_Experiments" / arm / exp / folder / (STEMS[dataset_key] + suffixes[exp])
+
+
 def run_jobs(arms, experiments, suffixes):
     for arm in arms:
         for dataset_key in DATASETS:
@@ -94,8 +101,7 @@ def run_jobs(arms, experiments, suffixes):
                 if already_done(arm, exp, dataset_key):
                     log(f"SKIP {arm} {dataset_key} {exp}")
                     continue
-                folder = FOLDERS[dataset_key]
-                script = ROOT / "5_Experiments" / arm / exp / folder / (STEMS[dataset_key] + suffixes[exp])
+                script = dataset_script(arm, dataset_key, exp, suffixes)
                 log("RUN " + str(script))
                 code = subprocess.call([str(PY), str(script)], cwd=str(ROOT))
                 log(f"EXIT {code} :: {script}")

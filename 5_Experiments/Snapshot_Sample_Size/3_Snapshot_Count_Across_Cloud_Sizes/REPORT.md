@@ -6,16 +6,16 @@ Dated 13/08/2026. English wording throughout. The symbol mapping used in the met
 
 **Number of snapshots on the x-axis; one curve per surviving points-per-snapshot value (families of cloud size).** Item 4 of the study.
 
-This is **not** a duplicate of item 1. Item 1 holds cloud size at the dataset-aware default and draws one curve per classifier. Item 4 draws one curve per cloud size. Item 2 is the other 1-D slice (points per snapshot on x, always 60 snapshots).
+This is **not** a duplicate of item 1. Item 1 holds cloud size at the dataset-aware default and draws one curve per classifier. Item 4 draws one curve per cloud size. Item 2 is the other 1-D slice (points per snapshot on x, always 180 snapshots).
 
 **Item 3 is not a third grid.** It is the sample-size study made of items 1, 2, and 4. All three consume the same Ripser cache.
 
 ## Design
 
-- **x-axis:** number of snapshots `{15, 30, 45, 60}`
-- **Families:** one curve per surviving points-per-snapshot value in `{15, 30, 45, 60}` (dropped when the value is at least the protocol's binding class count; no silent clipping)
+- **x-axis:** number of snapshots `{15, 30, 45, 60, 90, 120, 180}`
+- **Families:** one curve per surviving points-per-snapshot value in `{15, 30, 45, 60, 90, 120, 180, 240, 330}` (dropped when the value is at least the protocol's binding class count; no silent clipping)
 - Headline metric: **F1** (imbalanced tables, especially with no undersampling). Accuracy is always plotted as well.
-- One customer split (`random_state=0`). Ten snapshot-draw repeats. Nested prefixes 15 subset 30 subset 45 subset 60 from a shuffled pool of 60 training snapshots. Fifteen test snapshots drawn independently and held fixed across the snapshot-count sweep.
+- One customer split (`random_state=0`). Ten snapshot-draw repeats. Nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60 ⊂ 90 ⊂ 120 ⊂ 180 from a shuffled pool of 180 training snapshots. Fifteen test snapshots drawn independently and held fixed across the snapshot-count sweep.
 - 95% CI = mean ± 1.96 × SE across the 10 repeats (percentile interval also stored). This is snapshot-sampling uncertainty, not customer-split uncertainty. This study does not also run five customer splits on the full grid.
 - Classifiers: SVM, KNN, XGBoost, Logistic Regression, Random Forest with Exp 1 TDA default hyperparameters. SVM and Logistic are thicker; KNN, XGBoost, and Random Forest use full-saturation Okabe–Ito colours (not muted). Combined overlays are mean trends only (no error bars); companion panels use one CI ribbon per (model, points-per-snapshot) cell.
 - PCA ranks: same as `DatasetConfig` / `docs/Design_Decisions.md` (historical Exp 3 ranks).
@@ -37,7 +37,7 @@ This folder’s `*_sample_size.py` files keep every surviving (points per snapsh
 
 ```
 .\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/run.py --protocol Early_Split_TDA --datasets pkdd_czech
+.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/run.py --protocol Early_Split_TDA --datasets statlog_german
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/visualize_results.py
 ```
 

@@ -18,10 +18,6 @@ Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `ut
 |---------|-------------------|----------|-----|
 | Default_Of_Credit_Card_Client_Data | L5 / L15 | 7 | 500 |
 | Statlog_German_Credit_Data | L30 / L60 | 15 | 500 |
-| PKDD_Czech_Financial | L10 / L20 | 10 | 500 |
-| Polish_Bankruptcy_3Year | L10 / L20 | 10 | 500 |
-| Taiwan_Bankruptcy | L10 / L20 | 10 | 500 |
-| South_German_Credit | L10 / L20 | 10 | 500 |
 
 ## Artefacts
 

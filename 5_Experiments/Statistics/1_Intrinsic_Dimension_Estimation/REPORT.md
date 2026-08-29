@@ -43,18 +43,12 @@ Hand-coded Two-NN is the transparent Facco formula. skdim is the published packa
 |---------|-------------------------|---------------------------|-------------------:|----------------------:|---------------------:|
 | DCCCD | 7 | 94.0% | 6 | 3.95 | **2.81** |
 | Statlog German Credit | 15 | 89.3% | 16 | 5.34 | **4.06** |
-| PKDD Czech Financial | 10 | 89.8%* | 11 | 4.77 | **4.03** |
-| Polish Bankruptcy 3-year | 10 | 82.6% | 17 | 5.73 | **4.35** |
-| Taiwan Bankruptcy | 10 | 88.0% | 11 | 6.93 | **4.86** |
-| South German Credit | 10 | 79.1% | 14 | 6.37 | **4.19** |
 
-\*Experiment 26’s PKDD matrix is numeric-after-encoding as used here. Experiment 3’s own PCA on the dummy-heavy PH table kept only ~46.5% with 10 components — different starting columns. Quote both numbers; do not mix them.
 
 None of the Two-NN-after-PCA values sit at 7. The “is b ≈ 7?” alarm from the snapshot-size discussion does **not** fire on these six tables.
 
 Levina–Bickel with k=10 came out much smaller than Two-NN on these tables. Treat it as a secondary check, not the headline. The CSV also has `skdim_TwoNN_*`, `skdim_MLE_*`, `skdim_MiND_ML_*`, `skdim_lPCA_*`, and `n_components_for_90pct`.
 
-skdim TwoNN sits in the same ballpark as the hand-coded Facco formula (not identical: different neighbour handling / subsample). Quote the hand-coded after-PCA Two-NN as the headline; use skdim as the package check. After-PCA skdim TwoNN: DCCCD 3.11, Statlog 4.62, PKDD 6.36, Polish 4.89, Taiwan 4.62, South German 4.80. lPCA often returns near the ambient rank — that is a linear local-PCA estimator, not Two-NN.
 
 Polish `skdim MLE = 0` and `MiND_ML = 1` collapse on that table (likely near-duplicate ratio rows after median fill). Hand-coded Two-NN does **not** collapse (5.73 / 4.35). Do not headline the collapsed package numbers; they are why we keep the Facco formula in `utils.py`.
 

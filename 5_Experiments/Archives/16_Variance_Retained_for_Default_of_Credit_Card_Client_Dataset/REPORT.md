@@ -6,17 +6,17 @@ Rebuild the TDA pipeline for 2, 3, 5, … components and plot metrics vs compone
 
 ## Who this is for
 
-Folder name is historical (DCCCD). Newer tables get the same sweep so the six datasets stay comparable. Experiment 18 is the Statlog-named twin.
+Folder name is historical (DCCCD). Experiment 18 is the Statlog-named twin.
 
 This **does** rebuild landmarks per component count — expensive. Do not confuse it with Experiment 26, which estimates dimension **without** Ripser.
 
 ## Why this is not the same as the 90% rule
 
-Exp 3’s 7 / 10 / 15 ranks are **design choices** (paper pair vs shared-10 on new tables; see `docs/Design_Decisions.md`). A sweep asks a different question: **does F1 actually care?** If F1 is flat from 6 to 12 components, quoting 90% vs 78% is a methods nicety, not a result. If F1 climbs until we pass 90%, the PKDD/South German misses in Exp 3 are load-bearing.
+Exp 3’s 7 / 15 ranks are **design choices** (paper pair; see `docs/Design_Decisions.md`). A sweep asks a different question: **does F1 actually care?** If F1 is flat from 6 to 12 components, quoting 90% vs 89% is a methods nicety, not a result.
 
 ## Datasets
 
-DCCCD originally; PKDD / Polish / Taiwan / South German / Statlog have matching scripts under this numbered folder.
+DCCCD originally; Statlog has a matching script under this numbered folder.
 
 ## Results
 

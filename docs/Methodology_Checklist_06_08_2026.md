@@ -68,7 +68,7 @@ Playing with points per snapshot and number of snapshots on the historical perce
 
 ## 6. Focus on intrinsic dimensionality
 
-**Done.** Statistics experiment 1 (all six datasets, before **and** after PCA, hand-coded + skdim). Arm experiment 9 **design** stage uses intrinsic dimension to talk about snapshot size. The “is intrinsic dimension ≈ 7?” check uses **after-PCA Two-NN**.
+**Done.** Statistics experiment 1 (both datasets, before **and** after PCA, hand-coded + skdim). Arm experiment 9 **design** stage uses intrinsic dimension to talk about snapshot size. The “is intrinsic dimension ≈ 7?” check uses **after-PCA Two-NN**.
 
 ---
 
@@ -79,7 +79,7 @@ Playing with points per snapshot and number of snapshots on the historical perce
 | Document | Role |
 |----------|------|
 | `docs/Statistical_Approach_Flow.md` | When each stage runs; what it needs |
-| `docs/Statistical_Experiments_24_27_Results.md` | Worked numbers for all six datasets |
+| `docs/Statistical_Experiments_24_27_Results.md` | Worked numbers for both datasets |
 | `docs/Design_Decisions.md` | Why knobs differ (L, PCA, ID before/after) |
 
 Plus `REPORT.md` in every experiment folder (arm experiments 6–9 and Statistics Exp 1 also have a short per-dataset report).
@@ -96,5 +96,5 @@ Plus `REPORT.md` in every experiment folder (arm experiments 6–9 and Statistic
 ## Deliberately not in scope
 
 - **dadapy** (duplicate TwoNN).
-- **Re-ranking Historical Exp 1 PCA** after the fact to force 90% on PKDD / Polish / South German (would invalidate every downstream `data_L*.csv`). Documented miss; archived Exp 13 is the variance-matched alternative.
+- **Re-ranking Historical Exp 1 PCA** after the fact to force a round 90% on Statlog (would invalidate every downstream `data_L*.csv`). Documented miss; archived Exp 13 is the variance-matched alternative.
 - **TensorFlow deep learning (archived Exp 20)** — placeholder, out of scope.

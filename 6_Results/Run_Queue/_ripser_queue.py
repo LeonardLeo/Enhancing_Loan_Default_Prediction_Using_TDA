@@ -37,30 +37,23 @@ H0_OF = {
     "Early_Split_No_Undersample_H0_And_H1": "Early_Split_No_Undersample_H0",
 }
 DATASETS = [
-    "pkdd_czech",
-    "south_german_credit",
     "statlog_german",
-    "taiwan_bankruptcy",
-    "polish_bankruptcy",
     "credit_card_default",
 ]
 PROTOCOL_SCRIPTS = {
-    "pkdd_czech": ("PKDD_Czech_Financial", "pkdd_czech_financial_protocol.py"),
-    "south_german_credit": ("South_German_Credit", "south_german_credit_protocol.py"),
     "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_protocol.py"),
-    "taiwan_bankruptcy": ("Taiwan_Bankruptcy", "taiwan_bankruptcy_protocol.py"),
-    "polish_bankruptcy": ("Polish_Bankruptcy_3Year", "polish_bankruptcy_3year_protocol.py"),
     "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_protocol.py"),
 }
 PH_SCRIPTS = {
-    "pkdd_czech": ("PKDD_Czech_Financial", "pkdd_czech_financial"),
-    "south_german_credit": ("South_German_Credit", "south_german_credit"),
     "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_data"),
-    "taiwan_bankruptcy": ("Taiwan_Bankruptcy", "taiwan_bankruptcy"),
-    "polish_bankruptcy": ("Polish_Bankruptcy_3Year", "polish_bankruptcy_3year"),
     "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_cards_client"),
 }
 H0H1_CONSUMERS = {
+    "2_PH_Tuned_Parameters": "_PH_tuned.py",
+    "6_Sampling_Ratio_Audit": "_audit.py",
+    "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+}
+H0_CONSUMERS = {
     "2_PH_Tuned_Parameters": "_PH_tuned.py",
     "6_Sampling_Ratio_Audit": "_audit.py",
     "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
@@ -72,11 +65,14 @@ def dataset_script(arm, dataset_key, experiment, suffix):
     return ROOT / "5_Experiments" / arm / experiment / folder / (stem + suffix)
 
 
+def protocol_script(arm, dataset_key):
+    folder, fname = PROTOCOL_SCRIPTS[dataset_key]
+    return ROOT / "5_Experiments" / arm / "9_Revised_Snapshot_Protocol" / folder / fname
+
+
 for arm in H0H1_ARMS:
     for ds in DATASETS:
-        folder, fname = PROTOCOL_SCRIPTS[ds]
-        script = ROOT / "5_Experiments" / arm / "9_Revised_Snapshot_Protocol" / folder / fname
-        run([str(PY), str(script)])
+        run([str(PY), str(protocol_script(arm, ds))])
 
 for arm in H0H1_ARMS:
     for ds in DATASETS:
@@ -85,6 +81,8 @@ for arm in H0H1_ARMS:
             run([str(PY), str(dataset_script(arm, ds, exp, suffix))])
         h0 = H0_OF[arm]
         run([str(PY), str(dataset_script(h0, ds, "1_PH_Default_Parameters", "_H0_only.py"))])
-        run([str(PY), str(dataset_script(h0, ds, "8_Null_Hypothesis_Algorithm2", "_algorithm2.py"))])
+        for exp, suffix in H0_CONSUMERS.items():
+            run([str(PY), str(dataset_script(h0, ds, exp, suffix))])
+        run([str(PY), str(protocol_script(h0, ds))])
 
 log("QUEUE FINISHED")

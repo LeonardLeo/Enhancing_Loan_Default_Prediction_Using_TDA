@@ -169,7 +169,7 @@ So for the bigger dataset we can honour the meeting default under Concern B, whi
 
 ### 3.4 Joint choice on smaller datasets
 
-When minority test pools are tiny (PKDD, Taiwan, Statlog), strict reuse ≤ 1 cannot support both large points per snapshot and 60/15 snapshots.  
+When the minority test pool is tiny (Statlog), strict reuse ≤ 1 cannot support both large points per snapshot and 60/15 snapshots.  
 We then choose jointly:
 
 1. Prefer reuse ≤ 1 on **both** train and test minorities  
@@ -182,11 +182,7 @@ We then choose jointly:
 | Dataset | intrinsic dimension (Two-NN) | Points per snapshot | train number of snapshots | test number of snapshots | suggested snapshot count | Notes |
 |---------|-------------:|----:|----------:|---------:|------------:|-------|
 | **DCCCD** | 3.09 | **88** | **60** | **15** | 6.86 | Full meeting default |
-| Polish bankruptcy | 2.41 | 6 | 60 | 15 | 2.72 | Full meeting default; small points per snapshot |
 | Statlog German | 4.74 | 5 | 48 | 12 | 1.61 | Concern B reduced number of snapshots |
-| South German | 4.85 | 5 | 48 | 12 | 1.60 | Same pattern |
-| Taiwan bankruptcy | 6.21 | 5 | 35 | 8 | 1.44 | Concern B reduced number of snapshots |
-| PKDD Czech | 5.87 | 5 | 12 | 3 | 1.47 | Smallest pools; heavily constrained |
 
 **Oral line:**  
 “On DCCCD we can run the meeting’s 60/15 under reuse ≤ 1. On smaller sets, reuse math forces smaller number of snapshots or tiny points per snapshot; the formula alone wanted even fewer snapshots (~1–7).”
@@ -262,7 +258,7 @@ JSON outputs: `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot
 ### 6.1 Default arm
 
 - Early-split, no undersampling  
-- Effective `(training_snapshot_count, test_snapshot_count)` from §3.4 (60/15 on DCCCD & Polish)  
+- Effective `(training_snapshot_count, test_snapshot_count)` from §3.4 (60/15 on DCCCD)  
 - points per snapshot sweep: 3 points under the chosen cap (DCCCD: 29, 58, 88)
 
 ### 6.2 Zaniar sweep (3×3)
@@ -347,14 +343,9 @@ Full-data PCA + later barcode split is **weaker** than the clean early-split 60/
 
 | Dataset | Eff. number of snapshots train/test | points per snapshot values | Mean bal. acc. | Best bal. acc. |
 |---------|--------------------:|-----------:|---------------:|---------------:|
-| Polish bankruptcy | 60 / 15 | 3, 4, **6** | 0.61 → 0.70 → **0.90** | XGB **0.933** at 6 points per snapshot |
 | Statlog German | 48 / 12 | 3, 5 | 0.48 → 0.56 | logistic 0.708 at 5 points per snapshot |
-| South German | 48 / 12 | 3, 5 | 0.50 → 0.43 | logistic 0.625 at 5 points per snapshot |
-| Taiwan bankruptcy | 35 / 8 | 3, 5 | 0.54 → 0.51 | XGB 0.625 at 3 points per snapshot |
-| PKDD Czech | 12 / 3 | 3, 5 | 0.63 → 0.43 | logistic 0.667 at 3 points per snapshot |
 
-Polish Zaniar at 3 points per snapshot: mean bal. acc. ≈ 0.62 (below its best default 6 points per snapshot @ 60/15).  
-Zaniar upper grid is **reuse-infeasible** on Statlog / South German / PKDD / Taiwan at any practical points per snapshot — Concern B correctly skipped those cells (`reuse_skips.csv`).
+Zaniar upper grid is **reuse-infeasible** on Statlog at any practical points per snapshot — Concern B correctly skipped those cells (`reuse_skips.csv`).
 
 ### 7.4 How to interpret barcode ML (critical)
 
@@ -362,7 +353,7 @@ Zaniar upper grid is **reuse-infeasible** on Statlog / South German / PKDD / Tai
 - Labels are assigned by which class pool was sampled  
 - Success means “topological summaries of the two clouds differ enough to classify clouds”  
 - It is **not** automatically a deployable individual default score  
-- Tiny test libraries (PKDD test 3 snapshots) make single-run accuracy noisy — quote trends, not one lucky cell  
+- Small test libraries (Statlog test 12 snapshots) make single-run accuracy noisy — quote trends, not one lucky cell  
 
 ---
 

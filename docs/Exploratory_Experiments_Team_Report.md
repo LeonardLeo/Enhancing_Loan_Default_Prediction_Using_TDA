@@ -150,7 +150,7 @@ They form the basis for:
 1. Read `docs/Pipeline_Issues_And_Leakage.md` alongside this report.  
 2. Review CV numbers in `docs/CV_Results.md` (paper experiments).  
 3. Review `docs/Experiment_23_Results.md` and `docs/Statistical_Experiments_24_27_Results.md`.  
-4. For the fixed points-per-snapshot redesign across all six datasets, read `docs/Revised_Snapshot_Protocol_Deep_Report.md` (arm experiment 9).  
+4. For the fixed points-per-snapshot redesign across both datasets, read `docs/Revised_Snapshot_Protocol_Deep_Report.md` (arm experiment 9).  
 5. Cite Robinson & Turner (arXiv:1310.7467) and Chazal et al. (arXiv:1406.1901) in the write-up; reference Frontiers TDA survey §6.3.1 for snapshot statistics.
 
 ---

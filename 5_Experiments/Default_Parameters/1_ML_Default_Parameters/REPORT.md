@@ -14,10 +14,6 @@ This is the **baseline**. Later TDA experiments are only interesting if they bea
 |---------|------------|--------------|--------|
 | DCCCD | UCI Taiwan credit-card default | ~30,000 clients | default next month (1) vs not (0) |
 | Statlog German Credit | UCI German loan applications | 1,000 applicants | bad credit (1) vs good (0) |
-| PKDD'99 Czech Financial | Berka bank loans + pre-loan transactions | 682 loans | default (1) vs repaid (0) |
-| Polish Bankruptcy (3-year) | UCI financial ratios, 3-year horizon | 10,503 firms | bankrupt (1) vs not (0) |
-| Taiwanese Bankruptcy | UCI company financials | 6,819 firms | bankrupt (1) vs not (0) |
-| South German Credit | Updated German credit coding | 1,000 applicants | bad (1) vs good (0) |
 
 ## What we do (in order)
 

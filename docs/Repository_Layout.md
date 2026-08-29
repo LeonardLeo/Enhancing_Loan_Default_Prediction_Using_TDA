@@ -97,7 +97,7 @@ TDA artefacts are namespaced by process folder and experiment:
 
 Processed tables are **shared** and are not re-bucketed: `1_Data/Processed_Datasets/{Dataset}/`.
 
-The four `*_H0_And_H1` experiment-1 folders are the barcode factories. H0 processes read those tables and write 12-statistic slices under their own `1_PH_Default_Parameters`. They must not regenerate Ripser jobs.
+The four `*_H0_And_H1` experiment-1 and experiment-9 folders are the barcode factories. H0 processes read those tables and write 12-statistic slices under their own matching experiment folders. They must not regenerate Ripser jobs.
 
 ---
 
@@ -132,11 +132,11 @@ Logs and registry JSON/CSV sit beside those scripts.
 | `3_PH_Default_Parameters` | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
 | `3_H0_Only` (just H0 default models) | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` |
 | `23_Early_…` | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` |
-| `24_…` | `{H0-and-H1 process}/6_Sampling_Ratio_Audit` |
+| `24_…` | `{process}/6_Sampling_Ratio_Audit` |
 | `25_…` | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` |
 | `26_Intrinsic_…` | `Statistics/1_Intrinsic_Dimension_Estimation` |
 | `27_…` | `{process}/8_Null_Hypothesis_Algorithm2` |
-| `28_Revised_…` | `{H0-and-H1 process}/9_Revised_Snapshot_Protocol` |
+| `28_Revised_…` | `{process}/9_Revised_Snapshot_Protocol` |
 | `Historical_Late_Split_Balanced_TDA` | `Late_Split_And_Undersample_H0_And_H1` |
 | `Early_Split_TDA` | `Early_Split_And_Undersample_H0_And_H1` |
 | `No_Undersampling` | `Late_Split_No_Undersample_H0_And_H1` |

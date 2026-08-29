@@ -20,10 +20,6 @@ ARMS = [
 DATASETS = {
     "Default_Of_Credit_Card_Client_Data": [5, 15],
     "Statlog_German_Credit_Data": [30, 60],
-    "PKDD_Czech_Financial": [10, 20],
-    "Polish_Bankruptcy_3Year": [10, 20],
-    "Taiwan_Bankruptcy": [10, 20],
-    "South_German_Credit": [10, 20],
 }
 
 HEADLINE = ["g2_0", "g3_0", "g2_1", "g3_1"]  # mean death / mean persistence, H0 and H1

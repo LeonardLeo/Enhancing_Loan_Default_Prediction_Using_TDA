@@ -2,7 +2,7 @@
 
 ## In one sentence
 
-Same idea as Experiment 16, originally for Statlog’s 15-component choice. Newer tables get the same sweep so the six datasets stay comparable.
+Same idea as Experiment 16, originally for Statlog’s 15-component choice.
 
 ## Who this is for
 
@@ -10,9 +10,9 @@ If F1 peaks at 8 components and we used 15, we were keeping noise. If F1 is stil
 
 This rebuilds landmarks per component count.
 
-## Why Statlog needed 15 and the new tables used 10
+## Why Statlog needed 15
 
-Statlog’s 15 is what it takes on *that* table to sit near 90% variance. The new tables were **not** given 15: they share 10 so Ripser spaces match each other (Taiwan ~88%, others short). This sweep is how we check whether that shared-10 was kind or cruel on each table. Experiment 13 is the sibling that locks variance and lets rank float.
+Statlog’s 15 is what it takes on *that* table to sit near 90% variance. DCCCD already overshoots 90% at 7. This sweep is how we check whether 15 was kind or cruel on Statlog. Experiment 13 is the sibling that locks variance and lets rank float.
 
 `docs/Design_Decisions.md` §2.
 

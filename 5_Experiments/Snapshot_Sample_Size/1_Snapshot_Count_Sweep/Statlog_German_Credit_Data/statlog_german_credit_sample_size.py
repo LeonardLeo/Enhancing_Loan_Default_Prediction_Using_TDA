@@ -3,12 +3,12 @@
 Snapshot sample size / 1_Snapshot_Count_Sweep
 Dataset: Statlog German Credit
 
-This figure holds points per snapshot at the default cloud size (the largest surviving value in 15, 30, 45, 60). The x-axis is the number of snapshots: 15, 30, 45, 60.
+This figure holds points per snapshot at the default cloud size (the largest surviving candidate in utils.CANDIDATE_POINTS_PER_SNAPSHOT). The x-axis is the number of snapshots in utils.N_SNAPSHOTS_GRID.
 
 The four protocol arms are written one after another in this file so you can
 read load -> scale -> PCA -> class split -> snapshots -> Ripser -> train
-without jumping into another module. Ripser on 60+15 snapshots (repeated 10
-times) is the mechanical part and lives in utils.py, same as generate_landmark_sets
+without jumping into another module. Ripser on the training pool plus the held-out
+test snapshots (repeated 10 times) is the mechanical part and lives in utils.py, same as generate_landmark_sets
 in the original PH scripts.
 
 """
@@ -39,6 +39,7 @@ from utils import (
     attach_design_columns,
     compute_barcodes_for_pool,
     draw_snapshot_pool,
+    repeat_metrics_are_complete,
     export_experiment_tables,
     pool_dir,
     repeat_metrics_path,
@@ -56,10 +57,10 @@ FOLDER = "Statlog_German_Credit_Data"
 ITEM = "1"
 ITEM_FOLDER = "1_Snapshot_Count_Sweep"
 PCA_N_COMPONENTS = 15
-CANDIDATES = list(CANDIDATE_POINTS_PER_SNAPSHOT)   # 15, 30, 45, 60
-N_SNAPSHOTS_TRAIN_POOL = N_TRAIN_POOL              # 60
+CANDIDATES = list(CANDIDATE_POINTS_PER_SNAPSHOT)
+N_SNAPSHOTS_TRAIN_POOL = N_TRAIN_POOL
 N_SNAPSHOTS_TEST = N_TEST_SNAPSHOTS                # 15
-NESTED_PREFIXES = tuple(N_SNAPSHOTS_GRID)          # 15 subset 30 subset 45 subset 60
+NESTED_PREFIXES = tuple(N_SNAPSHOTS_GRID)
 N_REPEATS_SNAPSHOT_DRAWS = N_REPEATS               # 10
 SKIP_EXISTING = True
 
@@ -111,7 +112,7 @@ print("  test  default / non-default:", len(test_classes["default"]), len(test_c
 binding = min(len(train_classes['default']), len(train_classes['non-default']))
 print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
 
-# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+# Drop any candidate that cannot be drawn from the class pool.
 surviving = []
 for points_per_snapshot in CANDIDATES:
     if points_per_snapshot >= binding:
@@ -129,11 +130,11 @@ protocol_bucket = "Historical_Late_Split_Balanced_TDA"
 for points_per_snapshot in surviving:
     for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
         out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
-        if SKIP_EXISTING and os.path.exists(out_path):
+        if SKIP_EXISTING and repeat_metrics_are_complete(out_path):
             print(f"[skip] metrics {os.path.basename(str(out_path))}")
             continue
 
-        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        # Draw the training snapshot pool plus the held-out test snapshots (no replacement inside a snapshot).
         index_sets, prefix_order, seeds = draw_snapshot_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -145,7 +146,7 @@ for points_per_snapshot in surviving:
             n_test_snapshots=N_SNAPSHOTS_TEST,
             skip_existing=SKIP_EXISTING,
         )
-        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        # Ripser once per snapshot. Nested prefixes reuse those barcodes.
         meta = compute_barcodes_for_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -249,7 +250,7 @@ print("  test  default / non-default:", len(test_classes["default"]), len(test_c
 binding = min(len(train_classes['default']), len(train_classes['non-default']), len(test_classes['default']), len(test_classes['non-default']))
 print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
 
-# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+# Drop any candidate that cannot be drawn from the class pool.
 surviving = []
 for points_per_snapshot in CANDIDATES:
     if points_per_snapshot >= binding:
@@ -267,11 +268,11 @@ protocol_bucket = "Early_Split_TDA"
 for points_per_snapshot in surviving:
     for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
         out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
-        if SKIP_EXISTING and os.path.exists(out_path):
+        if SKIP_EXISTING and repeat_metrics_are_complete(out_path):
             print(f"[skip] metrics {os.path.basename(str(out_path))}")
             continue
 
-        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        # Draw the training snapshot pool plus the held-out test snapshots (no replacement inside a snapshot).
         index_sets, prefix_order, seeds = draw_snapshot_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -283,7 +284,7 @@ for points_per_snapshot in surviving:
             n_test_snapshots=N_SNAPSHOTS_TEST,
             skip_existing=SKIP_EXISTING,
         )
-        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        # Ripser once per snapshot. Nested prefixes reuse those barcodes.
         meta = compute_barcodes_for_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -362,7 +363,7 @@ print("  test  default / non-default:", len(test_classes["default"]), len(test_c
 binding = min(len(train_classes['default']), len(train_classes['non-default']))
 print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
 
-# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+# Drop any candidate that cannot be drawn from the class pool.
 surviving = []
 for points_per_snapshot in CANDIDATES:
     if points_per_snapshot >= binding:
@@ -380,11 +381,11 @@ protocol_bucket = "No_Undersampling"
 for points_per_snapshot in surviving:
     for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
         out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
-        if SKIP_EXISTING and os.path.exists(out_path):
+        if SKIP_EXISTING and repeat_metrics_are_complete(out_path):
             print(f"[skip] metrics {os.path.basename(str(out_path))}")
             continue
 
-        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        # Draw the training snapshot pool plus the held-out test snapshots (no replacement inside a snapshot).
         index_sets, prefix_order, seeds = draw_snapshot_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -396,7 +397,7 @@ for points_per_snapshot in surviving:
             n_test_snapshots=N_SNAPSHOTS_TEST,
             skip_existing=SKIP_EXISTING,
         )
-        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        # Ripser once per snapshot. Nested prefixes reuse those barcodes.
         meta = compute_barcodes_for_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -493,7 +494,7 @@ print("  test  default / non-default:", len(test_classes["default"]), len(test_c
 binding = min(len(train_classes['default']), len(train_classes['non-default']), len(test_classes['default']), len(test_classes['non-default']))
 print("  binding class count (largest cloud that still fits a without-replacement draw):", binding)
 
-# Drop any candidate in 15, 30, 45, 60 that cannot be drawn from the class pool.
+# Drop any candidate that cannot be drawn from the class pool.
 surviving = []
 for points_per_snapshot in CANDIDATES:
     if points_per_snapshot >= binding:
@@ -511,11 +512,11 @@ protocol_bucket = "Early_Split_TDA_And_No_Undersampling"
 for points_per_snapshot in surviving:
     for repeat in range(N_REPEATS_SNAPSHOT_DRAWS):
         out_path = repeat_metrics_path(protocol_bucket, FOLDER, points_per_snapshot, repeat)
-        if SKIP_EXISTING and os.path.exists(out_path):
+        if SKIP_EXISTING and repeat_metrics_are_complete(out_path):
             print(f"[skip] metrics {os.path.basename(str(out_path))}")
             continue
 
-        # Draw 60 train snapshots + 15 test snapshots (no replacement inside a snapshot).
+        # Draw the training snapshot pool plus the held-out test snapshots (no replacement inside a snapshot).
         index_sets, prefix_order, seeds = draw_snapshot_pool(
             train_classes=train_classes,
             test_classes=test_classes,
@@ -527,7 +528,7 @@ for points_per_snapshot in surviving:
             n_test_snapshots=N_SNAPSHOTS_TEST,
             skip_existing=SKIP_EXISTING,
         )
-        # Ripser once per snapshot. Nested prefixes 15 subset 30 subset 45 subset 60 reuse those barcodes.
+        # Ripser once per snapshot. Nested prefixes reuse those barcodes.
         meta = compute_barcodes_for_pool(
             train_classes=train_classes,
             test_classes=test_classes,

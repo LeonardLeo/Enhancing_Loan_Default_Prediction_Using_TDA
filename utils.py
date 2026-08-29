@@ -28,6 +28,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Union, Optional, Tuple, Sequence, Iterable
+import shutil
 import textwrap
 from ripser import ripser
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
@@ -409,66 +410,6 @@ for _dataset_config in (
         notes={
             "pca_n_components_exp3": 7,
             "landmark_reason": "Original paper percents. Minority class count=6630, so 5% already gives 331 points per snapshot.",
-        },
-    ),
-    DatasetConfig(
-        key="pkdd_czech",
-        display_name="PKDD'99 Czech Financial",
-        folder_name="PKDD_Czech_Financial",
-        aliases=("pkdd", "czech", "berka"),
-        target_column="target",
-        raw_relative_path="1_Data/Datasets/PKDD_Czech_Financial",
-        pca_variance=0.90,
-        landmark_percentages=(10.0, 20.0),
-        notes={
-            "pca_n_components_exp3": 10,
-            "landmark_reason": "Shared new-table percents. 5% would give 3 points per snapshot on a minority class of 76 (too small for PH); 30% would over-reuse.",
-        },
-    ),
-    DatasetConfig(
-        key="polish_bankruptcy",
-        display_name="Polish Companies Bankruptcy (3 year)",
-        folder_name="Polish_Bankruptcy_3Year",
-        aliases=("polish", "3year", "polish3year"),
-        target_column="target",
-        raw_relative_path="1_Data/Datasets/Polish_Bankruptcy_3Year/3year.arff",
-        pca_variance=0.90,
-        landmark_percentages=(10.0, 20.0),
-        notes={
-            "pca_n_components_exp3": 10,
-            "missing_indicators": True,
-            "landmark_reason": "Shared new-table percents so PKDD/Polish/Taiwan/South German stay comparable.",
-        },
-    ),
-    DatasetConfig(
-        key="taiwan_bankruptcy",
-        display_name="Taiwanese Bankruptcy Prediction",
-        folder_name="Taiwan_Bankruptcy",
-        aliases=("taiwan", "taiwanese"),
-        target_column="target",
-        raw_relative_path="1_Data/Datasets/Taiwan_Bankruptcy/data.csv",
-        pca_variance=0.90,
-        landmark_percentages=(10.0, 20.0),
-        notes={
-            "pca_n_components_exp3": 10,
-            "train_only_winsor_quantiles": (0.005, 0.995),
-            "landmark_reason": "Shared new-table percents so PKDD/Polish/Taiwan/South German stay comparable.",
-        },
-    ),
-    DatasetConfig(
-        key="south_german_credit",
-        display_name="South German Credit (updated-German sensitivity)",
-        folder_name="South_German_Credit",
-        aliases=("southgerman", "sgc", "updatedgerman"),
-        target_column="target",
-        raw_relative_path="1_Data/Datasets/South_German_Credit/SouthGermanCredit.asc",
-        pca_variance=0.90,
-        landmark_percentages=(10.0, 20.0),
-        notes={
-            "pca_n_components_exp3": 10,
-            "landmark_reason": "Shared new-table percents. Not Statlog's 30/60: this is a sensitivity table, kept on the same 10%/20% snapshot-size grid as the other new sets.",
-            "target_mapping": {"0_bad": 1, "1_good": 0},
-            "sensitivity_analysis": True,
         },
     ),
 ):
@@ -2740,26 +2681,14 @@ _METRIC_DISPLAY = {
 _DATASET_SHORT = {
     "Statlog_German_Credit_Data": "Statlog German",
     "Default_Of_Credit_Card_Client_Data": "Credit card default",
-    "PKDD_Czech_Financial": "PKDD Czech",
-    "Polish_Bankruptcy_3Year": "Polish bankruptcy",
-    "Taiwan_Bankruptcy": "Taiwan bankruptcy",
-    "South_German_Credit": "South German",
 }
 _DATASET_FILE_SLUG = {
     "Statlog_German_Credit_Data": "Statlog_German",
     "Default_Of_Credit_Card_Client_Data": "Credit_Card_Default",
-    "PKDD_Czech_Financial": "PKDD_Czech",
-    "Polish_Bankruptcy_3Year": "Polish_Bankruptcy",
-    "Taiwan_Bankruptcy": "Taiwan_Bankruptcy",
-    "South_German_Credit": "South_German",
 }
 _DATASET_DISPLAY_SHORT = {
     "Statlog German Credit": "Statlog German",
     "Default of Credit Card Client": "Credit card default",
-    "PKDD'99 Czech Financial": "PKDD Czech",
-    "Polish Companies Bankruptcy (3 year)": "Polish bankruptcy",
-    "Taiwanese Bankruptcy Prediction": "Taiwan bankruptcy",
-    "South German Credit (updated-German sensitivity)": "South German",
 }
 _RATE_METRIC_KEYS = {
     "accuracy", "precision", "recall", "f1", "f1_score",
@@ -3308,7 +3237,7 @@ def _model_results_long_frame(model_results: dict, default_dataset: str = "") ->
                     "metric_label": pretty_metric_label(metric),
                     "value": float(value),
                 })
-    return pd.DataFrame(rows)
+    return _keep_registered_dataset_rows(pd.DataFrame(rows))
 
 
 def _write_metric_csvs(frame: pd.DataFrame, save_dir: Path, prefix: str = "") -> List[Path]:
@@ -4175,7 +4104,7 @@ def estimate_intrinsic_dimension_suite(
     X_pca = pca.fit_transform(X_scaled)
 
     # Headline Two-NN / LB can use the full cap. skdim (especially MiND_ML)
-    # is O(n²) per estimator — keep a tighter cap so six datasets stay runnable.
+    # is O(n²) per estimator — keep a tighter cap so both datasets stay runnable.
     skdim_n = n_samples if n_samples is None else min(int(n_samples), 2000)
     before = {
         "handcoded_two_nn": estimate_intrinsic_dimension_two_nn(
@@ -4346,19 +4275,6 @@ def select_landmarks_fixed_t(
 # =============================================================================
 # Protocol-aware TDA pipeline (four active arms)
 # =============================================================================
-PKDD_DUMMY_COLUMNS = (
-    "frequency",
-    "type",
-    "sex",
-    "A2",
-    "A3",
-    "A12",
-    "A15",
-    "preloan_card_type",
-)
-PKDD_LOG_COLUMNS = ("amount", "payments", "tx_amount_sum", "tx_amount_mean")
-SOUTH_GERMAN_LOG_COLUMNS = ("hoehe", "laufzeit")
-
 DEFAULT_TDA_TUNED_MODEL_CONFIGS = {
     "svm": {
         "model": SVC(),
@@ -4437,33 +4353,12 @@ def load_processed_features(dataset_key: str) -> Tuple[pd.DataFrame, pd.Series, 
     if target not in data.columns:
         raise KeyError(f"{cfg.folder_name} is missing target column '{target}'")
 
-    if cfg.key == "pkdd_czech":
-        for col in data.select_dtypes(include=[np.number]).columns:
-            if data[col].isnull().any():
-                data[col] = data[col].fillna(data[col].median())
-        for col in data.select_dtypes(include=["object"]).columns:
-            data[col] = data[col].fillna("missing").astype(str)
-        data = data_preprocessing_pipeline(
-            data,
-            log_col=list(PKDD_LOG_COLUMNS),
-            dummy_col=list(PKDD_DUMMY_COLUMNS),
-        )
-    elif cfg.key == "polish_bankruptcy":
-        for col in data.columns:
-            if col != target and data[col].isnull().any():
-                data[col] = data[col].fillna(data[col].median())
-        data = data_preprocessing_pipeline(data)
-    elif cfg.key == "taiwan_bankruptcy":
-        data = data_preprocessing_pipeline(data)
-    elif cfg.key == "south_german_credit":
-        data = data_preprocessing_pipeline(data, log_col=list(SOUTH_GERMAN_LOG_COLUMNS))
-    else:
-        for col in data.select_dtypes(include=[np.number]).columns:
-            if col != target and data[col].isnull().any():
-                data[col] = data[col].fillna(data[col].median())
-        leftover = [c for c in data.select_dtypes(include=["object"]).columns if c != target]
-        if leftover:
-            data = pd.get_dummies(data, columns=leftover, drop_first=True, dtype=np.int64)
+    for col in data.select_dtypes(include=[np.number]).columns:
+        if col != target and data[col].isnull().any():
+            data[col] = data[col].fillna(data[col].median())
+    leftover = [c for c in data.select_dtypes(include=["object"]).columns if c != target]
+    if leftover:
+        data = pd.get_dummies(data, columns=leftover, drop_first=True, dtype=np.int64)
 
     y = data[target].astype(int)
     X = data.drop(columns=[target])
@@ -5327,10 +5222,6 @@ _MODEL_METRIC_KEYS = {
 _CANONICAL_DATASET_FOLDERS = (
     "Default_Of_Credit_Card_Client_Data",
     "Statlog_German_Credit_Data",
-    "PKDD_Czech_Financial",
-    "Polish_Bankruptcy_3Year",
-    "Taiwan_Bankruptcy",
-    "South_German_Credit",
 )
 _METRIC_CSV_CANDIDATES = (
     "model_results.pkl",
@@ -5379,6 +5270,24 @@ _VIZ_OUTPUT_DIR_NAMES = {
 def _registered_dataset_folders() -> List[str]:
     folders = [cfg.folder_name for cfg in DATASET_REGISTRY.values()]
     return folders or list(_CANONICAL_DATASET_FOLDERS)
+
+
+def _keep_registered_dataset_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    """Drop rows that belong to datasets no longer in DatasetConfig."""
+    if frame is None or getattr(frame, "empty", True):
+        return frame
+    allowed = set(_registered_dataset_folders())
+    mask = pd.Series(False, index=frame.index)
+    matched = False
+    for col in ("dataset_folder", "folder_name", "dataset", "dataset_key"):
+        if col not in frame.columns:
+            continue
+        matched = True
+        resolved = frame[col].map(lambda value: _registry_folder_from_token(value) or "")
+        mask = mask | resolved.isin(allowed)
+    if not matched:
+        return frame
+    return frame.loc[mask].copy()
 
 
 def _dataset_result_dirs(results_root: Path) -> List[Path]:
@@ -5568,7 +5477,7 @@ def _attach_dataset_labels(frame: pd.DataFrame, source_col: Optional[str] = None
         folders.append(folder)
     out["dataset_folder"] = folders
     out["dataset_label"] = [pretty_dataset_label(f, short=True) if f else "Unknown" for f in folders]
-    return out
+    return _keep_registered_dataset_rows(out)
 
 
 def _points_per_snapshot_label(value: Any) -> str:
@@ -6327,11 +6236,23 @@ def reuse_ratio_from_counts(
 # -----------------------------------------------------------------------------
 BUCKET = "Snapshot_Sample_Size"
 SHARED_EXPERIMENT = "0_Shared_Pools"
-CANDIDATE_POINTS_PER_SNAPSHOT: Tuple[int, ...] = (15, 30, 45, 60)
-N_SNAPSHOTS_GRID: Tuple[int, ...] = (15, 30, 45, 60)
-N_TRAIN_POOL = 60
+# Historical Exp 3 clouds were percent-of-class: Statlog 90/180, DCCCD 331/994.
+# The old 15–60 cap stopped well short of those sizes on the large table. This
+# grid keeps the original steps, then continues toward them. 330 is the DCCCD
+# L5 scale (331). DCCCD L15 (994) and the historical 500 snapshots stay off this
+# study so the curves stay readable and reuse does not return to the original design.
+CANDIDATE_POINTS_PER_SNAPSHOT: Tuple[int, ...] = (15, 30, 45, 60, 90, 120, 180, 240, 330)
+N_SNAPSHOTS_GRID: Tuple[int, ...] = (15, 30, 45, 60, 90, 120, 180)
+N_TRAIN_POOL = 180
 N_TEST_SNAPSHOTS = 15
 N_REPEATS = 10
+# Same threshold as Concern B (TARGET_REUSE). Reuse = (points × snapshots) / minority count.
+# Values above 1 mean the study is remixing the same people; figures flag that on both axes.
+SAMPLE_SIZE_TARGET_REUSE = 1.0
+if tuple(sorted(N_SNAPSHOTS_GRID)) != N_SNAPSHOTS_GRID:
+    raise RuntimeError("N_SNAPSHOTS_GRID must be increasing nested prefixes.")
+if N_TRAIN_POOL != max(N_SNAPSHOTS_GRID):
+    raise RuntimeError("N_TRAIN_POOL must equal max(N_SNAPSHOTS_GRID).")
 CUSTOMER_SPLIT_SEED = 0
 PCA_RANDOM_STATE = 42  # matches Exp 3 / DatasetConfig geometry
 MODEL_RANDOM_STATE = 0
@@ -6362,11 +6283,7 @@ PROTOCOLS: Dict[str, Dict[str, Any]] = {
 }
 
 DATASET_RUN_ORDER: Tuple[str, ...] = (
-    "pkdd_czech",
-    "south_german_credit",
     "statlog_german",
-    "taiwan_bankruptcy",
-    "polish_bankruptcy",
     "credit_card_default",
 )
 
@@ -6419,14 +6336,38 @@ MODEL_MARKERSIZE = {
 MODEL_LINE_ALPHA = 1.0  # never fade the lines themselves (no alpha < 0.9)
 CI_RIBBON_ALPHA = 0.28
 # Families of cloud size (item 4) — same Okabe–Ito family, assigned by rank when a
-# protocol drops a candidate or uses a documented clip (for example 14 on PKDD).
-CLOUD_SIZE_COLOR_CYCLE = ("#0072B2", "#009E73", "#C78D00", "#CC79A7", "#D55E00")
-CLOUD_SIZE_MARKER_CYCLE = ("o", "s", "^", "D", "v")
+# protocol drops a candidate that cannot be drawn from the class pool.
+CLOUD_SIZE_COLOR_CYCLE = (
+    "#0072B2",
+    "#009E73",
+    "#C78D00",
+    "#CC79A7",
+    "#D55E00",
+    "#56B4E9",
+    "#000000",
+    "#999999",
+    "#44AA99",
+)
+CLOUD_SIZE_MARKER_CYCLE = ("o", "s", "^", "D", "v", "P", "X", "<", ">")
 
 METRIC_DISPLAY = {"f1": "F1", "accuracy": "Accuracy"}
 BARCODE_COLUMNS = [f"g{i}_{j}" for j in range(HOMOLOGY_DIM) for i in range(1, 13)]
 
 
+def comma_grid(values: Sequence[int]) -> str:
+    return ", ".join(str(v) for v in values)
+
+
+def slash_grid(values: Sequence[int]) -> str:
+    return "/".join(str(v) for v in values)
+
+
+def nested_prefix_chain() -> str:
+    return " ⊂ ".join(str(v) for v in N_SNAPSHOTS_GRID)
+
+
+def item2_axis_caption() -> str:
+    return f"Points per snapshot on the x-axis; always {N_TRAIN_POOL} snapshots"
 
 
 def json_ready(value: Any) -> Any:
@@ -6465,6 +6406,34 @@ def reuse_ratio(
     if minority_count <= 0:
         return float("nan")
     return float(points_per_snapshot * n_snapshots) / float(minority_count)
+
+
+def largest_n_snapshots_reuse_at_most(
+    points_per_snapshot: int,
+    minority_count: int,
+    max_reuse: float = SAMPLE_SIZE_TARGET_REUSE,
+) -> int:
+    """Largest number of snapshots that keeps reuse ≤ max_reuse at this cloud size."""
+    if points_per_snapshot < 1 or minority_count < 2:
+        return 0
+    return int(max(1, math.floor(max_reuse * minority_count / points_per_snapshot)))
+
+
+def largest_points_per_snapshot_reuse_at_most(
+    n_snapshots: int,
+    minority_count: int,
+    max_reuse: float = SAMPLE_SIZE_TARGET_REUSE,
+) -> int:
+    """Largest points-per-snapshot that keeps reuse ≤ max_reuse at this snapshot count."""
+    if n_snapshots < 1 or minority_count < 2:
+        return 0
+    return int(max(2, math.floor(max_reuse * minority_count / n_snapshots)))
+
+
+def reuse_exceeds_one(ratio: float) -> bool:
+    if ratio is None or (isinstance(ratio, float) and (math.isnan(ratio) or pd.isna(ratio))):
+        return False
+    return float(ratio) > SAMPLE_SIZE_TARGET_REUSE + 1e-12
 
 
 def snapshot_size_percent_of_class(points_per_snapshot: int, class_count: int) -> float:
@@ -6764,11 +6733,11 @@ def surviving_points_per_snapshot(
         "clip_note": clip_note,
         "default_points_per_snapshot": max(kept),
         "default_rule": (
-            "Largest surviving candidate in {15, 30, 45, 60} that is strictly "
-            "smaller than the protocol's binding class pool. Historical Exp 3 "
-            "cloud sizes (for example 331 on DCCCD) sit above this grid, so they "
-            "are not used as the item-1 default. Item 4 already varies cloud size "
-            "inside the surviving grid."
+            f"Largest surviving candidate in {{{comma_grid(CANDIDATE_POINTS_PER_SNAPSHOT)}}} "
+            "that is strictly smaller than the protocol's binding class pool. "
+            "330 is the DCCCD L5-scale ceiling (historical 331 points). DCCCD L15 "
+            "(994 points) is not on this grid. Candidates that cannot be drawn "
+            "without replacement are dropped, not silently clipped."
         ),
     }
 
@@ -6813,7 +6782,7 @@ def resolve_grid(dataset_key: str, protocol_bucket: str) -> Dict[str, Any]:
 
 
 # =============================================================================
-# Snapshot draws + Ripser (generate 60 once; nested prefixes reuse barcodes)
+# Snapshot draws + Ripser (generate the train pool once; nested prefixes reuse barcodes)
 # =============================================================================
 def _draw_index_sets(
     n_pool: int,
@@ -6839,6 +6808,26 @@ def _nested_prefix_order(n_pool: int, random_state: int) -> List[int]:
     order = np.arange(n_pool)
     rng.shuffle(order)
     return [int(i) for i in order.tolist()]
+
+
+def _drawn_count(index_sets: Dict[str, Any], split: str) -> int:
+    classes = index_sets.get(split) or {}
+    lengths = [len(v) for v in classes.values() if isinstance(v, list)]
+    return min(lengths) if lengths else 0
+
+
+def _extend_prefix_order(
+    existing: Sequence[int], n_pool: int, random_state: int
+) -> List[int]:
+    """Keep an older nested order and append a shuffle of the new snapshot indices."""
+    kept = [int(i) for i in existing if 0 <= int(i) < n_pool]
+    missing = [i for i in range(n_pool) if i not in set(kept)]
+    if not missing:
+        return kept
+    rng = check_random_state(random_state)
+    extra = list(missing)
+    rng.shuffle(extra)
+    return kept + extra
 
 
 def artefact_root(kind: str, protocol_bucket: str, dataset_folder: str) -> Path:
@@ -6985,11 +6974,23 @@ def repeat_metrics_path(
     )
 
 
+def repeat_metrics_are_complete(path) -> bool:
+    """True only when the CSV already has every nested snapshot-count prefix."""
+    if not os.path.isfile(os.fspath(path)):
+        return False
+    try:
+        frame = pd.read_csv(path)
+    except (OSError, pd.errors.EmptyDataError, ValueError):
+        return False
+    if frame.empty or "n_snapshots" not in frame.columns:
+        return False
+    have = {int(v) for v in frame["n_snapshots"].dropna().unique()}
+    return set(N_SNAPSHOTS_GRID).issubset(have)
+
+
 def shared_metrics_exist(dataset_folder: str) -> bool:
     root = REPO_ROOT / "6_Results" / BUCKET / "shared"
     return any(root.glob(f"*/{dataset_folder}/repeat_*_pps_*_metrics.csv"))
-
-
 
 
 def draw_snapshot_pool(
@@ -7004,49 +7005,71 @@ def draw_snapshot_pool(
     skip_existing: bool = True,
 ) -> Tuple[Dict[str, Any], List[int], Dict[str, int]]:
     """
-    Draw 60 train + 15 test index sets. No replacement inside a snapshot.
+    Draw the training snapshot pool plus the held-out test snapshots.
+    No replacement inside a snapshot.
 
-    Nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60 are a shuffle of that same train pool.
-    skip_existing reloads index_sets.json when it is already on disk.
+    Nested prefixes reuse that same train pool. If a shorter pool already
+    exists, the first snapshots stay as drawn from the original seed and new
+    snapshots are appended. The nested prefix order keeps the old 15 ⊂ … ⊂ 60
+    block and appends the new indices so previously computed barcodes remain
+    valid. skip_existing reloads index_sets.json only when the pool is already
+    long enough.
     """
     seeds = snapshot_draw_seeds(points_per_snapshot, repeat)
     lm_root = landmark_dir(protocol_bucket, dataset_folder, points_per_snapshot, repeat)
-    cache = pool_dir(protocol_bucket, dataset_folder, points_per_snapshot, repeat)
     index_path = win_long_path(lm_root / "index_sets.json")
     order_path = win_long_path(lm_root / "nested_prefix_order.json")
-    meta_path = win_long_path(cache / "pool_meta.json")
-
-    if skip_existing and index_path.exists() and order_path.exists():
-        return load_json(index_path), load_json(order_path), seeds
-    if skip_existing and meta_path.exists():
-        meta = load_json(meta_path)
-        prefix_order = meta.get("nested_prefix_order")
-        if (
-            prefix_order
-            and int(meta.get("n_train_complete", 0)) >= n_train_snapshots
-            and int(meta.get("n_test_complete", 0)) >= n_test_snapshots
-        ):
-            index_sets = load_json(index_path) if index_path.exists() else {"train": {}, "test": {}}
-            return index_sets, list(prefix_order), seeds
 
     index_sets: Dict[str, Any] = {"train": {}, "test": {}}
-    for class_name, frame in train_classes.items():
-        index_sets["train"][class_name] = _draw_index_sets(
-            n_pool=len(frame),
-            points_per_snapshot=points_per_snapshot,
-            n_snapshots=n_train_snapshots,
-            random_state=seeds["train_seed"] + (0 if class_name == "default" else 1),
-        )
-    for class_name, frame in test_classes.items():
-        index_sets["test"][class_name] = _draw_index_sets(
-            n_pool=len(frame),
-            points_per_snapshot=points_per_snapshot,
-            n_snapshots=n_test_snapshots,
-            random_state=seeds["test_seed"] + (0 if class_name == "default" else 1),
-        )
-    prefix_order = _nested_prefix_order(n_train_snapshots, random_state=seeds["shuffle_seed"])
-    save_json(index_path, index_sets)
-    save_json(order_path, prefix_order)
+    if index_path.exists():
+        try:
+            loaded = load_json(index_path)
+            if isinstance(loaded, dict):
+                index_sets = loaded
+        except (OSError, ValueError, TypeError):
+            index_sets = {"train": {}, "test": {}}
+
+    train_have = _drawn_count(index_sets, "train")
+    test_have = _drawn_count(index_sets, "test")
+    complete = train_have >= n_train_snapshots and test_have >= n_test_snapshots
+    if not (skip_existing and complete):
+        index_sets = {"train": {}, "test": {}}
+        for class_name, frame in train_classes.items():
+            index_sets["train"][class_name] = _draw_index_sets(
+                n_pool=len(frame),
+                points_per_snapshot=points_per_snapshot,
+                n_snapshots=n_train_snapshots,
+                random_state=seeds["train_seed"] + (0 if class_name == "default" else 1),
+            )
+        for class_name, frame in test_classes.items():
+            index_sets["test"][class_name] = _draw_index_sets(
+                n_pool=len(frame),
+                points_per_snapshot=points_per_snapshot,
+                n_snapshots=n_test_snapshots,
+                random_state=seeds["test_seed"] + (0 if class_name == "default" else 1),
+            )
+        save_json(index_path, index_sets)
+
+    prefix_order: List[int] = []
+    if order_path.exists():
+        try:
+            loaded_order = load_json(order_path)
+            if isinstance(loaded_order, list):
+                prefix_order = [int(i) for i in loaded_order]
+        except (OSError, ValueError, TypeError):
+            prefix_order = []
+    expected = set(range(n_train_snapshots))
+    if set(prefix_order) != expected:
+        if prefix_order and set(prefix_order).issubset(expected):
+            prefix_order = _extend_prefix_order(
+                prefix_order, n_train_snapshots, seeds["shuffle_seed"] + 1
+            )
+        else:
+            prefix_order = _nested_prefix_order(
+                n_train_snapshots, random_state=seeds["shuffle_seed"]
+            )
+        save_json(order_path, prefix_order)
+
     return index_sets, prefix_order, seeds
 
 
@@ -7077,9 +7100,9 @@ def compute_barcodes_for_pool(
 
     if skip_existing and meta_path.exists() and train_csv.exists() and test_csv.exists():
         meta = load_json(meta_path)
-        if int(meta.get("n_train_complete", 0)) >= n_train_snapshots and int(
+        if int(meta.get("n_train_complete", 0)) >= n_train_snapshots * 2 and int(
             meta.get("n_test_complete", 0)
-        ) >= n_test_snapshots:
+        ) >= n_test_snapshots * 2:
             print(
                 f"[skip] barcodes {protocol_bucket}/{dataset_folder} "
                 f"pps={points_per_snapshot} repeat={repeat}"
@@ -7152,6 +7175,9 @@ def compute_barcodes_for_pool(
         "elapsed_seconds": round(time.time() - t0, 3),
         "train_pool_csv": str(train_csv),
         "test_pool_csv": str(test_csv),
+        "reuse_ratio_at_train_pool": reuse_ratio(
+            points_per_snapshot, n_train_snapshots, minority_count
+        ),
         "reuse_ratio_at_60": reuse_ratio(
             points_per_snapshot, n_train_snapshots, minority_count
         ),
@@ -7178,7 +7204,7 @@ def ensure_barcode_pool(
     skip_existing: bool = True,
 ) -> Dict[str, Any]:
     """
-    Draw 60 train + 15 test snapshots and Ripser each cloud once.
+    Draw the training snapshot pool plus the held-out test snapshots and Ripser each cloud once.
 
     Nested snapshot-count values reuse these barcodes. skip_existing is
     per-snapshot so a killed run resumes.
@@ -7295,6 +7321,17 @@ def attach_design_columns(
             "reuse_ratio": reuse_ratio(
                 points_per_snapshot, n_snapshots, minority_count
             ),
+            "reuse_exceeds_one": int(
+                reuse_exceeds_one(
+                    reuse_ratio(points_per_snapshot, n_snapshots, minority_count)
+                )
+            ),
+            "largest_n_snapshots_with_reuse_at_most_one": largest_n_snapshots_reuse_at_most(
+                points_per_snapshot, minority_count
+            ),
+            "largest_points_per_snapshot_with_reuse_at_most_one": largest_points_per_snapshot_reuse_at_most(
+                n_snapshots, minority_count
+            ),
             "snapshot_size_percent_of_class": snapshot_size_percent_of_class(
                 points_per_snapshot, minority_count
             ),
@@ -7354,6 +7391,14 @@ def _ci_summary(frame: pd.DataFrame) -> pd.DataFrame:
         record["snapshot_size_percent_of_class"] = float(
             grp["snapshot_size_percent_of_class"].iloc[0]
         ) if len(grp) else float("nan")
+        n1 = int(record["minority_class_count"]) if pd.notna(record.get("minority_class_count")) else 0
+        pps = int(record["points_per_snapshot"])
+        n_snap = int(record["n_snapshots"])
+        record["reuse_exceeds_one"] = int(reuse_exceeds_one(record["reuse_ratio"]))
+        record["largest_n_snapshots_with_reuse_at_most_one"] = largest_n_snapshots_reuse_at_most(pps, n1)
+        record["largest_points_per_snapshot_with_reuse_at_most_one"] = (
+            largest_points_per_snapshot_reuse_at_most(n_snap, n1)
+        )
         for metric in ("f1", "accuracy", "precision", "recall"):
             values = grp[metric].to_numpy(dtype=float)
             mean = float(np.mean(values))
@@ -7399,7 +7444,7 @@ def export_experiment_tables(item: str, frame: Optional[pd.DataFrame] = None) ->
     item_folder = ITEM_FOLDERS[item]
     # Three views of one grid, different x-factors:
     #   item 1 — n_snapshots moves; points_per_snapshot locked at the default
-    #   item 2 — points_per_snapshot moves; n_snapshots locked at 60
+    #   item 2 — points_per_snapshot moves; n_snapshots locked at N_TRAIN_POOL
     #   item 4 — full (points_per_snapshot, n_snapshots) family
     if item == "1":
         sliced = frame[frame["is_default_points_per_snapshot"].astype(int) == 1].copy()
@@ -7417,7 +7462,36 @@ def export_experiment_tables(item: str, frame: Optional[pd.DataFrame] = None) ->
     root.mkdir(parents=True, exist_ok=True)
     sliced.to_csv(root / "all_repeat_metrics.csv", index=False)
     summary.to_csv(root / "all_summary.csv", index=False)
+    flags = _reuse_flag_frame(summary)
+    if not flags.empty:
+        flags.to_csv(root / "reuse_flags.csv", index=False)
     return summary
+
+
+def _reuse_flag_frame(summary: pd.DataFrame) -> pd.DataFrame:
+    """One row per (dataset, protocol, cloud size, snapshot count) with reuse flags."""
+    if summary.empty:
+        return summary
+    keep = [
+        "dataset_display",
+        "protocol_display",
+        "folder_name",
+        "protocol",
+        "points_per_snapshot",
+        "n_snapshots",
+        "minority_class_count",
+        "reuse_ratio",
+        "reuse_exceeds_one",
+        "largest_n_snapshots_with_reuse_at_most_one",
+        "largest_points_per_snapshot_with_reuse_at_most_one",
+    ]
+    present = [c for c in keep if c in summary.columns]
+    flags = summary[present].drop_duplicates().copy()
+    if "reuse_ratio" in flags.columns and "reuse_exceeds_one" not in flags.columns:
+        flags["reuse_exceeds_one"] = flags["reuse_ratio"].map(lambda r: int(reuse_exceeds_one(r)))
+    return flags.sort_values(
+        [c for c in ("folder_name", "protocol", "points_per_snapshot", "n_snapshots") if c in flags.columns]
+    )
 
 
 def export_all_experiment_tables(frame: Optional[pd.DataFrame] = None) -> None:
@@ -7464,10 +7538,10 @@ def write_master_design_table(
                     "default_points_per_snapshot": design["default_points_per_snapshot"],
                     "clipped": design["clipped"],
                     "clip_note": design["clip_note"] or "",
-                    "n_snapshots_grid": "15,30,45,60",
+                    "n_snapshots_grid": comma_grid(N_SNAPSHOTS_GRID).replace(" ", ""),
                     "n_test_snapshots": N_TEST_SNAPSHOTS,
                     "n_repeats": N_REPEATS,
-                    "reuse_ratio_at_default_and_60": design["reuse_at_default"],
+                    "reuse_ratio_at_default_and_train_pool": design["reuse_at_default"],
                     "snapshot_size_percent_of_class_at_default": design[
                         "snapshot_size_percent_of_minority_at_default"
                     ],
@@ -7484,49 +7558,63 @@ def write_master_design_table(
 # =============================================================================
 # Figures — English labels, methodology notes under every graph
 # =============================================================================
-ITEM_NOTES = {
-    "1": (
-        "Item 1 — number of snapshots on the x-axis; each cloud has the dataset-aware "
-        "default number of points (largest surviving value in 15/30/45/60 that still fits "
-        "this protocol's class pool; 60 on DCCCD). Points per snapshot is held fixed. "
-        "This is not item 2, which instead holds 60 snapshots and moves points per snapshot. "
-        "Item 3 is this sample-size study (items 1, 2, and 4 together), not a third "
-        "independent grid.\n"
-        "Headline is F1 because several tables are imbalanced, especially with no "
-        "undersampling. Accuracy is plotted as the secondary metric.\n"
-        "Nested prefixes: 15 ⊂ 30 ⊂ 45 ⊂ 60 from a shuffled pool of 60 training snapshots. "
-        "Ten repeats redraw that pool. The customer train/test split is fixed "
-        "(random_state=0). The combined overlay is the mean trend across those 10 repeats "
-        "(five models, no error bars). 95% intervals (mean ± 1.96×SE) live on the companion "
-        "per-model CI panels as ribbons. A 2.5–97.5 percentile interval is stored in the "
-        "summary CSV. This study does not also run five customer splits on the full grid."
-    ),
-    "2": (
-        "Item 2 — points per snapshot on the x-axis; always 60 snapshots. Number of "
-        "snapshots is held fixed. This is not item 1, which instead holds points per "
-        "snapshot at the dataset-aware default and moves the number of snapshots. "
-        "A universal 15/30/45/60 cloud-size grid is not used: PKDD's class pool cannot "
-        "host the larger steps that DCCCD can. Candidates with points per snapshot "
-        "≥ class count are dropped (no silent clipping). Item 3 is this sample-size "
-        "study (items 1, 2, and 4 together), not a third independent grid.\n"
-        "Headline is F1; accuracy is always shown. Nested prefixes and 10 snapshot-draw "
-        "repeats match item 1. Customer split is fixed (random_state=0). The combined "
-        "overlay is the mean trend across 10 repeats (five models, no error bars). "
-        "95% intervals live on the companion per-model CI panels as ribbons."
-    ),
-    "4": (
-        "Item 4 — number of snapshots on the x-axis; one curve per surviving "
-        "points-per-snapshot value (families of cloud size). SVM and Logistic Regression "
-        "are the focus overlay; KNN, XGBoost, and Random Forest are the same colour and "
-        "marker language, not washed out. Item 3 is this sample-size study (items 1, 2, "
-        "and 4 together), not a third independent grid.\n"
-        "Nested prefixes: 15 ⊂ 30 ⊂ 45 ⊂ 60 from one pool of 60 training snapshots per "
-        "repeat. Ten repeats. Customer split fixed (random_state=0). Combined overlays "
-        "are mean trends only (no error bars). Companion CI panels use a single ribbon "
-        "per (model, points-per-snapshot) cell (mean ± 1.96×SE across snapshot draws). "
-        "This CI is snapshot-sampling uncertainty, not customer-split uncertainty."
-    ),
-}
+def item_notes() -> Dict[str, str]:
+    candidates = slash_grid(CANDIDATE_POINTS_PER_SNAPSHOT)
+    nested = nested_prefix_chain()
+    return {
+        "1": (
+            "Item 1 — number of snapshots on the x-axis; each cloud has the dataset-aware "
+            f"default number of points (largest surviving value in {candidates} that still fits "
+            "this protocol's class pool; 330 on DCCCD when that cloud still fits). Points per "
+            "snapshot is held fixed. "
+            f"This is not item 2, which instead holds {N_TRAIN_POOL} snapshots and moves "
+            "points per snapshot. "
+            "Item 3 is this sample-size study (items 1, 2, and 4 together), not a third "
+            "independent grid.\n"
+            "Headline is F1 because several tables are imbalanced, especially with no "
+            "undersampling. Accuracy is plotted as the secondary metric.\n"
+            f"Nested prefixes: {nested} from a shuffled pool of {N_TRAIN_POOL} training "
+            "snapshots. Ten repeats redraw that pool. The customer train/test split is fixed "
+            "(random_state=0). The combined overlay is the mean trend across those 10 repeats "
+            "(five models, no error bars). 95% intervals (mean ± 1.96×SE) live on the companion "
+            "per-model CI panels as ribbons. A 2.5–97.5 percentile interval is stored in the "
+            "summary CSV. This study does not also run five customer splits on the full grid.\n"
+            "The 15 test snapshots are held fixed so F1 only moves when the training snapshot "
+            "count changes. Reuse = (points per snapshot × snapshots) / minority count. "
+            "Orange shading and a dashed line mark where reuse exceeds 1; companion reuse "
+            "plots and reuse_flags.csv name the snapshot counts that cross that line."
+        ),
+        "2": (
+            f"Item 2 — {item2_axis_caption()}. Number of "
+            "snapshots is held fixed. This is not item 1, which instead holds points per "
+            "snapshot at the dataset-aware default and moves the number of snapshots. "
+            f"A universal {candidates} cloud-size grid is not used: Statlog's class pool cannot "
+            "host the larger steps that DCCCD can. Candidates with points per snapshot "
+            "≥ class count are dropped (no silent clipping). Item 3 is this sample-size "
+            "study (items 1, 2, and 4 together), not a third independent grid.\n"
+            "Headline is F1; accuracy is always shown. Nested prefixes and 10 snapshot-draw "
+            "repeats match item 1. Customer split is fixed (random_state=0). The combined "
+            "overlay is the mean trend across 10 repeats (five models, no error bars). "
+            "95% intervals live on the companion per-model CI panels as ribbons.\n"
+            "The 15 test snapshots are held fixed. Reuse = (points per snapshot × snapshots) "
+            "/ minority count. Orange shading marks cloud sizes where reuse exceeds 1 at "
+            f"{N_TRAIN_POOL} snapshots; companion reuse plots and reuse_flags.csv name those sizes."
+        ),
+        "4": (
+            "Item 4 — number of snapshots on the x-axis; one curve per surviving "
+            "points-per-snapshot value (families of cloud size). SVM and Logistic Regression "
+            "are the focus overlay; KNN, XGBoost, and Random Forest are the same colour and "
+            "marker language, not washed out. Item 3 is this sample-size study (items 1, 2, "
+            "and 4 together), not a third independent grid.\n"
+            f"Nested prefixes: {nested} from one pool of {N_TRAIN_POOL} training snapshots per "
+            "repeat. Ten repeats. Customer split fixed (random_state=0). Combined overlays "
+            "are mean trends only (no error bars). Companion CI panels use a single ribbon "
+            "per (model, points-per-snapshot) cell (mean ± 1.96×SE across snapshot draws). "
+            "This CI is snapshot-sampling uncertainty, not customer-split uncertainty.\n"
+            "The 15 test snapshots are held fixed. The reuse heatmap flags every "
+            "(points per snapshot × number of snapshots) cell where reuse exceeds 1."
+        ),
+    }
 
 
 def _wrap_note(text: str, width: int = 148) -> str:
@@ -7761,6 +7849,7 @@ def _plot_ci_panels(
     for i, model in enumerate(CLASSIFIER_ORDER):
         ax = axes[i]
         _plot_mean_ribbon(ax, summary, x_col, metric, model)
+        _annotate_reuse_on_axis(ax, summary, x_col)
         _style_axes(
             ax,
             xlabel=xlabel,
@@ -7786,7 +7875,7 @@ def _require_summary(item_folder: str) -> pd.DataFrame:
             f"results not generated yet: expected {path}. "
             "Run 5_Experiments/Snapshot_Sample_Size/run_shared.py first."
         )
-    return pd.read_csv(path)
+    return _keep_registered_dataset_rows(pd.read_csv(path))
 
 
 def visualize_item(item: str) -> List[Path]:
@@ -7795,13 +7884,222 @@ def visualize_item(item: str) -> List[Path]:
     viz = visualizations_dir(item_folder)
     win_long_path(viz).mkdir(parents=True, exist_ok=True)
     written: List[Path] = []
-    note = ITEM_NOTES[item]
+    note = item_notes()[item]
     if item == "1":
         written.extend(_plot_item1(summary, viz, note))
+        written.extend(_plot_reuse_vs_x(summary, viz, "n_snapshots", "Number of snapshots (training)", "by_n_snapshots", note))
     elif item == "2":
         written.extend(_plot_item2(summary, viz, note))
+        written.extend(_plot_reuse_vs_x(summary, viz, "points_per_snapshot", "Points per snapshot", "by_points_per_snapshot", note))
     else:
         written.extend(_plot_item4(summary, viz, note))
+        written.extend(_plot_reuse_heatmap(summary, viz, note))
+    return written
+
+
+def _reuse_x_table(grp: pd.DataFrame, x_col: str) -> pd.DataFrame:
+    cols = [x_col, "reuse_ratio"]
+    extra = [
+        c
+        for c in (
+            "points_per_snapshot",
+            "n_snapshots",
+            "minority_class_count",
+            "largest_n_snapshots_with_reuse_at_most_one",
+            "largest_points_per_snapshot_with_reuse_at_most_one",
+        )
+        if c in grp.columns and c != x_col
+    ]
+    slim = grp[cols + extra].drop_duplicates(x_col).sort_values(x_col)
+    if "reuse_exceeds_one" not in slim.columns:
+        slim = slim.copy()
+        slim["reuse_exceeds_one"] = slim["reuse_ratio"].map(lambda r: int(reuse_exceeds_one(r)))
+    return slim
+
+
+def _annotate_reuse_on_axis(ax, grp: pd.DataFrame, x_col: str) -> None:
+    """Shade and mark the x values where reuse exceeds 1."""
+    if "reuse_ratio" not in grp.columns or grp.empty:
+        return
+    slim = _reuse_x_table(grp, x_col)
+    over = slim[slim["reuse_ratio"] > SAMPLE_SIZE_TARGET_REUSE + 1e-12]
+    if over.empty:
+        return
+    first_over = float(over[x_col].min())
+    last_x = float(slim[x_col].max())
+    ax.axvspan(first_over, last_x, color="#FFF3E0", alpha=0.55, zorder=0)
+    ax.axvline(
+        first_over,
+        color="#D55E00",
+        linestyle="--",
+        linewidth=1.4,
+        zorder=1,
+        label="Reuse exceeds 1",
+    )
+
+
+def _reuse_boundary_caption(grp: pd.DataFrame, x_col: str) -> str:
+    if grp.empty or "reuse_ratio" not in grp.columns:
+        return ""
+    slim = _reuse_x_table(grp, x_col)
+    n1 = int(grp["minority_class_count"].iloc[0]) if "minority_class_count" in grp.columns else 0
+    over = slim[slim["reuse_ratio"] > SAMPLE_SIZE_TARGET_REUSE + 1e-12]
+    if x_col == "n_snapshots":
+        pps = int(grp["points_per_snapshot"].iloc[0])
+        cap = largest_n_snapshots_reuse_at_most(pps, n1)
+        if over.empty:
+            return (
+                f"Reuse = (points per snapshot × snapshots) / minority count. "
+                f"With {pps} points per snapshot and minority {n1}, reuse stays ≤ 1 "
+                f"on this snapshot-count grid (largest count with reuse ≤ 1 is {cap})."
+            )
+        return (
+            f"Reuse = (points per snapshot × snapshots) / minority count. "
+            f"With {pps} points per snapshot and minority {n1}, reuse exceeds 1 from "
+            f"{int(over[x_col].min())} snapshots onward (largest count with reuse ≤ 1 is {cap})."
+        )
+    n_snap = int(grp["n_snapshots"].iloc[0])
+    cap = largest_points_per_snapshot_reuse_at_most(n_snap, n1)
+    if over.empty:
+        return (
+            f"Reuse = (points per snapshot × snapshots) / minority count. "
+            f"With {n_snap} snapshots and minority {n1}, reuse stays ≤ 1 on this "
+            f"cloud-size grid (largest cloud with reuse ≤ 1 is {cap} points)."
+        )
+    return (
+        f"Reuse = (points per snapshot × snapshots) / minority count. "
+        f"With {n_snap} snapshots and minority {n1}, reuse exceeds 1 from "
+        f"{int(over[x_col].min())} points per snapshot onward "
+        f"(largest cloud with reuse ≤ 1 is {cap} points)."
+    )
+
+
+def _plot_reuse_vs_x(
+    summary: pd.DataFrame,
+    viz: Path,
+    x_col: str,
+    xlabel: str,
+    stem: str,
+    note: str,
+) -> List[Path]:
+    written = []
+    if summary.empty or "reuse_ratio" not in summary.columns:
+        return written
+    for (folder, protocol), grp in summary.groupby(["folder_name", "protocol"]):
+        slim = _reuse_x_table(grp, x_col)
+        fig, ax = plt.subplots(figsize=(10.2, 6.4))
+        fig.subplots_adjust(bottom=0.36, top=0.88)
+        ax.plot(
+            slim[x_col],
+            slim["reuse_ratio"],
+            color="#0072B2",
+            linewidth=2.2,
+            marker="o",
+            markersize=8,
+            label="Reuse ratio",
+        )
+        over = slim[slim["reuse_ratio"] > SAMPLE_SIZE_TARGET_REUSE + 1e-12]
+        if not over.empty:
+            ax.scatter(
+                over[x_col],
+                over["reuse_ratio"],
+                color="#D55E00",
+                s=64,
+                zorder=4,
+                label="Reuse > 1",
+            )
+            _annotate_reuse_on_axis(ax, grp, x_col)
+        ax.axhline(
+            SAMPLE_SIZE_TARGET_REUSE,
+            color="#D55E00",
+            linestyle="--",
+            linewidth=1.4,
+            label="Reuse = 1",
+        )
+        _style_axes(
+            ax,
+            xlabel=xlabel,
+            ylabel="Reuse ratio",
+            title=(
+                f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
+                f"Reuse vs {xlabel.lower()}\n{_reuse_boundary_caption(grp, x_col)}"
+            ),
+        )
+        ax.legend(frameon=False, loc="upper left")
+        if x_col == "n_snapshots":
+            ax.set_xticks(list(N_SNAPSHOTS_GRID))
+        else:
+            ax.set_xticks(sorted(int(v) for v in slim[x_col].unique()))
+        _footnote(ax, note)
+        path = viz / f"{folder}_{protocol}_reuse_{stem}.png"
+        written.append(_sample_size_save_figure(fig, path, dpi=160))
+        plt.close(fig)
+    return written
+
+
+def _plot_reuse_heatmap(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
+    written = []
+    if summary.empty or "reuse_ratio" not in summary.columns:
+        return written
+    for (folder, protocol), grp in summary.groupby(["folder_name", "protocol"]):
+        slim = (
+            grp[
+                [
+                    "points_per_snapshot",
+                    "n_snapshots",
+                    "reuse_ratio",
+                    "dataset_display",
+                    "protocol_display",
+                    "minority_class_count",
+                ]
+            ]
+            .drop_duplicates(["points_per_snapshot", "n_snapshots"])
+            .copy()
+        )
+        pivot = slim.pivot(
+            index="points_per_snapshot", columns="n_snapshots", values="reuse_ratio"
+        ).sort_index().sort_index(axis=1)
+        fig, ax = plt.subplots(figsize=(10.8, 6.8))
+        fig.subplots_adjust(bottom=0.28, top=0.86)
+        mesh = ax.imshow(
+            pivot.to_numpy(dtype=float),
+            origin="lower",
+            aspect="auto",
+            cmap="YlOrRd",
+            vmin=0.0,
+        )
+        ax.set_xticks(range(len(pivot.columns)))
+        ax.set_xticklabels([str(int(v)) for v in pivot.columns])
+        ax.set_yticks(range(len(pivot.index)))
+        ax.set_yticklabels([str(int(v)) for v in pivot.index])
+        ax.set_xlabel("Number of snapshots (training)")
+        ax.set_ylabel("Points per snapshot")
+        for i, pps in enumerate(pivot.index):
+            for j, n_snap in enumerate(pivot.columns):
+                value = pivot.loc[pps, n_snap]
+                if pd.isna(value):
+                    continue
+                ax.text(
+                    j,
+                    i,
+                    f"{float(value):.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=7.5,
+                    color="#111111" if float(value) < 1.5 else "#ffffff",
+                    fontweight="bold" if float(value) > SAMPLE_SIZE_TARGET_REUSE + 1e-12 else "normal",
+                )
+        fig.colorbar(mesh, ax=ax, fraction=0.046, pad=0.04, label="Reuse ratio")
+        n1 = int(grp["minority_class_count"].iloc[0])
+        ax.set_title(
+            f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
+            "Reuse heatmap (points per snapshot × number of snapshots). "
+            f"Bold cells exceed reuse 1. Minority class count = {n1}."
+        )
+        _footnote(ax, note)
+        path = viz / f"{folder}_{protocol}_reuse_heatmap.png"
+        written.append(_sample_size_save_figure(fig, path, dpi=160))
+        plt.close(fig)
     return written
 
 
@@ -7814,6 +8112,7 @@ def _plot_item1(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
             for model in CLASSIFIER_ORDER:
                 _plot_mean_trend(ax, grp, "n_snapshots", metric, model)
             pps = int(grp["points_per_snapshot"].iloc[0])
+            _annotate_reuse_on_axis(ax, grp, "n_snapshots")
             _style_axes(
                 ax,
                 xlabel="Number of snapshots (training)",
@@ -7826,7 +8125,7 @@ def _plot_item1(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
             )
             _legend_below(ax, ncol=5, bbox_y=-0.20)
             ax.set_xticks(list(N_SNAPSHOTS_GRID))
-            _footnote(ax, note)
+            _footnote(ax, note + "\n" + _reuse_boundary_caption(grp, "n_snapshots"))
             path = viz / f"{folder}_{protocol}_{metric}_by_n_snapshots.png"
             written.append(_sample_size_save_figure(fig, path, dpi=160))
             plt.close(fig)
@@ -7856,7 +8155,7 @@ def _plot_item2(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
     for (folder, protocol), grp in summary.groupby(["folder_name", "protocol"]):
         xticks = sorted(int(v) for v in grp["points_per_snapshot"].unique())
         dropped = ""
-        if int(grp["binding_class_count"].iloc[0]) <= 60:
+        if int(grp["binding_class_count"].iloc[0]) <= max(CANDIDATE_POINTS_PER_SNAPSHOT):
             dropped = (
                 f" Binding class count on this arm is "
                 f"{int(grp['binding_class_count'].iloc[0])}, so any candidate "
@@ -7868,6 +8167,7 @@ def _plot_item2(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
             fig.subplots_adjust(bottom=0.40, top=0.88)
             for model in CLASSIFIER_ORDER:
                 _plot_mean_trend(ax, grp, "points_per_snapshot", metric, model)
+            _annotate_reuse_on_axis(ax, grp, "points_per_snapshot")
             _style_axes(
                 ax,
                 xlabel="Points per snapshot",
@@ -7875,12 +8175,12 @@ def _plot_item2(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
                 title=(
                     f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
                     f"{METRIC_DISPLAY[metric]} vs points per snapshot\n"
-                    "Points per snapshot on the x-axis; always 60 snapshots"
+                    f"{item2_axis_caption()}"
                 ),
             )
             _legend_below(ax, ncol=5, bbox_y=-0.22)
             ax.set_xticks(xticks)
-            _footnote(ax, panel_note)
+            _footnote(ax, panel_note + "\n" + _reuse_boundary_caption(grp, "points_per_snapshot"))
             path = viz / f"{folder}_{protocol}_{metric}_by_points_per_snapshot.png"
             written.append(_sample_size_save_figure(fig, path, dpi=160))
             plt.close(fig)
@@ -7896,7 +8196,7 @@ def _plot_item2(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
                     title=(
                         f"{grp['dataset_display'].iloc[0]} — {grp['protocol_display'].iloc[0]}\n"
                         f"{METRIC_DISPLAY[metric]} vs points per snapshot, one model per panel "
-                        "(95% ribbon). Points per snapshot on the x-axis; always 60 snapshots"
+                        f"(95% ribbon). {item2_axis_caption()}"
                     ),
                     note=panel_note,
                     xticks=xticks,
@@ -7922,7 +8222,7 @@ def _plot_item4_cloud_size_ci_panels(
     fig, axes = plt.subplots(
         n_models,
         n_pps,
-        figsize=(3.35 * n_pps, 2.45 * n_models),
+        figsize=(min(28.0, 2.55 * n_pps), 2.45 * n_models),
         sharex=True,
         sharey="row",
     )
@@ -8012,7 +8312,7 @@ def _plot_item4(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
             handles=_cloud_size_legend_handles(pps_values),
             loc="upper center",
             bbox_to_anchor=(0.5, 0.98),
-            ncol=min(4, len(pps_values)),
+            ncol=min(5, len(pps_values)),
             frameon=False,
         )
         fig.suptitle(
@@ -8057,7 +8357,7 @@ def _plot_item4(summary: pd.DataFrame, viz: Path, note: str) -> List[Path]:
         fig.legend(
             handles=_cloud_size_legend_handles(pps_values),
             loc="upper center",
-            ncol=min(4, len(pps_values)),
+            ncol=min(5, len(pps_values)),
             frameon=False,
         )
         fig.suptitle(
@@ -8095,7 +8395,7 @@ def _plot_cross_dataset_facet(
         )
     else:
         xlabel = "Points per snapshot"
-        axis_note = "Points per snapshot on the x-axis; always 60 snapshots"
+        axis_note = item2_axis_caption()
     for protocol, proto_grp in summary.groupby("protocol"):
         datasets = list(proto_grp["folder_name"].unique())
         n = len(datasets)
@@ -8111,6 +8411,7 @@ def _plot_cross_dataset_facet(
                 ax = axes[i][j]
                 for model in CLASSIFIER_ORDER:
                     _plot_mean_trend(ax, sub, x_col, metric, model)
+                _annotate_reuse_on_axis(ax, sub, x_col)
                 _style_axes(
                     ax,
                     xlabel=xlabel,
@@ -9025,7 +9326,7 @@ def revised_snapshot_early_split_pca(
 ):
     """
     Protocol B: split first, then impute / scale / PCA on train only.
-    Median imputation + missing indicators keep Polish/PKDD usable without leakage.
+    Median imputation + missing indicators keep missing cells usable without leakage.
     """
     from sklearn.impute import SimpleImputer
 
@@ -9105,23 +9406,6 @@ DATASET_SPECS = {
         / "1_Data/Processed_Datasets/Statlog_German_Credit_Data/processed_data.xlsx",
         "run_full_nonsplit": False,
     },
-    "south_german_credit": {
-        "path": REPO_ROOT / "1_Data/Processed_Datasets/South_German_Credit/processed_data.csv",
-        "run_full_nonsplit": False,
-    },
-    "pkdd_czech": {
-        "path": REPO_ROOT / "1_Data/Processed_Datasets/PKDD_Czech_Financial/processed_data.csv",
-        "run_full_nonsplit": False,
-    },
-    "polish_bankruptcy": {
-        "path": REPO_ROOT
-        / "1_Data/Processed_Datasets/Polish_Bankruptcy_3Year/processed_data.csv",
-        "run_full_nonsplit": False,
-    },
-    "taiwan_bankruptcy": {
-        "path": REPO_ROOT / "1_Data/Processed_Datasets/Taiwan_Bankruptcy/processed_data.csv",
-        "run_full_nonsplit": False,
-    },
 }
 
 
@@ -9151,7 +9435,6 @@ def load_xy(dataset_key: str):
     # keep numeric only for PCA/PH
     X = X.select_dtypes(include=[np.number]).copy()
     y = df[target].astype(int)
-    # map south german if needed (already 0/1 in processed)
     return X, y, cfg, spec
 
 
@@ -9347,6 +9630,189 @@ def _run_key_done(results_csv: Path, run_key: str) -> bool:
         return False
     df = pd.read_csv(results_csv)
     return run_key in set(df.get("run_key", []).astype(str))
+
+
+def homology_zero_columns(frame: pd.DataFrame) -> List[str]:
+    """Keep the label plus homology-0 barcode statistics."""
+    return [
+        column
+        for column in frame.columns
+        if column == "label" or str(column).endswith("_0") or "(Dim 0)" in str(column)
+    ]
+
+
+def slice_h0_barcode_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Drop H1 columns from a barcode table. Does not start Ripser."""
+    columns = homology_zero_columns(frame)
+    if "label" not in columns:
+        raise ValueError("barcode table has no label column")
+    sliced = frame.loc[:, columns].copy()
+    if sliced.shape[1] < 2:
+        raise ValueError("H0 slice produced no homology-0 features")
+    return sliced
+
+
+def run_h0_slice_revised_protocol(dataset_key: str, design: Optional[dict] = None) -> None:
+    """Retrain Experiment 9 on H0-sliced sibling barcodes. Never starts Ripser."""
+    bucket = str(PROTOCOL_BUCKET)
+    if bucket.endswith("_H0_And_H1") or not bucket.endswith("_H0"):
+        raise ValueError(
+            f"run_h0_slice_revised_protocol is for just-H0 processes, not {bucket}"
+        )
+    source_bucket = barcode_source_bucket(bucket)
+    folder = get_dataset_config(dataset_key).folder_name
+    src_tda = REPO_ROOT / "1_Data" / "TDA_Datasets" / source_bucket / EXP_NAME / folder
+    src_results = REPO_ROOT / "6_Results" / source_bucket / EXP_NAME / folder
+    dest_tda = DATA_TDA / folder
+    dest_bar = DATA_BARCODES / folder
+    dest_results = RESULTS / folder
+    if not src_tda.exists():
+        raise FileNotFoundError(
+            f"results not generated yet: expected sibling barcodes at {src_tda}. "
+            f"Run 5_Experiments/{source_bucket}/{EXP_NAME} first."
+        )
+
+    jobs: List[Tuple[str, str, Path]] = []
+    for train_csv in sorted(src_tda.glob("split_t*_tr*_te*/train_barcodes.csv")):
+        jobs.append(("split", train_csv.parent.name, train_csv.parent))
+    for all_csv in sorted(src_tda.glob("full_t*_l*/all_barcodes.csv")):
+        jobs.append(("full", all_csv.parent.name, all_csv.parent))
+    if not jobs:
+        raise FileNotFoundError(
+            f"results not generated yet: no sibling Experiment 9 barcode CSVs under {src_tda}"
+        )
+
+    dest_results = win_long_path(dest_results)
+    dest_tda = win_long_path(dest_tda)
+    dest_bar = win_long_path(dest_bar)
+    dest_results.mkdir(parents=True, exist_ok=True)
+    dest_tda.mkdir(parents=True, exist_ok=True)
+
+    def _copy_artefact(src: Path, dest: Path) -> None:
+        src_p = win_long_path(src)
+        dest_p = win_long_path(dest)
+        dest_p.parent.mkdir(parents=True, exist_ok=True)
+        dest_p.write_bytes(src_p.read_bytes())
+
+    for name in ("concern_A_formula_rows.csv", "concern_B_reuse_rows.csv", "reuse_skips.csv", "worked_calculations.csv", "design.json"):
+        src = src_results / name
+        if src.is_file():
+            _copy_artefact(src, dest_results / name)
+    for src in src_results.glob("overlap_*.json"):
+        _copy_artefact(src, dest_results / src.name)
+    src_all_designs = REPO_ROOT / "6_Results" / source_bucket / EXP_NAME / "all_designs.json"
+    if src_all_designs.is_file():
+        dest_all = win_long_path(RESULTS / "all_designs.json")
+        if dest_all.is_file():
+            try:
+                existing = json.loads(dest_all.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+        else:
+            existing = {}
+        incoming = json.loads(win_long_path(src_all_designs).read_text(encoding="utf-8"))
+        if isinstance(existing, dict) and isinstance(incoming, dict):
+            existing[dataset_key] = incoming.get(dataset_key, incoming)
+            dest_all.parent.mkdir(parents=True, exist_ok=True)
+            dest_all.write_text(json.dumps(existing, indent=2, default=str), encoding="utf-8")
+        else:
+            _copy_artefact(src_all_designs, dest_all)
+
+    sibling_by_key: Dict[str, Dict[str, Any]] = {}
+    sibling_ml = src_results / "ml_results.csv"
+    if sibling_ml.is_file():
+        for _, row in pd.read_csv(sibling_ml).iterrows():
+            key = str(row.get("run_key", ""))
+            if key:
+                sibling_by_key[key] = row.to_dict()
+
+    results_csv = dest_results / "ml_results.csv"
+    new_rows: List[Dict[str, Any]] = []
+    for kind, setting, src_dir in jobs:
+        dest_dir = dest_tda / setting
+        bar_dir = dest_bar / setting
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        bar_dir.mkdir(parents=True, exist_ok=True)
+        if kind == "split":
+            match = re.match(r"split_t(\d+)_tr(\d+)_te(\d+)$", setting)
+            if not match:
+                continue
+            t_val, train_l, test_l = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+            train_bar = slice_h0_barcode_frame(pd.read_csv(src_dir / "train_barcodes.csv"))
+            test_bar = slice_h0_barcode_frame(pd.read_csv(src_dir / "test_barcodes.csv"))
+            train_bar.to_csv(dest_dir / "train_barcodes.csv", index=False)
+            test_bar.to_csv(dest_dir / "test_barcodes.csv", index=False)
+            train_bar.to_csv(bar_dir / "train_barcodes.csv", index=False)
+            test_bar.to_csv(bar_dir / "test_barcodes.csv", index=False)
+            prefix = f"{dataset_key}|split|t{t_val}|train{train_l}|test{test_l}|"
+            sibling_keys = [key for key in sibling_by_key if key.startswith(prefix)] or [
+                f"{prefix}h0_slice"
+            ]
+            for run_key in sibling_keys:
+                h0_run_key = run_key if str(run_key).endswith("|H0") else f"{run_key}|H0"
+                if _run_key_done(results_csv, h0_run_key):
+                    print(f"[skip] {h0_run_key}")
+                    continue
+                ml_rows = fit_simple_models(train_bar, test_bar, random_state=42)
+                meta = dict(sibling_by_key.get(run_key, {}))
+                for row in ml_rows:
+                    payload = dict(meta)
+                    payload.update(row)
+                    payload["run_key"] = h0_run_key
+                    payload["dataset"] = dataset_key
+                    payload["protocol_bucket"] = bucket
+                    payload["t"] = t_val
+                    payload["train_l"] = train_l
+                    payload["test_l"] = test_l
+                    payload["n_train_snapshots"] = len(train_bar)
+                    payload["n_test_snapshots"] = len(test_bar)
+                    payload["homology"] = "H0"
+                    if design:
+                        payload.setdefault("b_used", design.get("b_used"))
+                        payload.setdefault("formula_l", design.get("formula_at_chosen_t"))
+                    new_rows.append(payload)
+        else:
+            match = re.match(r"full_t(\d+)_l(\d+)$", setting)
+            if not match:
+                continue
+            t_val, full_l = int(match.group(1)), int(match.group(2))
+            bar = slice_h0_barcode_frame(pd.read_csv(src_dir / "all_barcodes.csv"))
+            bar.to_csv(dest_dir / "all_barcodes.csv", index=False)
+            bar.to_csv(bar_dir / "all_barcodes.csv", index=False)
+            tr, te = train_test_split(bar, test_size=0.2, random_state=42, stratify=bar["label"])
+            run_key = f"{dataset_key}|full|t{t_val}|l{full_l}"
+            h0_run_key = f"{run_key}|H0"
+            if _run_key_done(results_csv, h0_run_key):
+                print(f"[skip] {h0_run_key}")
+                continue
+            ml_rows = fit_simple_models(tr, te, random_state=42)
+            meta = dict(sibling_by_key.get(run_key, {}))
+            for row in ml_rows:
+                payload = dict(meta)
+                payload.update(row)
+                payload["run_key"] = h0_run_key
+                payload["dataset"] = dataset_key
+                payload["protocol_bucket"] = bucket
+                payload["t"] = t_val
+                payload["train_l"] = full_l
+                payload["test_l"] = None
+                payload["n_train_snapshots"] = len(tr)
+                payload["n_test_snapshots"] = len(te)
+                payload["homology"] = "H0"
+                if design:
+                    payload.setdefault("b_used", design.get("b_used"))
+                new_rows.append(payload)
+
+    if new_rows:
+        out_df = pd.DataFrame(new_rows)
+        if results_csv.exists():
+            out_df = pd.concat([pd.read_csv(results_csv), out_df], ignore_index=True)
+        out_df.to_csv(results_csv, index=False)
+        print(f"Saved H0-sliced Experiment 9 ML results -> {results_csv}")
+    elif not results_csv.exists():
+        raise FileNotFoundError(
+            f"results not generated yet: expected sibling Experiment 9 barcodes at {src_tda}"
+        )
 
 
 def run_split_setting(

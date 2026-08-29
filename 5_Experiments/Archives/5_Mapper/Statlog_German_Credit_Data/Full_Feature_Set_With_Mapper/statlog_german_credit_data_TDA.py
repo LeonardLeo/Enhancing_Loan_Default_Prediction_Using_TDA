@@ -5,7 +5,7 @@ PLACEHOLDER — Experiment 5 Mapper (Statlog / full feature set).
 Not implemented. Use the DCCCD Mapper scripts under
 `5_Experiments/Archives/5_Mapper/Default_Of_Credit_Card_Client_Data/` as the reference
 implementation, or the registry Mapper scripts under
-`5_Experiments/Archives/5_Mapper/{PKDD,Polish,Taiwan,South_German}/`.
+`5_Experiments/Archives/5_Mapper/`.
 """
 
 raise NotImplementedError(

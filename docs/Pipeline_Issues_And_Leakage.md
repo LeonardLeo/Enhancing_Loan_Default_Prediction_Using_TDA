@@ -4,9 +4,9 @@ Methodological risks in the codebase, what mitigates them, and what remains out 
 
 **Current layout:** every dataset uses mirrored folders  
 `5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/{Experiment}/{Folder}/` ↔ `1_Data/.../{ProtocolBucket}/{Experiment}/{Folder}/`  
-for all six datasets (`Default_Of_Credit_Card_Client_Data`, `Statlog_German_Credit_Data`, `PKDD_Czech_Financial`, `Polish_Bankruptcy_3Year`, `Taiwan_Bankruptcy`, `South_German_Credit`). Paper LaTeX tables live in `6_Results/Paper_Tables/`.
+for both live datasets (`Default_Of_Credit_Card_Client_Data`, `Statlog_German_Credit_Data`). Paper LaTeX tables live in `6_Results/Paper_Tables/`.
 
-Shared helpers live in **`utils.py`** (same as Statlog / DCCCD). Registry raw→processed ingestion lives in **`1_Data/ingest_registry_datasets.py`**.
+Shared helpers live in **`utils.py`**.
 
 ---
 
@@ -17,7 +17,7 @@ Shared helpers live in **`utils.py`** (same as Statlog / DCCCD). Registry raw→
 **Issue:** `MinMaxScaler` and `PCA` are fit on **all** rows of `processed_data.xlsx` / `processed_data.csv` before landmark generation. Hold-out information can influence the principal axes used for every snapshot.  
 **Mitigation:**
 - **Early split and undersample, using both H0 and H1** (Protocol B; historical Exp 23) fits scaler + PCA on the **train** split only (`stratified_early_split` + `fit_scaler_pca_on_train` in `utils.py`). Live path: `5_Experiments/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`.
-- **Arm experiment 9** (historical Exp 28) follows the revised protocol for all six datasets in every TDA arm.
+- **Arm experiment 9** (historical Exp 28) follows the revised protocol for both datasets in every TDA arm.
 
 ### 1.2 Landmarks drawn from the full (balanced) pool
 **Where:** `generate_landmark_sets` on class-balanced data built from the full table.  
@@ -89,5 +89,5 @@ PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrins
 3. `docs/Exploratory_Experiments_Team_Report.md`  
 4. `docs/Experiment_23_Results.md` (Early Split TDA Exp 1 / Protocol B hold-out numbers)  
 5. `docs/Statistical_Experiments_24_27_Results.md`  
-6. `docs/Revised_Snapshot_Protocol_Deep_Report.md` (arm Exp 9, all six datasets)  
+6. `docs/Revised_Snapshot_Protocol_Deep_Report.md` (arm Exp 9, both datasets)  
 7. `docs/Repository_Layout.md`

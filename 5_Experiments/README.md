@@ -17,7 +17,7 @@ Top-level buckets live under both `5_Experiments/` and `6_Results/`. Numbered ex
 | `Snapshot_Sample_Size/` | Dated 13/08/2026. Items 1, 2, and 4 (item 3 is this study, not a third grid). English snapshot wording throughout. |
 | `Archives/` | Retired experiments kept as a museum of old work (original numbers), plus `Four_Arm_Nested_Experiments/`. |
 
-The eight TDA folders are the live processes (split × undersample × just H0 vs both H0 and H1). Public names always use “and”, never “+”, and are defined once in `utils.TDA_PROCESS_REGISTRY`. H0 processes slice barcode tables from the matching H0-and-H1 run; they do not run Ripser.
+The eight TDA folders are the live processes (split × undersample × just H0 vs both H0 and H1). Public names always use “and”, never “+”, and are defined once in `utils.TDA_PROCESS_REGISTRY`. Every live TDA process runs the same five experiments (`utils.ACTIVE_TDA_EXPERIMENT_NAMES`). H0 processes slice barcode tables from the matching H0-and-H1 run; they do not run Ripser.
 
 TDA artefacts are mirrored at:
 

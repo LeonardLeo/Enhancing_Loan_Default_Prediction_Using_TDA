@@ -27,7 +27,6 @@ This experiment uses a **fixed absolute points-per-snapshot value** for train an
 Each dataset `*_protocol.py` is the method document. Helpers:
 
 - `utils.py` — sampling, overlap diagnostics, models
-- `run_protocol.py` — stages `design` → `split_ml` → `full_ml`
 
 ## Stages
 
@@ -46,8 +45,6 @@ Compared with Historical arm experiment 1, this protocol produces **fewer** barc
 ## How to run
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/Early_Split_And_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/run_protocol.py --stage all
-.\tda_env\Scripts\python.exe 5_Experiments/Early_Split_And_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/run_protocol.py --stage design
 .\tda_env\Scripts\python.exe 5_Experiments/Early_Split_And_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py
 ```
 

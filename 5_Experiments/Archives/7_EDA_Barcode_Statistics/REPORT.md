@@ -22,9 +22,7 @@ All six. We describe:
 
 Run the same `eda` helper used in Experiment 1 (describe, missingness, simple plots) and save the dict under `6_Results/Archives/7_EDA_Barcode_Statistics/{Folder}/`.
 
-## What we found (PKDD example)
 
-PKDD L10/L20 combined tables are 1,000 rows × 24 barcode columns + label, no missing values. Experiment 6 H0-only files were not generated for the new datasets, so those EDA blocks are skipped on purpose — we did not force an H0-only Ripser rebuild into this experiment.
 
 ## Results
 

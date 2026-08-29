@@ -11,7 +11,7 @@
 - Barcodes: `1_Data/TDA_Datasets/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/{Dataset}/`
 - Method write-up: `5_Experiments/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/REPORT.md`
 
-The four registry datasets use the same namespaced trees. Fixed-points-per-snapshot redesign (all six datasets, all four arms): arm experiment 9 and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
+The two live datasets use the same namespaced trees. Fixed-points-per-snapshot redesign (both datasets, all four arms): arm experiment 9 and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 ---
 
@@ -67,6 +67,6 @@ The four registry datasets use the same namespaced trees. Fixed-points-per-snaps
 - Most Statlog models sit near 0.50 accuracy with recall ≈ 1.0 (predicting the positive class).
 - This differs sharply from older full-data (leaky) barcode experiments and is an important early-split finding.
 - Registry clean-protocol TDA metrics for the four additional datasets are stored as `tda_results.csv` under each Early Split TDA Exp 1 dataset folder.
-- For the meeting-driven fixed points-per-snapshot redesign across all six datasets, see arm experiment 9 in every TDA bucket and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
+- For the meeting-driven fixed points-per-snapshot redesign across both datasets, see arm experiment 9 in every TDA bucket and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 Artefacts: `6_Results/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`

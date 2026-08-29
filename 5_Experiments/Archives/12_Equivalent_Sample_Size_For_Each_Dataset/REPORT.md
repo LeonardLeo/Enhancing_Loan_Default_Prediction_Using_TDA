@@ -10,7 +10,6 @@ Percentages are not comparable when class sizes differ. This experiment reruns t
 
 ## Datasets
 
-DCCCD plus the newer tables (PKDD, Polish, Taiwan, South German). Statlog is the reference `t`.
 
 ## What we look for
 

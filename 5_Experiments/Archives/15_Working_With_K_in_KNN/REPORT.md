@@ -12,12 +12,10 @@ k-NN labels a new snapshot by asking its k nearest training snapshots. Too small
 
 All six. **Prerequisite:** Experiment 3 `data_L*.csv`. No landmark rebuild.
 
-## What we found (PKDD re-run)
 
 - **L10:** best k = 16, test accuracy **0.46**, F1 **0.36**. Worse than a coin flip on recall for defaults. Small landmarks on 76 people are not a stable neighbourhood.
 - **L20:** best k = 11, test accuracy **0.59**, F1 **0.55**. Still modest, but the extra points per snapshot helped.
 
-Compare with Experiment 27: PKDD L10 failed the same-process test; L20 passed. The two experiments agree.
 
 ## Results
 
