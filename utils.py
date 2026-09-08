@@ -6597,9 +6597,14 @@ def prepare_protocol_pools(
     """
     Build class pools that are honest to the arm.
 
-    Early-split arms: split customers first (random_state=0), PCA on train only,
-    optional undersample inside each split. Train snapshots come from train
-    pools; test snapshots come from test pools.
+    Early-split arms in this helper (Snapshot_Sample_Size PROTOCOLS, four
+    legacy keys): split customers first (CUSTOMER_SPLIT_SEED = 0), PCA on
+    train only, optional undersample inside each split. Train snapshots come
+    from train pools; test snapshots come from test pools.
+
+    Live PH dataset scripts under 5_Experiments/{eight processes}/ are a
+    different seed contract: they hard-code random_state=42 and do not call
+    this function.
 
     Late-split arms: optional undersample on the full table, full-table PCA,
     then snapshots are drawn from the full class pools and split at snapshot

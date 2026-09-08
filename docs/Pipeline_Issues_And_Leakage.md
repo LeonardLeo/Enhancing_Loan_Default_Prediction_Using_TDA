@@ -13,21 +13,21 @@ Shared helpers live in **`utils.py`**.
 ## 1. Data leakage (historical TDA pipeline)
 
 ### 1.1 PCA fit on the full dataset
-**Where:** Historical Late Split Balanced TDA experiments 1–5 and archived TDA scripts that call `generate_landmark_sets` on the full table.  
+**Where:** `Late_Split_And_Undersample_H0_And_H1` experiments 1–2 (and the archived nested extras that reused those barcodes) plus archived TDA scripts that call `generate_landmark_sets` on the full table.  
 **Issue:** `MinMaxScaler` and `PCA` are fit on **all** rows of `processed_data.xlsx` / `processed_data.csv` before landmark generation. Hold-out information can influence the principal axes used for every snapshot.  
 **Mitigation:**
 - **Early split and undersample, using both H0 and H1** (Protocol B; historical Exp 23) fits scaler + PCA on the **train** split only (`stratified_early_split` + `fit_scaler_pca_on_train` in `utils.py`). Live path: `5_Experiments/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`.
-- **Arm experiment 9** (historical Exp 28) follows the revised protocol for both datasets in every TDA arm.
+- **Process experiment 9** (historical Exp 28) follows the revised protocol for both datasets on all eight processes. Canonical arm: `Early_Split_No_Undersample_H0_And_H1`.
 
 ### 1.2 Landmarks drawn from the full (balanced) pool
 **Where:** `generate_landmark_sets` on class-balanced data built from the full table.  
 **Issue:** Snapshots can mix future train and test customers before the late 80/20 split on barcode rows.  
-**Mitigation:** Early Split TDA Exp 1 / arm Exp 9 generate landmarks **independently** for train and test after the early split.
+**Mitigation:** `Early_Split_And_Undersample_H0_And_H1` Exp 1 and process Exp 9 generate landmarks **independently** for train and test after the early split.
 
 ### 1.3 Late split only on barcode rows
 **Where:** `train_dataset_tda` / `train_models_on_dataset` split `data_L*.csv` 80/20.  
 **Issue:** Topological features were estimated from a mixed pool.  
-**Mitigation:** Early Split TDA Exp 1 / arm Exp 9 train only on train barcodes and evaluate only on test barcodes.
+**Mitigation:** `Early_Split_And_Undersample_H0_And_H1` Exp 1 and process Exp 9 train only on train barcodes and evaluate only on test barcodes.
 
 ### 1.4 Cross-validation on barcode matrices
 **Where:** `perform_cross_validation_tda` and legacy `*_CV.py` scripts.  
@@ -41,7 +41,7 @@ Shared helpers live in **`utils.py`**.
 ### 1.6 Historical full-data PH (Exp 3+)
 **Where:** Exp 3-style scripts that scale/PCA/balance on the full table before landmarks (including new-dataset ports that mirror Statlog).  
 **Issue:** Same leakage class as legacy Statlog / DCCCD Exp 3.  
-**Status:** Intentional comparability with the historical pipeline; publishable path is Early Split TDA Exp 1 / arm Exp 9.
+**Status:** Intentional comparability with the historical pipeline; publishable path is early-split process Exp 1 / process Exp 9. Quote the process folder: undersampled early-split hold-out is chance; no-undersample early-split DCCCD L15 XGB is not.
 
 ---
 
@@ -62,7 +62,7 @@ PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrins
 **Arm experiment 8** (historical Exp 27) implements Robinson & Turner Algorithm 2 with `F_{p,q}` on barcode-statistic vectors (proxy). Cite the paper; note the proxy when publishing.
 
 ### 2.5 Revised snapshot protocol
-**Arm experiment 9** (historical Exp 28) replaces percentage landmarks + 500 snapshots with fixed points per snapshot, default 60 training / 15 test snapshots, and reuse/overlap reporting. It lives in the four H0-and-H1 process folders; the original (early split, no undersample, using both H0 and H1) is `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`. English names: `docs/Notation.md`.
+**Process experiment 9** (historical Exp 28) replaces percentage landmarks + 500 snapshots with fixed points per snapshot, default 60 training / 15 test snapshots, and reuse/overlap reporting. It lives on all eight processes; the canonical write-up (early split, no undersample, using both H0 and H1) is `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`. English names: `docs/Notation.md`.
 
 ---
 

@@ -1,21 +1,145 @@
-Experiment,Description,Dataset,Sampling,Model,ACCURACY,PRECISION,RECALL,F1_SCORE
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L30,SVM,0.725,0.68,0.85,0.7555555555555555
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L30,KNN,0.65,0.625,0.75,0.6818181818181818
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L30,XGB,0.735,0.6974789915966386,0.83,0.7579908675799086
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L30,LOGISTIC,0.75,0.7232142857142857,0.81,0.7641509433962265
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L30,RANDOM_FOREST,0.73,0.7017543859649122,0.8,0.7476635514018691
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L60,SVM,0.835,0.819047619047619,0.86,0.8390243902439024
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L60,KNN,0.795,0.7610619469026548,0.86,0.8075117370892019
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L60,XGB,0.82,0.8076923076923077,0.84,0.8235294117647058
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L60,LOGISTIC,0.8,0.7678571428571429,0.86,0.8113207547169812
-Experiment 11a,Comparing sampling rates on SGCD,Statlog German Credit Dataset,L60,RANDOM_FOREST,0.805,0.801980198019802,0.81,0.8059701492537313
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L5,SVM,0.99,1.0,0.98,0.98989898989899
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L5,KNN,0.985,1.0,0.97,0.9847715736040609
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L5,XGB,0.985,1.0,0.97,0.9847715736040609
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L5,LOGISTIC,0.985,1.0,0.97,0.9847715736040609
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L5,RANDOM_FOREST,0.985,1.0,0.97,0.9847715736040609
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L15,SVM,0.995,1.0,0.99,0.9949748743718593
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L15,KNN,0.99,1.0,0.98,0.98989898989899
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L15,LOGISTIC,0.98,0.9897959183673469,0.97,0.9797979797979798
-Experiment 11b,DCCCD model baseline comparison,Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Exp.,Desc.,Dataset,Sampling,Model,Accuracy,Precision,Recall,F1_score
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Statlog German Credit Dataset,,SVM,0.74,0.559,0.633,0.594
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Statlog German Credit Dataset,,KNN,0.68,0.475,0.633,0.543
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Statlog German Credit Dataset,,XGB,0.755,0.622,0.467,0.533
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Statlog German Credit Dataset,,LOGISTIC,0.745,0.565,0.65,0.605
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Statlog German Credit Dataset,,RANDOM_FOREST,0.75,0.609,0.467,0.528
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Default of Credit Card Client Dataset,,SVM,0.811,0.595,0.454,0.515
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Default of Credit Card Client Dataset,,KNN,0.749,0.437,0.475,0.455
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Default of Credit Card Client Dataset,,XGB,0.813,0.634,0.37,0.468
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Default of Credit Card Client Dataset,,LOGISTIC,0.678,0.369,0.638,0.467
+Experiment 1,Default parameter performance using ML on original dataset (Baseline Performance),Default of Credit Card Client Dataset,,RANDOM_FOREST,0.812,0.618,0.398,0.484
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Statlog German Credit Dataset,,SVM,0.73,0.554,0.517,0.534
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Statlog German Credit Dataset,,KNN,0.71,0.517,0.5,0.508
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Statlog German Credit Dataset,,XGB,0.735,0.566,0.5,0.531
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Statlog German Credit Dataset,,LOGISTIC,0.71,0.514,0.633,0.567
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Statlog German Credit Dataset,,RANDOM_FOREST,0.75,0.593,0.533,0.561
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Default of Credit Card Client Dataset,,SVM,0.809,0.589,0.455,0.513
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Default of Credit Card Client Dataset,,KNN,0.75,0.43,0.403,0.416
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Default of Credit Card Client Dataset,,XGB,0.816,0.646,0.372,0.472
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Default of Credit Card Client Dataset,,LOGISTIC,0.678,0.369,0.638,0.467
+Experiment 2,Tuned parameter performance using ML on original dataset (Baseline Performance) for improved performance,Default of Credit Card Client Dataset,,RANDOM_FOREST,0.813,0.622,0.394,0.483
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L30,SVM,0.74,0.697,0.85,0.766
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L30,KNN,0.685,0.646,0.82,0.722
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L30,XGB,0.745,0.713,0.82,0.763
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L30,LOGISTIC,0.725,0.706,0.77,0.737
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L30,RANDOM_FOREST,0.765,0.739,0.82,0.777
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L60,SVM,0.825,0.793,0.88,0.834
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L60,KNN,0.775,0.743,0.84,0.789
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L60,XGB,0.85,0.837,0.87,0.853
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L60,LOGISTIC,0.805,0.77,0.87,0.817
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Statlog German Credit Dataset,L60,RANDOM_FOREST,0.8,0.788,0.82,0.804
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L5,SVM,0.985,1.0,0.97,0.985
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L5,KNN,0.99,1.0,0.98,0.99
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L5,XGB,0.99,1.0,0.98,0.99
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L5,LOGISTIC,0.985,1.0,0.97,0.985
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L5,RANDOM_FOREST,0.985,1.0,0.97,0.985
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L15,SVM,1.0,1.0,1.0,1.0
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L15,KNN,1.0,1.0,1.0,1.0
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L15,LOGISTIC,1.0,1.0,1.0,1.0
+Experiment 3,Default parameter performance using ML on generated barcode statistics,Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L30,SVM,0.725,0.696,0.8,0.744
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L30,KNN,0.735,0.697,0.83,0.758
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L30,XGB,0.73,0.698,0.81,0.75
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L30,LOGISTIC,0.72,0.696,0.78,0.736
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L30,RANDOM_FOREST,0.74,0.707,0.82,0.759
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L60,SVM,0.825,0.793,0.88,0.834
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L60,KNN,0.775,0.743,0.84,0.789
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L60,XGB,0.84,0.804,0.9,0.849
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L60,LOGISTIC,0.79,0.764,0.84,0.8
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Statlog German Credit Dataset,L60,RANDOM_FOREST,0.81,0.798,0.83,0.814
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L5,SVM,0.985,1.0,0.97,0.985
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L5,KNN,0.985,1.0,0.97,0.985
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L5,XGB,0.99,1.0,0.98,0.99
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L5,LOGISTIC,0.99,1.0,0.98,0.99
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L5,RANDOM_FOREST,0.98,1.0,0.96,0.98
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L15,SVM,1.0,1.0,1.0,1.0
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L15,KNN,1.0,1.0,1.0,1.0
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L15,LOGISTIC,1.0,1.0,1.0,1.0
+Experiment 4,Tuned parameter performance using ML on generated barcode statistics for improved performance,Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L30,SVM,0.69,0.644,0.85,0.733
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L30,KNN,0.64,0.632,0.67,0.65
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L30,XGB,0.7,0.682,0.75,0.714
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L30,LOGISTIC,0.67,0.649,0.74,0.692
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L30,RANDOM_FOREST,0.73,0.689,0.84,0.757
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L60,SVM,0.735,0.701,0.82,0.756
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L60,KNN,0.775,0.739,0.85,0.791
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L60,XGB,0.86,0.827,0.91,0.867
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L60,LOGISTIC,0.72,0.7,0.77,0.733
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Statlog German Credit Dataset,L60,RANDOM_FOREST,0.82,0.791,0.87,0.829
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L5,SVM,0.975,0.99,0.96,0.975
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L5,KNN,0.98,0.99,0.97,0.98
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L5,XGB,0.98,1.0,0.96,0.98
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L5,LOGISTIC,0.98,0.99,0.97,0.98
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L5,RANDOM_FOREST,0.99,1.0,0.98,0.99
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L15,SVM,1.0,1.0,1.0,1.0
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L15,KNN,1.0,1.0,1.0,1.0
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L15,LOGISTIC,1.0,1.0,1.0,1.0
+Experiment 5,Effect of H0 barcodes only from barcode statistics on model performance,Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L30,SVM,0.715,0.672,0.84,0.747
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L30,KNN,0.725,0.703,0.78,0.739
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L30,XGB,0.71,0.691,0.76,0.724
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L30,LOGISTIC,0.725,0.696,0.8,0.744
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L30,RANDOM_FOREST,0.715,0.697,0.76,0.727
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L60,SVM,0.81,0.758,0.91,0.827
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L60,KNN,0.805,0.761,0.89,0.82
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L60,XGB,0.865,0.841,0.9,0.87
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L60,LOGISTIC,0.81,0.777,0.87,0.821
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Statlog German Credit Dataset,L60,RANDOM_FOREST,0.84,0.827,0.86,0.843
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L5,SVM,0.85,0.938,0.75,0.833
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L5,KNN,0.975,0.97,0.98,0.975
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L5,XGB,0.97,0.943,1.0,0.971
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L5,LOGISTIC,0.9,0.917,0.88,0.898
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L5,RANDOM_FOREST,0.975,0.952,1.0,0.976
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L15,SVM,0.73,0.811,0.6,0.69
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L15,KNN,0.985,1.0,0.97,0.985
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L15,LOGISTIC,0.83,0.8,0.88,0.838
+Experiment 6,Dropping correlated barcode statistics columns before evaluating model performance,Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L1.36,SVM,0.855,0.845,0.87,0.857
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L1.36,KNN,0.86,0.867,0.85,0.859
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L1.36,XGB,0.855,0.845,0.87,0.857
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L1.36,LOGISTIC,0.86,0.86,0.86,0.86
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L1.36,RANDOM_FOREST,0.865,0.861,0.87,0.866
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L2.71,SVM,0.95,0.969,0.93,0.949
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L2.71,KNN,0.955,0.969,0.94,0.954
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L2.71,XGB,0.94,0.958,0.92,0.939
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L2.71,LOGISTIC,0.95,0.969,0.93,0.949
+Experiment 7,Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.,Default of Credit Card Client Dataset,L2.71,RANDOM_FOREST,0.945,0.968,0.92,0.944
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L5,SVM,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L5,KNN,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L5,XGB,0.995,1.0,0.99,0.995
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L5,LOGISTIC,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L5,RANDOM_FOREST,0.995,1.0,0.99,0.995
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L15,SVM,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L15,KNN,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L15,LOGISTIC,1.0,1.0,1.0,1.0
+Experiment 8,Retaining similar variance via PCA (Setting the Default of Credit Card Dataset to same variance retained as Statlog's 89%),Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L30,SVM,0.81,0.6,0.15,0.24
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L30,KNN,0.775,0.407,0.275,0.328
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L30,XGB,0.79,0.458,0.275,0.344
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L30,LOGISTIC,0.82,0.643,0.225,0.333
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L30,RANDOM_FOREST,0.815,0.615,0.2,0.302
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L60,SVM,0.85,0.679,0.475,0.559
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L60,KNN,0.84,0.625,0.5,0.556
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L60,XGB,0.86,0.714,0.5,0.588
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L60,LOGISTIC,0.85,0.692,0.45,0.545
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Statlog German Credit Dataset,L60,RANDOM_FOREST,0.845,0.68,0.425,0.523
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L5,SVM,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L5,KNN,0.99,1.0,0.95,0.974
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L5,XGB,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L5,LOGISTIC,0.995,1.0,0.975,0.987
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L5,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L15,SVM,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L15,KNN,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L15,XGB,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L15,LOGISTIC,1.0,1.0,1.0,1.0
+Experiment 9,Training with mixed classes on imbalanced data - How do models perform under class imbalance,Default of Credit Card Client Dataset,L15,RANDOM_FOREST,1.0,1.0,1.0,1.0
+Experiment 10,Linear regression for binary prediction to understand if a straight line can easily seperate classes,Statlog German Credit Dataset,L30,LINEAR_REGRESSION,0.715,0.687,0.79,0.735
+Experiment 10,Linear regression for binary prediction to understand if a straight line can easily seperate classes,Statlog German Credit Dataset,L60,LINEAR_REGRESSION,0.775,0.731,0.87,0.795
+Experiment 10,Linear regression for binary prediction to understand if a straight line can easily seperate classes,Default of Credit Card Client Dataset,L5,LINEAR_REGRESSION,0.985,0.971,1.0,0.985
+Experiment 10,Linear regression for binary prediction to understand if a straight line can easily seperate classes,Default of Credit Card Client Dataset,L15,LINEAR_REGRESSION,1.0,1.0,1.0,1.0

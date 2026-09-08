@@ -1,6 +1,6 @@
 # Late_Split_And_Undersample_H0_And_H1 — Experiment 9 (revised snapshot protocol)
 
-This is arm experiment 9 in **Historical Late Split Balanced TDA** (full-table PCA, undersample, then a late split). The same engine exists in all four TDA arms. The meeting-driven write-up that originally used the label Experiment 28 lives at `docs/Revised_Snapshot_Protocol_Deep_Report.md`. There is no live top-level `28_Revised_…` folder.
+This is process experiment 9 in **Late split and undersample (the original historical run), using both H0 and H1** (full-table PCA, undersample, then a late barcode-row split). The same engine exists on all eight live processes. The meeting-driven write-up that originally used the label Experiment 28 lives at `docs/Revised_Snapshot_Protocol_Deep_Report.md`. There is no live top-level `28_Revised_…` folder.
 
 ## In one sentence
 

@@ -16,13 +16,19 @@ import warnings
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# This file lives four folders below the repository root (where utils.py is).
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+# This file lives six folders below the repository root (Archives / Four_Arm / arm / exp / dataset).
+_HERE = os.path.abspath(os.path.dirname(__file__))
+REPO_ROOT = _HERE
+for _ in range(8):
+    if os.path.exists(os.path.join(REPO_ROOT, "utils.py")):
+        break
+    REPO_ROOT = os.path.dirname(REPO_ROOT)
 sys.path.insert(0, REPO_ROOT)
 
 from utils import (
     drop_correlated_features,
     rename_barcode_statistics_columns,
+    resolve_protocol_bucket,
     store_data_as_csv_or_json,
     store_results,
     train_multiple_dataset_tda_drop_correlated,
@@ -40,9 +46,14 @@ SOURCE_EXPERIMENT = "1_PH_Default_Parameters"
 FOLDER = "Default_Of_Credit_Card_Client_Data"
 CORR_THRESHOLD = 0.80
 
-src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, SOURCE_EXPERIMENT, FOLDER)
-save_path = str(win_long_path(os.path.join(REPO_ROOT, "6_Results", PROTOCOL_BUCKET, EXPERIMENT, FOLDER)))
-target_dir = str(win_long_path(os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", PROTOCOL_BUCKET, EXPERIMENT, FOLDER, "Using_Target_Variable_For_Correlation")))
+LIVE_BUCKET = resolve_protocol_bucket(PROTOCOL_BUCKET)
+src_dir = os.path.join(REPO_ROOT, "1_Data", "TDA_Datasets", LIVE_BUCKET, SOURCE_EXPERIMENT, FOLDER)
+save_path = str(win_long_path(os.path.join(
+    REPO_ROOT, "6_Results", "Archives", "Four_Arm_Nested_Experiments", PROTOCOL_BUCKET, EXPERIMENT, FOLDER
+)))
+target_dir = str(win_long_path(os.path.join(
+    REPO_ROOT, "1_Data", "TDA_Datasets", "Archives", "Four_Arm_Nested_Experiments", PROTOCOL_BUCKET, EXPERIMENT, FOLDER, "Using_Target_Variable_For_Correlation"
+)))
 
 data_objects = {}
 dropped_payload = []

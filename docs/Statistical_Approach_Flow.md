@@ -22,20 +22,23 @@ Just-H0 siblings: `Late_Split_And_Undersample_H0`, `Early_Split_And_Undersample_
 ```text
 processed table
       |
-      |  Arm Exp 1  (builds that arm's TDA artefacts)
+      |  H0-and-H1 Exp 1  (the barcode factory for that split/undersample pair)
       |  protocol knobs → landmarks → Ripser → data_L*.csv
       |
-      +-- Arm Exp 6  sampling-ratio audit (class counts + snapshot-size percents + number of snapshots; no barcodes)
-      +-- Statistics/1  intrinsic dimension (no barcodes; protocol-independent)
-      +-- Arm Exp 7  reads that arm's data_L*.csv
-      +-- Arm Exp 8  reads that arm's data_L*.csv
+      |  H0 Exp 1  (does not run Ripser)
+      |  reads sibling data_L*.csv → keeps label + *_0 / (Dim 0) columns
       |
-      +-- Arm Exp 9  Revised Snapshot Protocol (fixed points per snapshot, 60 training / 15 test snapshots)
+      +-- Exp 6  sampling-ratio audit (class counts + snapshot-size percents + number of snapshots; no barcodes)
+      +-- Statistics/1  intrinsic dimension (no barcodes; protocol-independent)
+      +-- Archived Exp 7  reads that process's data_L*.csv
+      +-- Exp 8  reads that process's data_L*.csv
+      |
+      +-- Exp 9  Revised Snapshot Protocol (fixed points per snapshot, 60 training / 15 test snapshots)
       |
       +-- Snapshot_Sample_Size  dated 13/08/2026 (items 1, 2, and 4; item 3 is this study, not a third grid)
 ```
 
-Barcode **consumers** (arm experiments 2–5, 7–8) **read** that arm's experiment-1 `data_L*.csv`. They must not regenerate 500 Ripser jobs.
+Barcode **consumers** (process experiments 2, 8, and the archived nested extras) **read** that process's experiment-1 `data_L*.csv`. They must not regenerate 500 Ripser jobs. H0 Exp 1 is itself a consumer of the H0-and-H1 factory.
 
 ---
 

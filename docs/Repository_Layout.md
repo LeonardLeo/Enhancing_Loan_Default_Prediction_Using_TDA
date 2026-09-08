@@ -34,7 +34,7 @@ Compact snapshot symbols from the methods literature are recorded once in `docs/
 
 Root shims `6_Results/_ripser_queue.py` and `6_Results/_consumer_queue.py` forward to `Run_Queue/`. They are the public entry if an in-flight command still uses the old path. Prefer `6_Results/Run_Queue/`.
 
-H0-and-H1 folders keep default classifiers, retuned classifiers, sampling-ratio audit, Algorithm 2, and the revised snapshot protocol. H0 folders keep default classifiers and Algorithm 2 on sliced H0 tables. Sampling-ratio audit and revised snapshot protocol are not duplicated eight ways — they live next to the H0-and-H1 folder for that split/undersample pair.
+Every live TDA process keeps the same five experiments (`utils.ACTIVE_TDA_EXPERIMENT_NAMES`): default classifiers, retuned classifiers, sampling-ratio audit, Algorithm 2, and the revised snapshot protocol. H0 folders do **not** run Ripser. They slice H0 columns from the matching H0-and-H1 barcode tables, then run those five consumers on the slice. Sampling-ratio audit and revised snapshot protocol **are** present on all eight processes; quote the process folder, not “TDA”.
 
 ---
 

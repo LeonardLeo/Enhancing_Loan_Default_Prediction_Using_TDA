@@ -9,33 +9,47 @@ English snapshot names: docs/Notation.md
 
 Live buckets (not 22 numbered folders at 5_Experiments root):
 - Default_Parameters/
-- Historical_Late_Split_Balanced_TDA/   (experiments 1-9)
-- Early_Split_TDA/                      (experiments 1-9)
-- No_Undersampling/                     (experiments 1-9)
-- Early_Split_TDA_And_No_Undersampling/ (experiments 1-9)
+- Early_Split_And_Undersample_H0/
+- Early_Split_And_Undersample_H0_And_H1/
+- Early_Split_No_Undersample_H0/
+- Early_Split_No_Undersample_H0_And_H1/
+- Late_Split_And_Undersample_H0/
+- Late_Split_And_Undersample_H0_And_H1/   (historical leaky paper TDA run)
+- Late_Split_No_Undersample_H0/
+- Late_Split_No_Undersample_H0_And_H1/
 - Statistics/                           (1_Intrinsic_Dimension_Estimation)
 - Snapshot_Sample_Size/                 (0_Shared_Pools, 1_Snapshot_Count_Sweep, 2_Points_Per_Snapshot_Sweep, 3_Snapshot_Count_Across_Cloud_Sizes)
-- Archives/                             (old 5, 7-10, 12-18, 20-22; original numbers kept)
+- Archives/                             (old 5, 7-10, 12-18, 20-22; Four_Arm_Nested_Experiments/; original numbers kept)
+
+The eight TDA folders are the live processes (split x undersample x just H0 vs both H0 and H1).
+Public names are defined once in utils.TDA_PROCESS_REGISTRY. Legacy four-arm names
+(Historical_Late_Split_Balanced_TDA, Early_Split_TDA, No_Undersampling,
+Early_Split_TDA_And_No_Undersampling) are aliases only; they are not live root folders.
+
+Every live TDA process runs the same five experiments (utils.ACTIVE_TDA_EXPERIMENT_NAMES):
+1_PH_Default_Parameters, 2_PH_Tuned_Parameters, 6_Sampling_Ratio_Audit,
+8_Null_Hypothesis_Algorithm2, 9_Revised_Snapshot_Protocol.
+H0 processes slice H0 columns from the matching H0-and-H1 barcode tables. They do not run Ripser.
 
 Paper-table mapping (6_Results/results.py paper numbers 1-10):
 - Paper 1  -> 5_Experiments/Default_Parameters/1_ML_Default_Parameters/
 - Paper 2  -> 5_Experiments/Default_Parameters/2_ML_Tuned_Parameters/
-- Paper 3  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/1_PH_Default_Parameters/
-- Paper 4  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/2_PH_Tuned_Parameters/
-- Paper 5  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/3_H0_Only/          (old folder Exp 6)
-- Paper 6  -> 5_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/  (old Exp 11)
+- Paper 3  -> 5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/
+- Paper 4  -> 5_Experiments/Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/
+- Paper 5  -> 5_Experiments/Late_Split_And_Undersample_H0/1_PH_Default_Parameters/   (H0 slice of paper 3; does not run Ripser)
+- Paper 6  -> 5_Experiments/Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/  (old Exp 11)
 - Paper 7  -> 5_Experiments/Archives/12_Equivalent_Sample_Size_For_Each_Dataset/
 - Paper 8  -> 5_Experiments/Archives/13_Similar_Variance_Retained_After_PCA/
 - Paper 9  -> 5_Experiments/Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets/
-- Paper 10 -> 5_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/  (old Exp 19)
+- Paper 10 -> 5_Experiments/Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction/  (old Exp 19)
 
 Historical checklist 23-28 (not live root folders):
-- 23 Protocol B     -> Early_Split_TDA/1_PH_Default_Parameters/
-- 24 sampling audit -> {TDA arm}/6_Sampling_Ratio_Audit/
-- 25 mean/variance  -> {TDA arm}/7_Snapshot_Mean_Variance/
+- 23 Protocol B     -> Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/
+- 24 sampling audit -> {process}/6_Sampling_Ratio_Audit/
+- 25 mean/variance  -> Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance/
 - 26 intrinsic dim  -> Statistics/1_Intrinsic_Dimension_Estimation/
-- 27 Algorithm 2    -> {TDA arm}/8_Null_Hypothesis_Algorithm2/
-- 28 revised protocol -> {TDA arm}/9_Revised_Snapshot_Protocol/
+- 27 Algorithm 2    -> {process}/8_Null_Hypothesis_Algorithm2/
+- 28 revised protocol -> {process}/9_Revised_Snapshot_Protocol/
 - Snapshot sample size (13/08/2026) -> 5_Experiments/Snapshot_Sample_Size/
 
 Experiment 1
@@ -144,13 +158,13 @@ Experiment 22 - Visualizing persistence diagrams
 
 
 (NEW EXPERIMENTS — METHODOLOGY & STATISTICS; live bucket paths)
-Early Split TDA Exp 1 (historical Exp 23 / Protocol B) - Early 80/20 split BEFORE PCA/landmarks; independent train and test snapshots; default + tuned ML. Path: 5_Experiments/Early_Split_TDA/1_PH_Default_Parameters/
-Arm Exp 6 (historical Exp 24) - Sampling ratio audit (minority class count, points per snapshot, number of snapshots, reuse ratio, suggested snapshot count)
-Arm Exp 7 (historical Exp 25) - Snapshot mean/variance of barcode statistics; lambda_bar proxy (Chazal / survey 6.3.1)
+Early split + undersample + H0 and H1 Exp 1 (historical Exp 23 / Protocol B) - Early 80/20 split BEFORE PCA/landmarks; independent train and test snapshots; still undersamples inside each split. Path: 5_Experiments/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/
+Arm Exp 6 (historical Exp 24) - Sampling ratio audit (minority class count, points per snapshot, number of snapshots, reuse ratio, suggested snapshot count). Live on all eight processes.
+Arm Exp 7 (historical Exp 25) - Snapshot mean/variance of barcode statistics; lambda_bar proxy (Chazal / survey 6.3.1). Archived under Four_Arm_Nested_Experiments/.
 Statistics Exp 1 (historical Exp 26) - Intrinsic dimension estimation (Two-NN, Levina-Bickel). Path: 5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/
-Arm Exp 8 (historical Exp 27) - Null hypothesis test Algorithm 2 / F_p,q (Robinson & Turner arXiv:1310.7467; barcode-vector proxy)
-Arm Exp 9 (historical Exp 28) - Revised snapshot protocol in all four TDA arms (fixed points per snapshot, default 60 training / 15 test snapshots)
-Snapshot sample size (13/08/2026) - items 1, 2, and 4 under 5_Experiments/Snapshot_Sample_Size/. Item 3 is this study, not a third grid.
+Arm Exp 8 (historical Exp 27) - Null hypothesis test Algorithm 2 / F_p,q (Robinson & Turner arXiv:1310.7467; barcode-vector proxy). Live on all eight processes. Do not quote p=0.005 as universal: early-split + undersample Statlog TEST L30 does not reject.
+Arm Exp 9 (historical Exp 28) - Revised snapshot protocol on all eight processes (fixed points per snapshot, default 60 training / 15 test snapshots). Canonical write-up uses Early_Split_No_Undersample_H0_And_H1.
+Snapshot sample size (13/08/2026) - items 1, 2, and 4 under 5_Experiments/Snapshot_Sample_Size/. Item 3 is this study, not a third grid. Shared pools still use the four legacy protocol keys.
 
 See also:
 - docs/Repository_Layout.md
@@ -168,20 +182,30 @@ Live datasets:
 - Statlog German Credit
 - Default of Credit Card Clients
 
-Protocols (factorial):
-- Historical_Late_Split_Balanced_TDA: comparability-only; explicitly leakage-prone
-- Early_Split_TDA: 80/20 split before fitted preprocessing/PCA/landmarks; still undersamples
-- No_Undersampling: late split, full class pools
-- Early_Split_TDA_And_No_Undersampling: early split, full class pools
+Protocols (factorial, eight live processes):
+- Late_Split_And_Undersample_H0_And_H1: comparability-only; PCA on the full table; explicitly leakage-prone
+- Late_Split_And_Undersample_H0: H0 column slice of the sibling above; no Ripser
+- Early_Split_And_Undersample_H0_And_H1: 80/20 split before fitted preprocessing/PCA/landmarks; still undersamples
+- Early_Split_And_Undersample_H0: H0 column slice of the sibling above; no Ripser
+- Late_Split_No_Undersample_H0_And_H1: late split, full class pools
+- Late_Split_No_Undersample_H0: H0 column slice of the sibling above; no Ripser
+- Early_Split_No_Undersample_H0_And_H1: early split, full class pools
+- Early_Split_No_Undersample_H0: H0 column slice of the sibling above; no Ripser
+
+Seeds (do not collapse these):
+- Tabular baselines (Default_Parameters Exp 1-2): random_state=0
+- Live PH / H0 / Algorithm 2 / Exp 9 dataset scripts: random_state=42
+- Snapshot_Sample_Size customer split and model fit: CUSTOMER_SPLIT_SEED=0, MODEL_RANDOM_STATE=0; PCA_RANDOM_STATE=42
 
 Implemented outputs:
 - Baseline ML (default and tuned) on original features (Default_Parameters)
-- Full H0+H1 barcode-statistic TDA runs (arm Exp 1) and tuned consumers (arm Exp 2)
-- H0-only and correlated-feature ablations (arm Exp 3-4)
-- Linear-regression separability (arm Exp 5)
-- Sampling-ratio audit, snapshot mean/variance, Algorithm 2 (arm Exp 6-8)
+- Full H0 and H1 barcode-statistic TDA runs (process Exp 1) and tuned consumers (process Exp 2)
+- H0-only slices (process Exp 1 on *_H0 folders) and archived correlated-feature ablations (paper 6)
+- Linear-regression separability (paper 10 / archived arm Exp 5)
+- Sampling-ratio audit and Algorithm 2 (process Exp 6 and 8) on all eight processes
+- Snapshot mean/variance archived under Four_Arm_Nested_Experiments/
 - Intrinsic dimension (Statistics Exp 1)
-- Revised snapshot protocol (arm Exp 9)
+- Revised snapshot protocol (process Exp 9) on all eight processes
 - Snapshot sample-size factorial (Snapshot_Sample_Size)
 - Archived Mapper, EDA, PCA sweeps, persistence plots under Archives/
 

@@ -48,16 +48,18 @@ Target from the statistical checklist: reuse ratio near 1 or less.
 ```text
 minority class count = 6630
 points per snapshot  = floor(6630 * 0.05) = 331
-reuse ratio          = (331 * 500) / 6630 ≈ 25.0
-suggested snapshot count = round(6630 / 331) = 20
+reuse ratio          = (331 * 500) / 6630 = 24.962
+suggested snapshot count = ceil(6630 / 331) = 21
 ```
+
+The CSV writes `reuse_ratio=24.962` and `l=21` for the revised rule (`revised_ceil_n_over_t`). Older prose that said 25.0 and 20 was rounding, not the artefact.
 
 ### Results table — both live datasets
 
 | Dataset | Setting | Minority class count | Points per snapshot | Number of snapshots | Reuse ratio | OK? (reuse ≤ 1) |
 |---------|---------|-----:|----:|----:|---------------:|---------------|
-| Credit Card | L5 | 6,630 | 331 | 500 | **25.0** | No |
-| Credit Card | L15 | 6,630 | 994 | 500 | **75.0** | No |
+| Credit Card | L5 | 6,630 | 331 | 500 | **24.962** | No |
+| Credit Card | L15 | 6,630 | 994 | 500 | **74.962** | No |
 | Statlog German | L30 | 300 | 90 | 500 | **150.0** | No |
 | Statlog German | L60 | 300 | 180 | 500 | **300.0** | No |
 
@@ -65,7 +67,7 @@ suggested snapshot count = round(6630 / 331) = 20
 
 | Dataset | Setting | Current number of snapshots | Suggested snapshot count |
 |---------|---------|------------:|-------------------:|
-| Credit Card | L5 / L15 | 500 | **20 / 7** |
+| Credit Card | L5 / L15 | 500 | **21 / 7** |
 | Statlog | L30 / L60 | 500 | **3 / 2** |
 
 None of the historical 500-snapshot rows pass. Arm experiment 9 is the protocol that stops this.
@@ -140,7 +142,9 @@ Levina–Bickel with k=10 came out much smaller than Two-NN on these tables. Tre
 
 Robinson & Turner Algorithm 2 (arXiv:1310.7467) on **24-D barcode vectors** (proxy for full diagram distances). Cap 100 snapshots per class, `B = 200` permutations. Smallest possible p-value is `1/200 = 0.005`.
 
-### Results
+### Results — historical late split + undersample + H0 and H1
+
+These four rows are the `Late_Split_And_Undersample_H0_And_H1` CSVs. They are **not** a claim about every process.
 
 | Dataset | Setting | F_{2,2} p | F_{1,1} p | F_{2,1} p | Verdict |
 |---------|---------|----------:|----------:|----------:|---------|
@@ -149,7 +153,19 @@ Robinson & Turner Algorithm 2 (arXiv:1310.7467) on **24-D barcode vectors** (pro
 | Statlog | L30 | 0.005 | 0.005 | 0.005 | Differ |
 | Statlog | L60 | 0.005 | 0.005 | 0.005 | Differ |
 
-**How to read this with Historical arm experiment 1 models:** both live tables reject “same process” on the barcode-vector proxy. Quote reuse next to F1 (arm experiment 6).
+### Results — early split + undersample + H0 and H1 (do not collapse into the table above)
+
+Source: `6_Results/Early_Split_And_Undersample_H0_And_H1/8_Null_Hypothesis_Algorithm2/Statlog_German_Credit_Data/algorithm2_permutation_results.csv`.
+
+| Library | Setting | F_{2,2} p | F_{1,1} p | F_{2,1} p | Verdict |
+|---------|---------|----------:|----------:|----------:|---------|
+| Statlog TRAIN | L30 | 0.005 | 0.005 | 0.005 | Differ |
+| Statlog **TEST** | **L30** | **0.065** | **0.110** | **0.075** | **Do not reject** |
+| Statlog TRAIN / TEST | L60 | 0.005 | 0.005 | 0.005 | Differ |
+
+On that Statlog TEST L30 library, observed F is almost the null mean. DCCCD early-split + undersample still rejects at 0.005. Early-split + undersample H0 Statlog also has mixed p-values (0.040 / 0.045 / 0.050 on one library). Late no-undersample and early no-undersample CSVs in this tree are all 0.005.
+
+**How to read this with Historical arm experiment 1 models:** the leaky late-split tables reject “same process” on the barcode-vector proxy. Early-split + undersample does **not** always reject. Quote the process folder and the train/test library next to F1 (arm experiment 6).
 
 **Caveat:** distances are on barcode-statistic **vectors**, not bottleneck/Wasserstein on raw diagrams.
 
@@ -162,7 +178,7 @@ Files: `6_Results/Late_Split_And_Undersample_H0_And_H1/8_Null_Hypothesis_Algorit
 1. **500 snapshots is too many** on both tables — reuse ratio is 25×–300×; suggested snapshot counts are 2–20.
 2. **Barcode features are mostly stable**. Larger snapshot-size percents shrink variance and raise reuse.
 3. **Intrinsic dimension (Two-NN after PCA)** is 2.8–4.1 — below 7. Measure it **before and after** PCA; they answer different questions.
-4. **Class clouds differ** on both DCCCD and Statlog. Match that to the Historical Exp 1 F1 numbers instead of averaging tables into one TDA-works claim.
+4. **Class clouds differ on the historical late-split libraries.** Early-split + undersample Statlog TEST L30 does not reject. Match Algorithm 2 to the named process folder instead of averaging tables into one TDA-works claim.
 
 ### Doc fix vs older summary
 

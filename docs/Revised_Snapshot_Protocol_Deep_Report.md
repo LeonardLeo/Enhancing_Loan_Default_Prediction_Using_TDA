@@ -1,7 +1,7 @@
-# Revised snapshot protocol — arm experiment 9 (the four H0-and-H1 process folders)
+# Revised snapshot protocol — process experiment 9 (all eight live processes)
 ## Deep Explanation Report (What / How / Why / Formulas / Calculations)
 
-**Status:** design + ML complete for the canonical arm (early split, no undersample, using both H0 and H1) under `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. The same Exp 9 engine is cloned into the other three TDA arms (`Late_Split_And_Undersample_H0_And_H1`, `Early_Split_And_Undersample_H0_And_H1`, `Late_Split_No_Undersample_H0_And_H1`) with that arm's split/undersample knobs.  
+**Status:** design + ML complete for the canonical process (early split, no undersample, using both H0 and H1) under `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. The same Exp 9 engine is cloned into the other seven live processes with that process's split / undersample / homology knobs. H0 folders consume H0-sliced sibling barcodes; they do not run Ripser.  
 **Canonical code:** `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`  
 **Package for intrinsic dimension:** [scikit-dimension](https://pypi.org/project/scikit-dimension/) (`TwoNN`, `MLE`, `lPCA`, optional `DANCo`).
 

@@ -167,6 +167,10 @@ Experiment_10_data_L60_random_centriod = joblib.load("Archives/10_Covariance_Mat
 
 # =============================================================================
 # Experiment 11 - 11_Dropping_Correlated_Barcode_Statistics_Columns
+# Paper table #6. Scripts live under Archives/Four_Arm_Nested_Experiments/
+# Historical_Late_Split_Balanced_TDA/4_Dropping_... and read barcodes from
+# Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters via
+# utils.resolve_protocol_bucket. They write pickles back to this Archives path.
 # =============================================================================
 # --- Statlog
 Experiment_11_Model_Results_SGCD = load_pkl("Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns/Statlog_German_Credit_Data/model_results.pkl")
@@ -378,6 +382,7 @@ experiment_data = {
 }
 
 dataframe_experiments = build_results_dataframe_v3(experiment_data)
+dataframe_experiments.reset_index().to_csv(PAPER_TABLES / "clean_experiment_results.csv", index=False)
 
 # Convert to latex
 latex_table = dataframe_experiments.to_latex(

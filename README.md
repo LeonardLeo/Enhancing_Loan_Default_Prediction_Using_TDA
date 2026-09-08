@@ -68,7 +68,7 @@ The experiments systematically address:
 |-------|----------|
 | **Baseline comparison** | How do default vs. tuned ML models perform on original features? (Exp 1–2) |
 | **TDA value** | Do barcode statistics match or exceed baseline performance? (Exp 3–4) |
-| **Homology choice** | Does restricting to H₀-only barcodes hurt performance? (Exp 6) |
+| **Homology choice** | Does restricting to H₀-only barcodes hurt performance? (paper Exp 5 = `Late_Split_And_Undersample_H0/1_PH_Default_Parameters`) |
 | **Feature redundancy** | Can dropping correlated barcode columns improve models? (Exp 11) |
 | **Fair comparison** | When sample sizes or PCA variance are matched across datasets, do conclusions hold? (Exp 12–13) |
 | **Class imbalance** | How do models behave under imbalanced landmark sampling? (Exp 14) |
@@ -113,19 +113,21 @@ Processed tables (`processed_data.xlsx`) live under `1_Data/Processed_Datasets/{
 3. **Feature selection** — `SelectFpr` (ANOVA F-test).
 4. **Resampling** — ADASYN on the training set.
 5. **Scaling** — `MinMaxScaler`.
-6. **Split** — 80/20 stratified train/test (`random_state=0`).
+6. **Split** — 80/20 stratified train/test (`random_state=0` on these baseline scripts only).
 7. **Modeling** — five classifiers with default (Exp 1) or GridSearchCV-tuned (Exp 2) hyperparameters.
+
+Live TDA dataset scripts use `random_state=42` for PCA, undersampling, and the barcode-row or customer split. The snapshot-sample-size study is a third seed contract: `CUSTOMER_SPLIT_SEED = 0`, `MODEL_RANDOM_STATE = 0`, `PCA_RANDOM_STATE = 42` in `utils.py`.
 
 ### TDA pipeline (Experiments 3+)
 
 1. Load `processed_data.xlsx`.
-2. **Normalize** with `MinMaxScaler`, then **PCA** (dataset-specific component count).
-3. **Split by class** and balance by undersampling the majority class.
-4. **`generate_landmark_sets()`** — for each class and landmark percentage, draw `n_files` random landmark subsets and save CSVs to `1_Data/Landmark_Sets/`.
-5. **`compute_barcodes_from_multiple_landmarks()`** — run **Ripser** on each landmark set; compute persistence diagrams.
+2. **Normalize** with `MinMaxScaler`, then **PCA** (dataset-specific component count). Late-split processes fit on the full table. Early-split processes split customers first (`random_state=42`) and fit scaler/PCA on train only.
+3. **Split by class.** Undersample processes balance the majority to the minority count *inside that process's pool*. No-undersample processes keep the full class pools.
+4. **`generate_landmark_sets()`** — for each class and landmark percentage, draw `n_files` random landmark subsets and save CSVs to `1_Data/Landmark_Sets/`. Only the four `*_H0_And_H1` Exp 1 (and Exp 9) folders do this.
+5. **`compute_barcodes_from_multiple_landmarks()`** — run **Ripser** on each landmark set; compute persistence diagrams. H0 processes do **not** run Ripser; they slice `*_0` / `(Dim 0)` columns from the sibling H0-and-H1 table.
 6. **`compute_barcode_statistics()`** — summarize each diagram into 12 statistics (mean/median/std of birth, death, persistence, gap-to-max-death).
 7. **`build_final_barcode_statistics_data()`** — merge class-wise barcode CSVs into `data_L{percent}.csv` in `1_Data/TDA_Datasets/`.
-8. **Train classifiers** on barcode features; store metrics in `6_Results/{Bucket}/{Experiment}/{Dataset}/`.
+8. **Train classifiers** on barcode features (`random_state=42`); store metrics in `6_Results/{Bucket}/{Experiment}/{Dataset}/`.
 
 ### Barcode feature columns
 
@@ -182,7 +184,7 @@ These ten folder-level experiments are aggregated by `6_Results/results.py` as *
 | 2 | `Default_Parameters/2_ML_Tuned_Parameters` | ML baseline (tuned) | GridSearchCV on original features | Both |
 | 3 | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | TDA and ML (default params) | Full PH pipeline → classifiers with default params | Both |
 | 4 | `Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters` | TDA and ML (tuned) | Consumes Exp 3 barcodes → GridSearchCV | Both |
-| 5 | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` | H0-only barcodes | Same as Exp 3 but H0 columns only | Both |
+| 5 | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` | H0-only barcodes | Slices H0 columns from paper Exp 3 tables; does **not** run Ripser | Both |
 | 6 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | Both |
 | 7 | `Archives/12_Equivalent_Sample_Size_For_Each_Dataset` | Matched sample size | DCCCD landmarks at **1.36% / 2.71%** to match SGCD L30/L60 counts | DCCCD only |
 | 8 | `Archives/13_Similar_Variance_Retained_After_PCA` | Matched PCA variance | DCCCD with **5 PCA components** (~89% variance, matching SGCD) | DCCCD only |
@@ -216,15 +218,15 @@ These address **train/test leakage** and the statistical checklist from the team
 
 | Historical # | Live folder | Purpose | Status |
 |---|--------|---------|--------|
-| 23 | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | DCCCD + Statlog reused; other four need Ripser |
-| 24 | `{H0-and-H1 process}/6_Sampling_Ratio_Audit` | Audit class counts, points per snapshot, number of snapshots, and the reuse ratio | **Ran** on the historical late-split-and-undersample process — reuse ≫ 1 with 500 snapshots |
+| 23 | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | **Ran** on both live datasets. Chance-level hold-out. This is *not* the no-undersample early-split process. |
+| 24 | `{process}/6_Sampling_Ratio_Audit` | Audit class counts, points per snapshot, number of snapshots, and the reuse ratio | **Ran** on all eight processes. Historical 500-snapshot reuse is 24.962× (DCCCD L5), not an integer 25. Suggested snapshot count is 21, not 20. |
 | 25 | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; landscape-mean proxy | Archived nested extra |
 | 26 | `Statistics/1_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for intrinsic dimension | **Ran** (protocol-independent) |
-| 27 | `{process}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on the historical process — p≈0.005 |
-| 28 | `{H0-and-H1 process}/9_Revised_Snapshot_Protocol` | Fixed points per snapshot, default 60 training snapshots / 15 test snapshots, reuse/overlap | Canonical early-split, no undersample, using both H0 and H1 |
+| 27 | `{process}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on all eight processes. Late-split and DCCCD reject at p=0.005. Early-split + undersample Statlog **TEST L30** does not (p=0.065 / 0.110 / 0.075). |
+| 28 | `{process}/9_Revised_Snapshot_Protocol` | Fixed points per snapshot, default 60 training snapshots / 15 test snapshots, reuse/overlap | Live on all eight processes. Canonical write-up: `Early_Split_No_Undersample_H0_And_H1` |
 | — | `Snapshot_Sample_Size/` | Dated 13/08/2026. Items 1, 2, and 4 (item 3 is this study, not a third grid) | Queue: `6_Results/Run_Queue/_snapshot_sample_size_queue.py`. Narrative: `5_Experiments/Snapshot_Sample_Size/README.md` |
 
-Active TDA set inside every arm is 1–9. Tabular Experiment 2 stays under `Default_Parameters/`. Arm experiment 9 is **not** archived.
+Active TDA set inside every process is `utils.ACTIVE_TDA_EXPERIMENT_NAMES` (1, 2, 6, 8, 9). Nested extras 3–5 and 7 are archived. Tabular Experiment 2 stays under `Default_Parameters/`. Process experiment 9 is **not** archived.
 
 Details: `docs/Pipeline_Issues_And_Leakage.md`, `docs/Statistical_Experiments_24_27_Results.md`, `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
@@ -330,7 +332,7 @@ Most ML/TDA experiments on Default of Credit Card Client and Statlog have a `*_C
 
 ### Visualization
 
-Every active experiment folder (`Default_Parameters` Exp 1–2, all four TDA arms Exp 1–9, and `Statistics/1_Intrinsic_Dimension_Estimation`) has `visualize_results.py` at the experiment root. Run that script; figures land only in `6_Results/{Bucket}/{Experiment}/Visualizations/`. Pickle/CSV experiments write per-dataset test dashboards and cross-dataset metric facets (plus CV figures when `CV_results.pkl` exists). Exp 6–9 and intrinsic dimension plot their CSV/JSON artefacts. The catalog is in `6_Results/README.md`. If artefacts are missing, the script exits with `results not generated yet` and the expected path.
+Every active experiment folder (`Default_Parameters` Exp 1–2, all eight TDA processes Exp 1 / 2 / 6 / 8 / 9, and `Statistics/1_Intrinsic_Dimension_Estimation`) has `visualize_results.py` at the experiment root. Run that script; figures land only in `6_Results/{Bucket}/{Experiment}/Visualizations/`. Pickle/CSV experiments write per-dataset test dashboards and cross-dataset metric facets (plus CV figures when `CV_results.pkl` exists). Exp 6–9 and intrinsic dimension plot their CSV/JSON artefacts. The catalog is in `6_Results/README.md`. If artefacts are missing, the script exits with `results not generated yet` and the expected path.
 
 ### Regenerating all paper tables
 
@@ -353,7 +355,7 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 
 | Location | Contents |
 |----------|----------|
-| `6_Results/Paper_Tables/clean_experiment_results.csv` | Flat summary of key experiment metrics |
+| `6_Results/Paper_Tables/clean_experiment_results.csv` | Flat dump of paper Experiments 1–10 written by `results.py` (not a leftover 11a/11b scratch file) |
 | `6_Results/Paper_Tables/*.tex` | LaTeX tables for the VGTC paper template |
 | `6_Results/{Bucket}/{Experiment}/` | Per-experiment pickles, plots, Mapper HTML, GIFs |
 | `6_Results/Run_Queue/` | Ripser/consumer queue scripts, logs, and run registries |

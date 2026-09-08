@@ -1,8 +1,8 @@
-# Early Split TDA Experiment 1 (Protocol B) — hold-out results
+# Early split and undersample, using both H0 and H1 — Experiment 1 (Protocol B)
 
-**Former title:** Experiment 23 Results. The live folder is **not** `5_Experiments/23_Early_…`. Code, barcodes, and metrics live under Early Split TDA experiment 1.
+**Former title:** Experiment 23 Results. The live folder is **not** `5_Experiments/23_Early_…` and is **not** a generic “early split” dump. These numbers are only `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters`. The no-undersample early-split process is a different experiment (DCCCD L15 XGB accuracy 0.911 / F1 0.918 in that pickle).
 
-**Protocol:** 80/20 stratified split on processed tabular data → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes. Majority undersampling still happens independently inside each split.
+**Protocol:** 80/20 stratified split on processed tabular data (`random_state=42`) → PCA fit on train only → independent train/test landmarks and barcodes → train on train barcodes, evaluate on test barcodes. Majority undersampling still happens independently inside each split.
 
 **Code / results:**
 
@@ -11,7 +11,7 @@
 - Barcodes: `1_Data/TDA_Datasets/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/{Dataset}/`
 - Method write-up: `5_Experiments/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/REPORT.md`
 
-The two live datasets use the same namespaced trees. Fixed-points-per-snapshot redesign (both datasets, all four arms): arm experiment 9 and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
+The two live datasets use the same namespaced trees. Fixed-points-per-snapshot redesign: process experiment 9 on all eight processes; canonical write-up `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 ---
 
@@ -65,8 +65,8 @@ The two live datasets use the same namespaced trees. Fixed-points-per-snapshot r
 ## Notes
 
 - Most Statlog models sit near 0.50 accuracy with recall ≈ 1.0 (predicting the positive class).
-- This differs sharply from older full-data (leaky) barcode experiments and is an important early-split finding.
-- Registry clean-protocol TDA metrics for the four additional datasets are stored as `tda_results.csv` under each Early Split TDA Exp 1 dataset folder.
-- For the meeting-driven fixed points-per-snapshot redesign across both datasets, see arm experiment 9 in every TDA bucket and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
+- This is the undersampled early-split finding. It is not true of `Early_Split_No_Undersample_H0_And_H1` (XGB on DCCCD L15 is not chance).
+- Only two live datasets exist in this tree. There is no `tda_results.csv` for four extra UCI tables here.
+- For the meeting-driven fixed points-per-snapshot redesign, see process experiment 9 and `docs/Revised_Snapshot_Protocol_Deep_Report.md`.
 
 Artefacts: `6_Results/Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`

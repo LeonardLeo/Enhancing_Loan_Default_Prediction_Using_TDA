@@ -30,6 +30,19 @@ Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `ut
 
 Tuned models, the sampling-ratio audit, and Algorithm 2 read this process's experiment-1 matrices. They must not start 500 Ripser jobs.
 
+## Hold-out numbers that contradict a universal p = 0.005 claim
+
+`algorithm2_permutation_results.csv` on this process. Smallest possible p-value with B = 200 is 0.005.
+
+| Dataset | Library | Setting | F₂,₂ p | F₁,₁ p | F₂,₁ p |
+|---------|---------|---------|-------:|-------:|-------:|
+| DCCCD | train / test | L5 / L15 | 0.005 | 0.005 | 0.005 |
+| Statlog | TRAIN | L30 / L60 | 0.005 | 0.005 | 0.005 |
+| Statlog | TEST | L30 | **0.065** | **0.110** | **0.075** |
+| Statlog | TEST | L60 | 0.005 | 0.005 | 0.005 |
+
+Statlog TEST L30 observed F is almost the null mean. Do not quote “Algorithm 2 p = 0.005 everywhere.”
+
 ## Where to read the method
 
 Open the named dataset script in each dataset folder (for example `Default_Of_Credit_Card_Client_Data/default_of_credit_cards_client_PH.py`). That file shows the pipeline in order, with comments at each stage. Open the named dataset script in the dataset folder.

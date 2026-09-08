@@ -34,7 +34,7 @@ Exp. & Desc. & Sampling & Model &  &  &  &  \\
  &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
  &  &  & XGB & 0.990 & 1.000 & 0.980 & 0.990 \\
  &  &  & LOGISTIC & 0.990 & 1.000 & 0.980 & 0.990 \\
- &  &  & RANDOM\_FOREST & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  &  & RANDOM\_FOREST & 0.980 & 1.000 & 0.960 & 0.980 \\
 \cline{3-8}
  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
@@ -46,7 +46,7 @@ Exp. & Desc. & Sampling & Model &  &  &  &  \\
  &  &  & KNN & 0.980 & 0.990 & 0.970 & 0.980 \\
  &  &  & XGB & 0.980 & 1.000 & 0.960 & 0.980 \\
  &  &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
- &  &  & RANDOM\_FOREST & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  & RANDOM\_FOREST & 0.990 & 1.000 & 0.980 & 0.990 \\
 \cline{3-8}
  &  & \multirow[t]{5}{*}{L15} & SVM & 1.000 & 1.000 & 1.000 & 1.000 \\
  &  &  & KNN & 1.000 & 1.000 & 1.000 & 1.000 \\
@@ -54,16 +54,16 @@ Exp. & Desc. & Sampling & Model &  &  &  &  \\
  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
 \cline{1-8} \cline{2-8} \cline{3-8}
-\multirow[t]{10}{*}{Experiment 6} & \multirow[t]{10}{*}{Dropping correlated barcode statistics columns before evaluating model performance} & \multirow[t]{5}{*}{L5} & SVM & 0.990 & 1.000 & 0.980 & 0.990 \\
- &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
- &  &  & XGB & 0.985 & 1.000 & 0.970 & 0.985 \\
- &  &  & LOGISTIC & 0.985 & 1.000 & 0.970 & 0.985 \\
- &  &  & RANDOM\_FOREST & 0.985 & 1.000 & 0.970 & 0.985 \\
+\multirow[t]{10}{*}{Experiment 6} & \multirow[t]{10}{*}{Dropping correlated barcode statistics columns before evaluating model performance} & \multirow[t]{5}{*}{L5} & SVM & 0.850 & 0.938 & 0.750 & 0.833 \\
+ &  &  & KNN & 0.975 & 0.970 & 0.980 & 0.975 \\
+ &  &  & XGB & 0.970 & 0.943 & 1.000 & 0.971 \\
+ &  &  & LOGISTIC & 0.900 & 0.917 & 0.880 & 0.898 \\
+ &  &  & RANDOM\_FOREST & 0.975 & 0.952 & 1.000 & 0.976 \\
 \cline{3-8}
- &  & \multirow[t]{5}{*}{L15} & SVM & 0.995 & 1.000 & 0.990 & 0.995 \\
- &  &  & KNN & 0.990 & 1.000 & 0.980 & 0.990 \\
+ &  & \multirow[t]{5}{*}{L15} & SVM & 0.730 & 0.811 & 0.600 & 0.690 \\
+ &  &  & KNN & 0.985 & 1.000 & 0.970 & 0.985 \\
  &  &  & XGB & 1.000 & 1.000 & 1.000 & 1.000 \\
- &  &  & LOGISTIC & 0.980 & 0.990 & 0.970 & 0.980 \\
+ &  &  & LOGISTIC & 0.830 & 0.800 & 0.880 & 0.838 \\
  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
 \cline{1-8} \cline{2-8} \cline{3-8}
 \multirow[t]{10}{*}{Experiment 7} & \multirow[t]{10}{*}{Evaluating equivalent sample sizes for datasets (Setting the Default of Credit Card Client Dataset to same sampling size as Statlog's L30 and L60.} & \multirow[t]{5}{*}{L1.36} & SVM & 0.855 & 0.845 & 0.870 & 0.857 \\
@@ -102,9 +102,9 @@ Exp. & Desc. & Sampling & Model &  &  &  &  \\
  &  &  & LOGISTIC & 1.000 & 1.000 & 1.000 & 1.000 \\
  &  &  & RANDOM\_FOREST & 1.000 & 1.000 & 1.000 & 1.000 \\
 \cline{1-8} \cline{2-8} \cline{3-8}
-\multirow[t]{2}{*}{Experiment 10} & \multirow[t]{2}{*}{Linear regression for binary prediction to understand if a straight line can easily seperate classes} & L5 & LINEAR & 0.990 & 1.000 & 0.980 & 0.990 \\
+\multirow[t]{2}{*}{Experiment 10} & \multirow[t]{2}{*}{Linear regression for binary prediction to understand if a straight line can easily seperate classes} & L5 & LINEAR\_REGRESSION & 0.985 & 0.971 & 1.000 & 0.985 \\
 \cline{3-8}
- &  & L15 & LINEAR & 1.000 & 1.000 & 1.000 & 1.000 \\
+ &  & L15 & LINEAR\_REGRESSION & 1.000 & 1.000 & 1.000 & 1.000 \\
 \cline{1-8} \cline{2-8} \cline{3-8}
 \bottomrule
 \end{tabular}
