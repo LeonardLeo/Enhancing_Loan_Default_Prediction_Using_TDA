@@ -547,22 +547,69 @@ def _finish_single_chart(fig: go.Figure, fig_id: str, *, y_title: str, x_title: 
     )
 
 
-def plot_tabular(rows: list[dict]) -> str:
-    fig = go.Figure()
+def _bar_text(values, *, digits: int = 2) -> list[str]:
+    labels = []
+    for value in values:
+        if is_missing(value):
+            labels.append("")
+        else:
+            labels.append(f"{float(value):.{digits}f}")
+    return labels
+
+
+def _axis_max(series_list, *, floor: float = 0.0, pad: float = 0.14) -> float:
+    peak = floor
+    for series in series_list:
+        for value in series:
+            if not is_missing(value):
+                peak = max(peak, float(value))
+    return peak + pad
+
+
+def add_labeled_bar(
+    fig: go.Figure,
+    *,
+    x: list,
+    y: list,
+    name: str,
+    color: str,
+    hovertemplate: str,
+    digits: int = 2,
+    text_size: int = 11,
+) -> None:
     fig.add_bar(
+        name=name,
+        x=x,
+        y=y,
+        marker_color=color,
+        text=_bar_text(y, digits=digits),
+        textposition="outside",
+        textfont=dict(size=text_size, color=INK),
+        cliponaxis=False,
+        constraintext="none",
+        insidetextanchor="end",
+        hovertemplate=hovertemplate,
+    )
+
+
+def plot_tabular(rows: list[dict]) -> str:
+    y = [metric_lookup(rows, "Original features", m, "f1") for m in MODELS]
+    fig = go.Figure()
+    add_labeled_bar(
+        fig,
         x=[MODEL_LABEL[m] for m in MODELS],
-        y=[metric_lookup(rows, "Original features", m, "f1") for m in MODELS],
-        marker_color=NAVY,
+        y=y,
         name="F1",
+        color=NAVY,
         hovertemplate="%{x}<br>F1=%{y:.3f}<extra></extra>",
     )
-    fig.update_layout(yaxis_title="F1", yaxis=dict(range=[0, 1.05]), bargap=0.35)
+    fig.update_layout(yaxis_title="F1", yaxis=dict(range=[0, _axis_max([y], floor=1.0)]), bargap=0.35)
     return fig_html(
         fig,
         "fig-tabular-f1",
         title="Tabular baseline F1 by model (library-default classifiers)",
         showlegend=False,
-        height=420,
+        height=440,
         margin=dict(l=72, r=36, t=88, b=64),
     )
 
@@ -576,15 +623,19 @@ def plot_process_f1(rows: list[dict], fig_id: str, heading: str) -> str:
     colors = {"L5": NAVY, "L15": STEEL}
     fig = go.Figure()
     legend_items = []
+    series = []
     for setting in settings:
         color = colors.get(setting, NAVY)
         label = "L5 (5% of class)" if setting == "L5" else "L15 (15% of class)" if setting == "L15" else setting
         legend_items.append((label, color))
-        fig.add_bar(
-            name=label,
+        y = [metric_lookup(rows, setting, m, "f1") for m in MODELS]
+        series.append(y)
+        add_labeled_bar(
+            fig,
             x=[MODEL_LABEL[m] for m in MODELS],
-            y=[metric_lookup(rows, setting, m, "f1") for m in MODELS],
-            marker_color=color,
+            y=y,
+            name=label,
+            color=color,
             hovertemplate=f"%{{x}}<br>{esc(label)} F1=%{{y:.3f}}<extra></extra>",
         )
     fig.update_layout(
@@ -592,14 +643,14 @@ def plot_process_f1(rows: list[dict], fig_id: str, heading: str) -> str:
         bargap=0.28,
         bargroupgap=0.08,
         yaxis_title="F1",
-        yaxis=dict(range=[0, 1.08]),
+        yaxis=dict(range=[0, _axis_max(series, floor=1.0)]),
     )
     return html_swatch_legend(legend_items) + fig_html(
         fig,
         fig_id,
         title=heading,
         showlegend=False,
-        height=440,
+        height=460,
         margin=dict(l=72, r=36, t=84, b=64),
     )
 
@@ -696,9 +747,30 @@ def plot_id(bundle: dict) -> str:
         before[2] = row.get("skdim_TwoNN_before_pca")
         after[2] = row.get("skdim_TwoNN_after_pca")
     fig = go.Figure()
-    fig.add_bar(name="Before PCA", x=labels, y=before, marker_color=NAVY)
-    fig.add_bar(name="After Exp 3 PCA (7 components)", x=labels, y=after, marker_color=STEEL)
-    fig.update_layout(barmode="group", bargap=0.28, bargroupgap=0.08)
+    add_labeled_bar(
+        fig,
+        x=labels,
+        y=before,
+        name="Before PCA",
+        color=NAVY,
+        hovertemplate="%{x}<br>Before PCA=%{y:.3f}<extra></extra>",
+        digits=2,
+    )
+    add_labeled_bar(
+        fig,
+        x=labels,
+        y=after,
+        name="After Exp 3 PCA (7 components)",
+        color=STEEL,
+        hovertemplate="%{x}<br>After Exp 3 PCA=%{y:.3f}<extra></extra>",
+        digits=2,
+    )
+    fig.update_layout(
+        barmode="group",
+        bargap=0.28,
+        bargroupgap=0.08,
+        yaxis=dict(range=[0, _axis_max([before, after], floor=0.0, pad=0.35)]),
+    )
     legend = html_swatch_legend(
         [("Before PCA", NAVY), ("After Exp 3 PCA (7 components)", STEEL)]
     )
@@ -708,7 +780,7 @@ def plot_id(bundle: dict) -> str:
         title="Intrinsic dimension before PCA and after the Exp 3 PCA",
         yaxis_title="Estimated intrinsic dimension",
         showlegend=False,
-        height=440,
+        height=460,
         margin=dict(l=72, r=36, t=84, b=64),
     )
 
@@ -1207,30 +1279,35 @@ def plot_revised_process_f1(frame: pd.DataFrame, fig_id: str, heading: str) -> s
     t_colors = {29: NAVY, 58: STEEL, 88: GOLD}
     fig = go.Figure()
     legend_items = []
+    series = []
     for t_pts in t_values:
         color = t_colors.get(t_pts, _cloud_color(t_pts))
         label = f"{t_pts} points per snapshot"
         legend_items.append((label, color))
-        fig.add_bar(
-            name=label,
+        y = [_revised_f1(frame, m, t_pts) for m in MODELS]
+        series.append(y)
+        add_labeled_bar(
+            fig,
             x=[MODEL_LABEL[m] for m in MODELS],
-            y=[_revised_f1(frame, m, t_pts) for m in MODELS],
-            marker_color=color,
+            y=y,
+            name=label,
+            color=color,
             hovertemplate=f"%{{x}}<br>{esc(label)} F1=%{{y:.3f}}<extra></extra>",
+            text_size=10 if len(t_values) >= 3 else 11,
         )
     fig.update_layout(
         barmode="group",
         bargap=0.28,
         bargroupgap=0.08,
         yaxis_title="F1",
-        yaxis=dict(range=[0, 1.08]),
+        yaxis=dict(range=[0, _axis_max(series, floor=1.0)]),
     )
     return html_swatch_legend(legend_items) + fig_html(
         fig,
         fig_id,
         title=heading,
         showlegend=False,
-        height=440,
+        height=480,
         margin=dict(l=72, r=36, t=84, b=64),
     )
 
