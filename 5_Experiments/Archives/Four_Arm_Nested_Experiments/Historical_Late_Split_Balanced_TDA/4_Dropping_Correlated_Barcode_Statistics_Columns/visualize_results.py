@@ -15,7 +15,12 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 
-ROOT = Path(__file__).resolve().parents[3]
+_here = Path(__file__).resolve().parent
+ROOT = _here
+for _ in range(8):
+    if (ROOT / "utils.py").is_file():
+        break
+    ROOT = ROOT.parent
 sys.path.insert(0, str(ROOT))
 
 from utils import ResultsNotGeneratedError, visualize_experiment_folder

@@ -24,13 +24,13 @@ H0H1_EXPERIMENTS = (
     "1_PH_Default_Parameters",
     "2_PH_Tuned_Parameters",
     "6_Sampling_Ratio_Audit",
-    "8_Null_Hypothesis_Algorithm2",
+    "8_Permutation_Test_Of_Class_Difference",
 )
 H0_EXPERIMENTS = (
     "1_PH_Default_Parameters",
     "2_PH_Tuned_Parameters",
     "6_Sampling_Ratio_Audit",
-    "8_Null_Hypothesis_Algorithm2",
+    "8_Permutation_Test_Of_Class_Difference",
     "9_Revised_Snapshot_Protocol",
 )
 DATASETS = (
@@ -49,13 +49,13 @@ H0H1_SUFFIX = {
     "1_PH_Default_Parameters": "_PH.py",
     "2_PH_Tuned_Parameters": "_PH_tuned.py",
     "6_Sampling_Ratio_Audit": "_audit.py",
-    "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+    "8_Permutation_Test_Of_Class_Difference": "_algorithm2.py",
 }
 H0_SUFFIX = {
     "1_PH_Default_Parameters": "_H0_only.py",
     "2_PH_Tuned_Parameters": "_PH_tuned.py",
     "6_Sampling_Ratio_Audit": "_audit.py",
-    "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+    "8_Permutation_Test_Of_Class_Difference": "_algorithm2.py",
     "9_Revised_Snapshot_Protocol": "_protocol.py",
 }
 PROTOCOL_SCRIPTS = {
@@ -66,7 +66,7 @@ PICKLES = {
     "1_PH_Default_Parameters": "model_results.pkl",
     "2_PH_Tuned_Parameters": "model_results.pkl",
     "6_Sampling_Ratio_Audit": "sampling_ratio_audit.csv",
-    "8_Null_Hypothesis_Algorithm2": "algorithm2_permutation_results.pkl",
+    "8_Permutation_Test_Of_Class_Difference": "permutation_test_results.pkl",
     "9_Revised_Snapshot_Protocol": "ml_results.csv",
 }
 

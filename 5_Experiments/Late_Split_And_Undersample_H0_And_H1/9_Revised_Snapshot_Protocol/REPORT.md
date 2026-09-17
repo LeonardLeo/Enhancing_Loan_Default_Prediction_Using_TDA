@@ -1,5 +1,6 @@
 # Late_Split_And_Undersample_H0_And_H1 — Experiment 9 (revised snapshot protocol)
 
+Random-state contract: early-split arms use customer-split seed 42; PCA uses random state 42; training snapshots use seed 42 and held-out snapshots use seed 43. Late-split arms have no customer split but retain the PCA and snapshot seeds.
 This is process experiment 9 in **Late split and undersample (the original historical run), using both H0 and H1** (full-table PCA, undersample, then a late barcode-row split). The same engine exists on all eight live processes. The meeting-driven write-up that originally used the label Experiment 28 lives at `docs/Revised_Snapshot_Protocol_Deep_Report.md`. There is no live top-level `28_Revised_…` folder.
 
 ## In one sentence

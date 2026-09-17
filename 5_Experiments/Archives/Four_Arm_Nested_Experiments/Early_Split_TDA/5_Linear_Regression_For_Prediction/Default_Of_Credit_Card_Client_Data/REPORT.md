@@ -15,7 +15,7 @@ CONSUMER. Linear regression on the H0 slice of experiment 1.
 Run:
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/Early_Split_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/run.py
+.\tda_env\Scripts\python.exe 5_Experiments/Archives/Four_Arm_Nested_Experiments/Early_Split_TDA/5_Linear_Regression_For_Prediction/Default_Of_Credit_Card_Client_Data/run.py
 ```
 
 ## Where to read the method

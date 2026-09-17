@@ -80,25 +80,24 @@ Exploratory experiments (Mapper, PCA/t-SNE/UMAP visualizations, KNN sweeps, cova
 
 ## Datasets
 
-Two public UCI tables share mirrored folder names across `1_Data/`, `5_Experiments/`, and `6_Results/`:
+The live experimental grid uses one public UCI table, mirrored across `1_Data/`, `5_Experiments/`, and `6_Results/`:
 
 | Dataset | Folder | Raw source | Default target | Snapshot size as percent of the class | Why those percents |
 |---------|--------|------------|----------------|----------------------------------------|--------------------|
 | **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **5%**, **15%** | Original paper. Minority class count = 6630, so 5% is already 331 points per snapshot. |
-| **Statlog German Credit** (SGCD) | `Statlog_German_Credit_Data/` | `german.data-numeric` | Class label (mapped to binary) | **30%**, **60%** | Original paper. Minority class count = 300, so large percents are required for a usable cloud. |
 
-Why the percents differ: `docs/Design_Decisions.md`. See `docs/Notation.md` for the symbol mapping used in the methods literature.
+Why those percents: `docs/Design_Decisions.md`. See `docs/Notation.md` for the symbol mapping used in the methods literature.
 
 Raw files live under `1_Data/Datasets/{Folder}/`.
 
 ### Dataset-specific preprocessing defaults
 
-| Setting | DCCCD | SGCD |
-|---------|-------|------|
-| PCA components in Exp 3 | 7 (~94% variance) | 15 (~89% variance) |
-| Landmark files per percentage | 500 (balanced across classes) | 500 |
-| Homology dimensions | H₀ + H₁ (`dim=2`) unless noted | H₀ + H₁ |
-| Class balancing (TDA stage) | Undersample majority to minority count | Same |
+| Setting | DCCCD |
+|---------|-------|
+| PCA components in Exp 3 | 7 (~94% variance) |
+| Landmark files per percentage | 500 (balanced across classes) |
+| Homology dimensions | H₀ + H₁ (`dim=2`) unless noted |
+| Class balancing (TDA stage) | Undersample majority to minority count |
 
 Processed tables (`processed_data.xlsx`) live under `1_Data/Processed_Datasets/{Folder}/` and are consumed by later experiments.
 
@@ -180,16 +179,16 @@ These ten folder-level experiments are aggregated by `6_Results/results.py` as *
 
 | Paper # | Folder | Name | Description | Datasets |
 |---------|--------|------|-------------|----------|
-| 1 | `Default_Parameters/1_ML_Default_Parameters` | ML baseline (default params) | Classifiers on **original** features, default hyperparameters | Both |
-| 2 | `Default_Parameters/2_ML_Tuned_Parameters` | ML baseline (tuned) | GridSearchCV on original features | Both |
-| 3 | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | TDA and ML (default params) | Full PH pipeline → classifiers with default params | Both |
-| 4 | `Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters` | TDA and ML (tuned) | Consumes Exp 3 barcodes → GridSearchCV | Both |
-| 5 | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` | H0-only barcodes | Slices H0 columns from paper Exp 3 tables; does **not** run Ripser | Both |
-| 6 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | Both |
-| 7 | `Archives/12_Equivalent_Sample_Size_For_Each_Dataset` | Matched sample size | DCCCD landmarks at **1.36% / 2.71%** to match SGCD L30/L60 counts | DCCCD only |
-| 8 | `Archives/13_Similar_Variance_Retained_After_PCA` | Matched PCA variance | DCCCD with **5 PCA components** (~89% variance, matching SGCD) | DCCCD only |
-| 9 | `Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets` | Imbalanced landmarks | 200 default vs. 800 non-default landmark files per class | Both |
-| 10 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | Both |
+| 1 | `Default_Parameters/1_ML_Default_Parameters` | ML baseline (default params) | Classifiers on **original** features, default hyperparameters | DCCCD |
+| 2 | `Default_Parameters/2_ML_Tuned_Parameters` | ML baseline (tuned) | GridSearchCV on original features | DCCCD |
+| 3 | `Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | TDA and ML (default params) | Full PH pipeline → classifiers with default params | DCCCD |
+| 4 | `Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters` | TDA and ML (tuned) | Consumes Exp 3 barcodes → GridSearchCV | DCCCD |
+| 5 | `Late_Split_And_Undersample_H0/1_PH_Default_Parameters` | H0-only barcodes | Slices H0 columns from paper Exp 3 tables; does **not** run Ripser | DCCCD |
+| 6 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/4_Dropping_Correlated_Barcode_Statistics_Columns` | Correlation filtering | Drop correlated barcode columns (threshold 0.80) before training | DCCCD |
+| 7 | `Archives/12_Equivalent_Sample_Size_For_Each_Dataset` | Matched sample size | DCCCD landmarks at **1.36% / 2.71%** (historical size-matching arm) | DCCCD |
+| 8 | `Archives/13_Similar_Variance_Retained_After_PCA` | Matched PCA variance | DCCCD with **5 PCA components** (~89% variance) | DCCCD |
+| 9 | `Archives/14_Mixed_Classes_Training_With_Imbalanced_Datasets` | Imbalanced landmarks | 200 default vs. 800 non-default landmark files per class | DCCCD |
+| 10 | `Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/5_Linear_Regression_For_Prediction` | Linear separability | `LinearRegression` + 0.5 threshold instead of classifiers | DCCCD |
 
 > **Note:** Paper experiment numbers in `6_Results/results.py` differ from historical folder numbers for experiments 5–10. `results.py` re-labels them sequentially for LaTeX tables written to `6_Results/Paper_Tables/`.
 
@@ -205,7 +204,6 @@ These ten folder-level experiments are aggregated by `6_Results/results.py` as *
 | `Archives/15_Working_With_K_in_KNN` | KNN elbow curve for k = 1…20 on barcode features |
 | `Archives/16_Variance_Retained_for_Default_of_Credit_Card_Client_Dataset` | PCA component sweep on DCCCD |
 | `Archives/17_Distribution_For_Each_Class` | PCA, t-SNE, UMAP class separability plots (2D/3D, animated) |
-| `Archives/18_Variance_Retained_for_Statlog_German_Credit_Dataset` | PCA component sweep on SGCD |
 | `Archives/20_Deep_Learning_For_Prediction` | **Placeholder** — not implemented (see [Known Issues](#known-issues)) |
 | `Archives/21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA` | Kepler Mapper on barcode statistics |
 | `Archives/22_Visualizing_Persistence_Diagrams` | Persistence diagram plots per class (Ripser + persim) |
@@ -218,11 +216,11 @@ These address **train/test leakage** and the statistical checklist from the team
 
 | Historical # | Live folder | Purpose | Status |
 |---|--------|---------|--------|
-| 23 | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | **Ran** on both live datasets. Chance-level hold-out. This is *not* the no-undersample early-split process. |
+| 23 | `Early_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters` | Stratified 80/20 **before** PCA/landmarks; still undersample inside each split | **Ran** on Default of Credit Card Client. Chance-level hold-out. This is *not* the no-undersample early-split process. |
 | 24 | `{process}/6_Sampling_Ratio_Audit` | Audit class counts, points per snapshot, number of snapshots, and the reuse ratio | **Ran** on all eight processes. Historical 500-snapshot reuse is 24.962× (DCCCD L5), not an integer 25. Suggested snapshot count is 21, not 20. |
 | 25 | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` | Mean/variance of barcode columns; landscape-mean proxy | Archived nested extra |
 | 26 | `Statistics/1_Intrinsic_Dimension_Estimation` | Two-NN + Levina–Bickel for intrinsic dimension | **Ran** (protocol-independent) |
-| 27 | `{process}/8_Null_Hypothesis_Algorithm2` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on all eight processes. Late-split and DCCCD reject at p=0.005. Early-split + undersample Statlog **TEST L30** does not (p=0.065 / 0.110 / 0.075). |
+| 27 | `{process}/8_Permutation_Test_Of_Class_Difference` | Permutation test with `F_{p,q}` (barcode-vector proxy) | **Ran** on all eight processes on Default of Credit Card Client. Every executed contrast rejects at p=0.005. |
 | 28 | `{process}/9_Revised_Snapshot_Protocol` | Fixed points per snapshot, default 60 training snapshots / 15 test snapshots, reuse/overlap | Live on all eight processes. Canonical write-up: `Early_Split_No_Undersample_H0_And_H1` |
 | — | `Snapshot_Sample_Size/` | Dated 13/08/2026. Items 1, 2, and 4 (item 3 is this study, not a third grid) | Queue: `6_Results/Run_Queue/_snapshot_sample_size_queue.py`. Narrative: `5_Experiments/Snapshot_Sample_Size/README.md` |
 
@@ -270,7 +268,7 @@ Most PH experiments follow the structure in `5_Experiments/Late_Split_And_Unders
 5. build_final_barcode_statistics_data(...)
 6. train_multiple_dataset_tda(...) or train_models_on_multiple_datasets(...)
 7. store_results(...) → 6_Results/{Bucket}/{Experiment}/{Dataset}/model_results.pkl
-8. (Optional) *_CV.py → CV_results.pkl  (DCCCD/Statlog historical companions)
+8. (Optional) *_CV.py → CV_results.pkl
 9. visualize_results.py → 6_Results/{Bucket}/{Experiment}/Visualizations/
 ```
 
@@ -328,7 +326,7 @@ Because later experiments depend on earlier outputs, run in this order:
 
 ### Cross-validation companions
 
-Most ML/TDA experiments on Default of Credit Card Client and Statlog have a `*_CV.py` sibling that loads `model_results.pkl` and writes `CV_results.pkl` via `perform_cross_validation_tda()`. The other four datasets do not carry that companion; it is not the method document.
+Most ML/TDA experiments on Default of Credit Card Client have a `*_CV.py` sibling that loads `model_results.pkl` and writes `CV_results.pkl` via `perform_cross_validation_tda()`.
 
 ### Visualization
 
@@ -371,15 +369,15 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 |----------|----------|
 | `docs/Repository_Layout.md` | Buckets, method scripts, figures, barcodes, paper tables, queues |
 | `docs/Notation.md` | Snapshot glossary: English names used in this study, and the t/l mapping from the methods literature |
-| `docs/Design_Decisions.md` | **Why** Statlog 30%/60% vs DCCCD 5%/15%, why PCA 7 vs 15, why ID before *and* after PCA |
+| `docs/Design_Decisions.md` | **Why** DCCCD 5%/15% snapshot percents, why PCA 7, why ID before *and* after PCA |
 | `docs/Statistical_Approach_Flow.md` | Stage-by-stage: Historical Exp 1 → arm Exp 6 → Statistics Exp 1 → arm Exp 7 → arm Exp 8 → arm Exp 9 → Snapshot_Sample_Size |
-| `docs/Statistical_Experiments_24_27_Results.md` | Sampling / ID / NHST worked numbers (both datasets) |
+| `docs/Statistical_Experiments_24_27_Results.md` | Sampling / ID / NHST worked numbers (Default of Credit Card Client) |
 | `docs/Methodology_Checklist_06_08_2026.md` | scikit-dimension / dadapy / H0-split / snapshots — done vs skipped |
 | `docs/Pipeline_Issues_And_Leakage.md` | Leakage analysis, statistical gaps, engineering status |
 | `docs/CV_Results.md` | K-fold means, fold scores, vs hold-out |
 | `docs/Exploratory_Experiments_Team_Report.md` | Exploratory experiment narrative (Archives) |
 | `docs/Experiment_23_Results.md` | Early Split TDA Exp 1 / Protocol B hold-out numbers |
-| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Arm experiment 9 protocol report (both datasets, all four arms) |
+| `docs/Revised_Snapshot_Protocol_Deep_Report.md` | Arm experiment 9 protocol report (Default of Credit Card Client, all four arms) |
 | `5_Experiments/Snapshot_Sample_Size/README.md` | Dated sample-size study (items 1, 2, and 4) |
 
 ---
@@ -391,7 +389,7 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 | **Preprocessing / EDA** | `eda`, `data_preprocessing_pipeline`, `fix_string` |
 | **Landmarks & persistence homology** | `select_landmarks`, `generate_landmark_sets`, `generate_landmark_sets_v2`, `compute_barcode_statistics`, `compute_barcodes_from_multiple_landmarks`, `create_barcode_statistics`, `build_final_barcode_statistics_data` |
 | **ML training** | `train_dataset`, `train_dataset_tda`, `train_multiple_dataset_tda`, `train_models_on_dataset`, `train_models_on_multiple_datasets`, `train_multiple_dataset_tda_drop_correlated`, `train_multiple_dataset_tda_linear_regression`, `train_multiple_knn_datasets`, `train_dataset_tda_presplit`, `train_models_on_presplit_dataset` |
-| **Early-split / stats** | `stratified_early_split`, `fit_scaler_pca_on_train`, `balance_binary_by_undersampling`, `compute_sampling_ratio_audit`, `summarize_snapshot_statistics`, `estimate_intrinsic_dimension_two_nn`, `estimate_intrinsic_dimension_levina_bickel`, `estimate_intrinsic_dimension_skdim`, `estimate_intrinsic_dimension_suite`, `n_components_for_target_variance`, `permutation_test_algorithm2` |
+| **Early-split / stats** | `stratified_early_split`, `fit_scaler_pca_on_train`, `balance_binary_by_undersampling`, `compute_sampling_ratio_audit`, `summarize_snapshot_statistics`, `estimate_intrinsic_dimension_two_nn`, `estimate_intrinsic_dimension_levina_bickel`, `estimate_intrinsic_dimension_skdim`, `estimate_intrinsic_dimension_suite`, `n_components_for_target_variance`, `permutation_test_of_class_difference` |
 | **Cross-validation** | `perform_cross_validation_tda` |
 | **Analysis sweeps** | `run_experiments_with_pca_components`, `plot_all_metrics_vs_pca_components` |
 | **Feature engineering** | `drop_correlated_features`, `rename_barcode_statistics_columns` |
@@ -405,7 +403,6 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 | Item | Detail |
 |------|--------|
 | **Experiment 20** | Deep learning placeholder (no TensorFlow/PyTorch/Keras). Out of scope. |
-| **Experiment 5 (Statlog)** | `Full_Feature_Set_With_Mapper` and `Balanced_Dataset_With_Mapper` raise `NotImplementedError` placeholders. Feature_Selection arm exists; DCCCD + registry Mapper scripts are the working references. |
 | **Generated data not in Git** | Landmark sets, barcode CSVs, pickles, and HTML outputs are gitignored. Clone + run experiments to reproduce. |
 
 See also `docs/Pipeline_Issues_And_Leakage.md` for leakage / statistical caveats.

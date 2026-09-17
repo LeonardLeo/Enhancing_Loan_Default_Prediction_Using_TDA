@@ -39,7 +39,7 @@ Every **active** experiment folder has `visualize_results.py` at the experiment 
 .\tda_env\Scripts\python.exe 5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/visualize_results.py
 ```
 
-Default and tuned PH experiments consume `model_results.pkl` / metric CSVs and write per-dataset test dashboards plus cross-dataset metric facets. Sampling-audit, Algorithm 2, and revised-protocol folders plot their CSVs/JSON. `Statistics/1_Intrinsic_Dimension_Estimation` plots Two-NN before/after PCA and the remaining ID estimators. If artefacts are missing, the script exits with `results not generated yet` and the expected path.
+Default and tuned PH experiments consume `model_results.pkl` / metric CSVs and write per-dataset test dashboards plus cross-dataset metric facets. Sampling-audit, permutation test of class difference, and revised-protocol folders plot their CSVs/JSON. `Statistics/1_Intrinsic_Dimension_Estimation` plots Two-NN before/after PCA and the remaining ID estimators. If artefacts are missing, the script exits with `results not generated yet` and the expected path.
 
 Archived experiments keep their original `visualize_results.py` files under `5_Experiments/Archives/`. Historical scripts may still use symbols `t`/`l` in code identifiers; see `docs/Notation.md`.
 

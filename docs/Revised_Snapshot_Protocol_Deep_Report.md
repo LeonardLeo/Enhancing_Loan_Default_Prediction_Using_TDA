@@ -40,7 +40,7 @@ English names are used throughout. Compact symbols from the methods literature a
 | — | Non-split arm on **DCCCD only**: number of snapshots in `{60, 75, 90}` | Bigger-dataset full-data counts 60–90 |
 | Landmark % as main story | Story is **points per snapshot, number of snapshots, intrinsic dimension**, reuse, overlap | Matches the statistical checklist |
 
-**Protocol for split experiments:** early 80/20 on tabular rows → train-only median impute (+ missing indicators) → MinMaxScaler → PCA → fixed-points-per-snapshot clouds independently on train and test → Ripser barcode stats → ML on barcode rows.
+**Protocol for split experiments:** early 80/20 on tabular rows (customer-split seed 42) → train-only median impute (+ missing indicators) → MinMaxScaler → PCA (random state 42) → fixed-points-per-snapshot clouds independently on train (seed 42) and test (seed 43) → Ripser barcode stats → ML on barcode rows.
 
 ---
 
@@ -243,11 +243,17 @@ reuse ratio = (points_per_snapshot * n_snapshots) / class_pool_size
 
 Null: snapshots behave like independent uniform draws of size points per snapshot.
 
-1. **Monte Carlo test** on mean pairwise overlap: simulate null libraries;  
-   `p` = fraction of null mean-overlaps ≥ observed (excess overlap).  
-2. **Mann–Whitney U** (alternative: observed pair-overlaps stochastically greater than null).
+**Monte Carlo diagnostic** on mean pairwise overlap: simulate null libraries and
+use the same number of sampled snapshot pairs for the observed and every null
+mean. The p-value is the fraction of null mean overlaps at least as large as
+the observed mean.
 
-**How to read:** large `p` → overlap looks like chance (good). Small `p` → systematic excess dependence.
+Pairwise overlaps are dependent because a snapshot participates in many pairs,
+so a Mann–Whitney test on flattened pair values is not valid and is not used.
+Small Monte Carlo p-values identify unusually high *realized training-library
+overlap* under the independent-draw design; they do not establish dependence
+and do not test the held-out snapshot library. The run/class diagnostics are
+exploratory and are not adjusted for multiple comparisons.
 
 JSON outputs: `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/<dataset>/overlap_*.json`.
 
@@ -330,14 +336,18 @@ Numbers below use the **final design’s effective `(training_snapshot_count, te
 
 Full-data PCA + later barcode split is **weaker** than the clean early-split 60/15 arm at 88 points per snapshot.
 
-### 7.2 Overlap tests on DCCCD (train, 88 points per snapshot, 60 snapshots)
+### 7.2 Overlap diagnostics on DCCCD (train, 88 points per snapshot, 60 snapshots)
 
-| Class | Mean pairwise overlap | Theory (points per snapshot / class size) | Reuse ratio | Monte Carlo `p` (excess) | Mann–Whitney `p` |
-|-------|----------------------:|-------------:|----------:|-------------------------:|-----------------:|
-| Default | 0.0177 | 0.0166 | 0.995 | **0.020** | **0.011** |
-| Non-default | 0.0051 | 0.0047 | 0.283 | 0.444 | 0.567 |
+| Class | Mean pairwise overlap | Theory (points per snapshot / class size) | Reuse ratio | Matched-statistic Monte Carlo `p` |
+|-------|----------------------:|-------------:|----------:|-------------------------:|
+| Default | 0.01875 | 0.01659 | 0.995 | **0.0066** |
+| Non-default | 0.0051 | 0.0047 | 0.283 | 0.497 |
 
-**What this led to:** non-default snapshots look like independent draws. Default snapshots show a **mild** excess overlap vs the null (`p ≈ 0.02`) while still sitting at the reuse boundary reuse ≈ 1. Worth watching; not a disaster like reuse = 25 under 500 snapshots.
+**What this led to:** the default-class training library has unusually high
+realized overlap under the independent-draw simulation (`p = 0.0066`) while
+sitting at the reuse boundary near 1. This qualifies the 0.920 descriptive
+model mean. It is not evidence that the sampling calls were dependent, and no
+corresponding held-out-library overlap test was run.
 
 ### 7.3 Other datasets (effective defaults; mean bal. acc. by points per snapshot)
 
@@ -385,15 +395,15 @@ We sit exactly on the minority bound for 60 training snapshots. That is intentio
 
 | Path | Role |
 |------|------|
-| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/utils.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling |
-| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/run_protocol.py` | Orchestrator |
+| `utils.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling, design, and orchestration |
+| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py` | Default of Credit Card Client launcher |
+| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py` | Statlog launcher |
 | `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
 | `.../<dataset>/worked_calculations.csv` | Step-by-step numeric audit |
 | `.../<dataset>/concern_A_formula_rows.csv` | Formula table |
 | `.../<dataset>/concern_B_reuse_rows.csv` | Reuse table |
 | `.../<dataset>/overlap_*.json` | Pairwise + significance |
 | `.../<dataset>/ml_results.csv` | Classifier metrics |
-| `utils.py` | `formula_l_from_t_b`, `select_landmarks_fixed_t`, `reuse_ratio_tl_over_n` |
 
 ---
 

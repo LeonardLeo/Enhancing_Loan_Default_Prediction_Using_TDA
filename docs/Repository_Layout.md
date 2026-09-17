@@ -34,7 +34,7 @@ Compact snapshot symbols from the methods literature are recorded once in `docs/
 
 Root shims `6_Results/_ripser_queue.py` and `6_Results/_consumer_queue.py` forward to `Run_Queue/`. They are the public entry if an in-flight command still uses the old path. Prefer `6_Results/Run_Queue/`.
 
-Every live TDA process keeps the same five experiments (`utils.ACTIVE_TDA_EXPERIMENT_NAMES`): default classifiers, retuned classifiers, sampling-ratio audit, Algorithm 2, and the revised snapshot protocol. H0 folders do **not** run Ripser. They slice H0 columns from the matching H0-and-H1 barcode tables, then run those five consumers on the slice. Sampling-ratio audit and revised snapshot protocol **are** present on all eight processes; quote the process folder, not “TDA”.
+Every live TDA process keeps the same five experiments (`utils.ACTIVE_TDA_EXPERIMENT_NAMES`): default classifiers, retuned classifiers, sampling-ratio audit, permutation test of class difference, and the revised snapshot protocol. H0 folders do **not** run Ripser. They slice H0 columns from the matching H0-and-H1 barcode tables, then run those five consumers on the slice. Sampling-ratio audit and revised snapshot protocol **are** present on all eight processes; quote the process folder, not “TDA”.
 
 ---
 
@@ -49,7 +49,7 @@ Every dataset folder contains a readable pipeline script. That file is the metho
 | PH tuned | `*_PH_tuned.py` |
 | H0-only default | `*_H0_only.py` |
 | Sampling-ratio audit | `*_audit.py` |
-| Algorithm 2 | `*_algorithm2.py` |
+| permutation test of class difference | `*_permutation_test.py` |
 | Revised snapshot protocol | `*_protocol.py` |
 | Intrinsic dimension | `run_intrinsic_dimension.py` |
 | Snapshot sample size | Each numbered folder's `*_sample_size.py` is the method for that figure (load, PCA, snapshots, Ripser, train). |
@@ -135,7 +135,7 @@ Logs and registry JSON/CSV sit beside those scripts.
 | `24_…` | `{process}/6_Sampling_Ratio_Audit` |
 | `25_…` | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` |
 | `26_Intrinsic_…` | `Statistics/1_Intrinsic_Dimension_Estimation` |
-| `27_…` | `{process}/8_Null_Hypothesis_Algorithm2` |
+| `27_…` | `{process}/8_Permutation_Test_Of_Class_Difference` |
 | `28_Revised_…` | `{process}/9_Revised_Snapshot_Protocol` |
 | `Historical_Late_Split_Balanced_TDA` | `Late_Split_And_Undersample_H0_And_H1` |
 | `Early_Split_TDA` | `Early_Split_And_Undersample_H0_And_H1` |

@@ -10,7 +10,7 @@
 | Snapshot size | points per snapshot = floor(class count × snapshot size percent / 100) on that split's available pool |
 | Number of snapshots | 500 (dataset historical n_files) |
 
-No Ripser. Scores reuse ratio = (points per snapshot × number of snapshots) / class count from the protocol's class pools, snapshot-size percents, and 500 snapshots.
+No Ripser. Scores expected sampling reuse = (points per snapshot × number of snapshots) / class count from the protocol's class pools and snapshot-size percents. It records both the historical 500-snapshot rule and the approximate one-coverage comparator `ceil(class count / points per snapshot)`. Across the live audit the comparator spans 2–21 snapshots (Default of Credit Card Client: 21/7 at 5%/15%; Statlog: 4/2 at 30%/60%) and can sit just above reuse 1. It is not experiment 9's floor-based reuse-safe cap.
 
 Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `utils.DatasetConfig`):
 
@@ -28,7 +28,7 @@ Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `ut
 6_Results/Early_Split_No_Undersample_H0/6_Sampling_Ratio_Audit/{Dataset}/
 ```
 
-Tuned models, the sampling-ratio audit, and Algorithm 2 read this process's experiment-1 matrices. They must not start 500 Ripser jobs.
+Tuned models, the sampling-ratio audit, and permutation test of class difference read this process's experiment-1 matrices. They must not start 500 Ripser jobs.
 
 ## Where to read the method
 

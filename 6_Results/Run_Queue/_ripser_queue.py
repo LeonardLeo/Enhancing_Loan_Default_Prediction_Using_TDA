@@ -51,12 +51,12 @@ PH_SCRIPTS = {
 H0H1_CONSUMERS = {
     "2_PH_Tuned_Parameters": "_PH_tuned.py",
     "6_Sampling_Ratio_Audit": "_audit.py",
-    "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+    "8_Permutation_Test_Of_Class_Difference": "_algorithm2.py",
 }
 H0_CONSUMERS = {
     "2_PH_Tuned_Parameters": "_PH_tuned.py",
     "6_Sampling_Ratio_Audit": "_audit.py",
-    "8_Null_Hypothesis_Algorithm2": "_algorithm2.py",
+    "8_Permutation_Test_Of_Class_Difference": "_algorithm2.py",
 }
 
 

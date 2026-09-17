@@ -28,7 +28,7 @@ Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `ut
 6_Results/Late_Split_And_Undersample_H0/2_PH_Tuned_Parameters/{Dataset}/
 ```
 
-Tuned models, the sampling-ratio audit, and Algorithm 2 read this process's experiment-1 matrices. They must not start 500 Ripser jobs.
+Tuned models, the sampling-ratio audit, and permutation test of class difference read this process's experiment-1 matrices. They must not start 500 Ripser jobs.
 
 ## Where to read the method
 

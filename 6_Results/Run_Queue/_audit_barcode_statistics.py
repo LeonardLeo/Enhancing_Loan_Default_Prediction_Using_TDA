@@ -287,7 +287,7 @@ for bucket in BUCKETS:
         "4_Dropping_Correlated_Barcode_Statistics_Columns",
         "5_Linear_Regression_For_Prediction",
         "7_Snapshot_Mean_Variance",
-        "8_Null_Hypothesis_Algorithm2",
+        "8_Permutation_Test_Of_Class_Difference",
         "9_Revised_Snapshot_Protocol",
     ):
         folder = exp_root / bucket / experiment
@@ -321,7 +321,7 @@ for bucket in BUCKETS:
                 "4_Dropping_Correlated_Barcode_Statistics_Columns",
                 "5_Linear_Regression_For_Prediction",
                 "7_Snapshot_Mean_Variance",
-                "8_Null_Hypothesis_Algorithm2",
+                "8_Permutation_Test_Of_Class_Difference",
             }:
                 expected_source = "1_PH_Default_Parameters"
             issues = []
@@ -331,7 +331,7 @@ for bucket in BUCKETS:
                 issues.append("homology_dim_not_2")
             if experiment in {"3_H0_Only", "5_Linear_Regression_For_Prediction"} and not has_h0_filter:
                 issues.append("missing_h0_filter")
-            if experiment in {"1_PH_Default_Parameters", "2_PH_Tuned_Parameters", "7_Snapshot_Mean_Variance", "8_Null_Hypothesis_Algorithm2"} and has_h0_filter:
+            if experiment in {"1_PH_Default_Parameters", "2_PH_Tuned_Parameters", "7_Snapshot_Mean_Variance", "8_Permutation_Test_Of_Class_Difference"} and has_h0_filter:
                 issues.append("unexpected_h0_filter")
             if experiment == "4_Dropping_Correlated_Barcode_Statistics_Columns" and has_h0_filter:
                 issues.append("h0_filter_on_decorrelate")

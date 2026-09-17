@@ -1,4 +1,4 @@
-# Sampling, stability, intrinsic dimension, and Algorithm 2 — worked numbers
+# Sampling, stability, intrinsic dimension, and permutation test of class difference — worked numbers
 
 Historical checklist numbers 24–27. Live folders: arm experiments 6–8 in every TDA bucket, and `Statistics/1_Intrinsic_Dimension_Estimation`. Stage order: `docs/Statistical_Approach_Flow.md`. Folder map: `docs/Repository_Layout.md`. Snapshot glossary: `docs/Notation.md` (do not duplicate that table here).
 
@@ -6,7 +6,7 @@ Scripts:
 
 - Arm Exp 6 — `5_Experiments/{TDA arm}/6_Sampling_Ratio_Audit/`
 - Arm Exp 7 — `5_Experiments/{TDA arm}/7_Snapshot_Mean_Variance/`
-- Arm Exp 8 — `5_Experiments/{TDA arm}/8_Null_Hypothesis_Algorithm2/`
+- Arm Exp 8 — `5_Experiments/{TDA arm}/8_Permutation_Test_Of_Class_Difference/`
 - Statistics Exp 1 — `5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/`
 
 Numbers below are from the Historical Late Split Balanced TDA arm unless a caption says otherwise. Formulas are in `utils.py`.
@@ -36,7 +36,7 @@ With 500 snapshots of a given points-per-snapshot value, how many times does a t
 
 ```text
 reuse ratio = (points per snapshot × number of snapshots) / minority class count
-suggested snapshot count = round(minority class count / points per snapshot)  ⇒  reuse ≈ 1
+approximate one-coverage count = ceil(minority class count / points per snapshot)  ⇒  reuse at or just above 1
 ```
 
 Target from the statistical checklist: reuse ratio near 1 or less.
@@ -63,14 +63,14 @@ The CSV writes `reuse_ratio=24.962` and `l=21` for the revised rule (`revised_ce
 | Statlog German | L30 | 300 | 90 | 500 | **150.0** | No |
 | Statlog German | L60 | 300 | 180 | 500 | **300.0** | No |
 
-**Suggested snapshot counts if points per snapshot stay the same:**
+**Approximate one-coverage counts if points per snapshot stay the same:**
 
 | Dataset | Setting | Current number of snapshots | Suggested snapshot count |
 |---------|---------|------------:|-------------------:|
 | Credit Card | L5 / L15 | 500 | **21 / 7** |
-| Statlog | L30 / L60 | 500 | **3 / 2** |
+| Statlog | L30 / L60 | 500 | **4 / 2** |
 
-None of the historical 500-snapshot rows pass. Arm experiment 9 is the protocol that stops this.
+None of the historical 500-snapshot rows pass. These ceiling-based comparator counts can also sit above one; arm experiment 9 uses the separate floor-based feasibility rule that enforces expected reuse at or below one.
 
 Files: `6_Results/Late_Split_And_Undersample_H0_And_H1/6_Sampling_Ratio_Audit/{Folder}/sampling_ratio_audit.csv`
 
@@ -140,7 +140,7 @@ Levina–Bickel with k=10 came out much smaller than Two-NN on these tables. Tre
 
 ### Question
 
-Robinson & Turner Algorithm 2 (arXiv:1310.7467) on **24-D barcode vectors** (proxy for full diagram distances). Cap 100 snapshots per class, `B = 200` permutations. Smallest possible p-value is `1/200 = 0.005`.
+Robinson & Turner permutation test of class difference (arXiv:1310.7467) on **24-D barcode vectors** (proxy for full diagram distances). Cap 100 snapshots per class, `B = 200` permutations. Smallest possible p-value is `1/200 = 0.005`.
 
 ### Results — historical late split + undersample + H0 and H1
 
@@ -155,7 +155,7 @@ These four rows are the `Late_Split_And_Undersample_H0_And_H1` CSVs. They are **
 
 ### Results — early split + undersample + H0 and H1 (do not collapse into the table above)
 
-Source: `6_Results/Early_Split_And_Undersample_H0_And_H1/8_Null_Hypothesis_Algorithm2/Statlog_German_Credit_Data/algorithm2_permutation_results.csv`.
+Source: `6_Results/Early_Split_And_Undersample_H0_And_H1/8_Permutation_Test_Of_Class_Difference/Statlog_German_Credit_Data/permutation_test_results.csv`.
 
 | Library | Setting | F_{2,2} p | F_{1,1} p | F_{2,1} p | Verdict |
 |---------|---------|----------:|----------:|----------:|---------|
@@ -169,16 +169,16 @@ On that Statlog TEST L30 library, observed F is almost the null mean. DCCCD earl
 
 **Caveat:** distances are on barcode-statistic **vectors**, not bottleneck/Wasserstein on raw diagrams.
 
-Files: `6_Results/Late_Split_And_Undersample_H0_And_H1/8_Null_Hypothesis_Algorithm2/{Folder}/algorithm2_permutation_results.csv`
+Files: `6_Results/Late_Split_And_Undersample_H0_And_H1/8_Permutation_Test_Of_Class_Difference/{Folder}/permutation_test_results.csv`
 
 ---
 
 ## Bottom line
 
-1. **500 snapshots is too many** on both tables — reuse ratio is 25×–300×; suggested snapshot counts are 2–20.
+1. **500 snapshots is too many** on both tables — reuse ratio is 25×–300×; approximate one-coverage counts are 2–21.
 2. **Barcode features are mostly stable**. Larger snapshot-size percents shrink variance and raise reuse.
 3. **Intrinsic dimension (Two-NN after PCA)** is 2.8–4.1 — below 7. Measure it **before and after** PCA; they answer different questions.
-4. **Class clouds differ on the historical late-split libraries.** Early-split + undersample Statlog TEST L30 does not reject. Match Algorithm 2 to the named process folder instead of averaging tables into one TDA-works claim.
+4. **Class clouds differ on the historical late-split libraries.** Early-split + undersample Statlog TEST L30 does not reject. Match permutation test of class difference to the named process folder instead of averaging tables into one TDA-works claim.
 
 ### Doc fix vs older summary
 

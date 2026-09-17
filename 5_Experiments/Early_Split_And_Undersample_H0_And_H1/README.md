@@ -13,7 +13,7 @@ Public name (figures and paper tables): **Early split and undersample, using bot
 1. `1_PH_Default_Parameters` — builds landmarks + Ripser barcodes + default classifiers
 2. `2_PH_Tuned_Parameters` — GridSearchCV on experiment-1 matrices
 3. `6_Sampling_Ratio_Audit` — class counts, snapshot-size percents, number of snapshots (no Ripser)
-4. `8_Null_Hypothesis_Algorithm2` — permutation test on this process's barcode vectors
+4. `8_Permutation_Test_Of_Class_Difference` — permutation test on this process's barcode vectors
 5. `9_Revised_Snapshot_Protocol` — fixed points per snapshot; default 60 training / 15 test snapshots
 
 The matching just-H0 process is `Early_Split_And_Undersample_H0/`. Nested extras live under `Archives/Four_Arm_Nested_Experiments/Early_Split_TDA/`.

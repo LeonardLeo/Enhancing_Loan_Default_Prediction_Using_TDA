@@ -59,7 +59,7 @@ If the intended repeat is “rerun arm experiments 6–8 on H0-only matrices”,
 
 | Layer | What it does |
 |-------|----------------|
-| **Arm Exp 6** | Audits historical 500 snapshots vs suggested snapshot count ≈ round(minority class count / points per snapshot). Does not rebuild Ripser. |
+| **Arm Exp 6** | Audits historical 500 snapshots against the approximate one-coverage comparator `ceil(minority class count / points per snapshot)`, which can sit just above reuse 1. Does not rebuild Ripser. |
 | **Arm Exp 9** | Rebuilds with **fixed points per snapshot**, default 60 training / 15 test snapshots, no undersampling on the canonical arm, customer split first. |
 
 Playing with points per snapshot and number of snapshots on the historical percent grid (L10 vs L20, L5 vs L15, …) is already Historical Exp 1’s two-percent design plus arm experiments 7/8 reading both files. The dated 13/08/2026 factorial is `5_Experiments/Snapshot_Sample_Size/`.

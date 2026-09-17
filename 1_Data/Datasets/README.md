@@ -1,6 +1,6 @@
 # Loan & Credit Default — Dataset Acquisition Log
 
-The live study uses two public UCI tables. Retrieved 30 July 2026.
+The live study uses one public UCI table. Retrieved 30 July 2026.
 
 ---
 
@@ -20,8 +20,7 @@ The live study uses two public UCI tables. Retrieved 30 July 2026.
 
 | # | Dataset | Files | Verification |
 |---|---------|-------|--------------|
-| 01 | Statlog German Credit | `german.data`, `german.data-numeric`, `german.doc` | 1,000 rows; 700 good / 300 bad ✓ · numeric form 24 inputs + target ✓ |
-| 02 | Default of Credit Card Clients | `UCI_Credit_Card.csv` / processed Excel | 30,000 × 25 (23 predictors + ID + target) ✓ · 6,636 defaults (22.1%) |
+| 01 | Default of Credit Card Clients | `UCI_Credit_Card.csv` / processed Excel | 30,000 × 25 (23 predictors + ID + target) ✓ · 6,636 defaults (22.1%) |
 
 ---
 
@@ -29,7 +28,6 @@ The live study uses two public UCI tables. Retrieved 30 July 2026.
 
 ```
 MANIFEST.csv                 sha256, size, primary source, mirror, licence
-Statlog_German_Credit_Data/  german.data, german.data-numeric, german.doc
 Default_Of_Credit_Card_Client_Data/  default of credit card clients.xls
 ```
 

@@ -1,16 +1,17 @@
 # Revised Snapshot Protocol — Default_Of_Credit_Card_Client_Data
 
+Random-state contract: early-split arms use customer-split seed 42; PCA uses random state 42; training snapshots use seed 42 and held-out snapshots use seed 43. Late-split arms have no customer split but retain the PCA and snapshot seeds.
 ## Dataset
 
 Default of Credit Card Clients (Taiwan, UCI). About 30,000 people; target is default next month.
 
 ## What this folder is
 
-Revised sampling: no undersampling, fixed t, 60/15 snapshots, split before TDA. Launcher in this folder calls protocol_lib / run_protocol.py.
+Revised sampling: fixed absolute points per snapshot; Customers are split before geometry is fitted; the majority class is undersampled. The effective training and test snapshot counts are constrained by expected sampling reuse. The dataset launcher in this folder imports the shared implementation from the repository-root `utils.py`.
 
 This folder: the *_protocol.py launcher (see the file name in this directory).
 
-The experiment-wide walkthrough (all six tables, findings, how to read numbers) is:
+The experiment-wide walkthrough (all process variants and both datasets, findings, how to read numbers) is:
 
 5_Experiments/Early_Split_And_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/REPORT.md
 

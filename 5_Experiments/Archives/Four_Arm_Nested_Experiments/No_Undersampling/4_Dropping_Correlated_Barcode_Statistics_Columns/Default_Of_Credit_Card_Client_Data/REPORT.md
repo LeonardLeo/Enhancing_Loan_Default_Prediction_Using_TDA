@@ -15,7 +15,7 @@ CONSUMER. Drops correlated barcode columns (threshold 0.80) from experiment 1, t
 Run:
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/No_Undersampling/4_Dropping_Correlated_Barcode_Statistics_Columns/Default_Of_Credit_Card_Client_Data/run.py
+.\tda_env\Scripts\python.exe 5_Experiments/Archives/Four_Arm_Nested_Experiments/No_Undersampling/4_Dropping_Correlated_Barcode_Statistics_Columns/Default_Of_Credit_Card_Client_Data/run.py
 ```
 
 ## Where to read the method

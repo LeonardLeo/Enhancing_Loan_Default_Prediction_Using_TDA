@@ -1,5 +1,6 @@
 # Late_Split_No_Undersample_H0 — Experiment 9 (revised snapshot protocol)
 
+Random-state contract: early-split arms use customer-split seed 42; PCA uses random state 42; training snapshots use seed 42 and held-out snapshots use seed 43. Late-split arms have no customer split but retain the PCA and snapshot seeds.
 This is arm experiment 9 in **Late split, no undersample, using just H0** (late split, full class pools). The same experiment exists on every live TDA process. Just-H0 folders slice homology-0 columns from the sibling H0-and-H1 barcodes. The meeting-driven write-up that originally used the label Experiment 28 lives at `docs/Revised_Snapshot_Protocol_Deep_Report.md`. There is no live top-level `28_Revised_…` folder.
 
 ## In one sentence

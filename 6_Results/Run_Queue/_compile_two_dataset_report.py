@@ -360,7 +360,7 @@ def collect():
                     "test": load_classifier_table(slug, exp, folder),
                     "cv": load_cv_table(slug, exp, folder),
                 }
-            a2_csv = result_dir(slug, "8_Null_Hypothesis_Algorithm2", folder) / "algorithm2_permutation_results.csv"
+            a2_csv = result_dir(slug, "8_Permutation_Test_Of_Class_Difference", folder) / "permutation_test_results.csv"
             block["algorithm2"] = pd.read_csv(openable(a2_csv)) if exists(a2_csv) else None
             audit_csv = result_dir(slug, "6_Sampling_Ratio_Audit", folder) / "sampling_ratio_audit.csv"
             block["audit"] = pd.read_csv(openable(audit_csv)) if exists(audit_csv) else None
@@ -422,9 +422,9 @@ def coverage_rows(payload: dict) -> list[list[str]]:
             if proc["experiments"].get("2_PH_Tuned_Parameters", {}).get("test"):
                 status += "; tuned"
             if proc["algorithm2"] is not None:
-                status += "; Algorithm 2"
+                status += "; permutation test of class difference"
             else:
-                status += "; Algorithm 2 not generated"
+                status += "; permutation test of class difference not generated"
             if proc["revised"] is not None:
                 status += "; revised protocol"
             if not default:
@@ -435,7 +435,7 @@ def coverage_rows(payload: dict) -> list[list[str]]:
 
 def algorithm2_table(frame: pd.DataFrame | None, sty):
     if frame is None or frame.empty:
-        return [P("Algorithm 2 has not been generated for this process on this dataset.", sty["note"])]
+        return [P("permutation test of class difference has not been generated for this process on this dataset.", sty["note"])]
     header = ["Snapshot", "Contrast (p, q)", "Observed statistic", "p-value", "n1", "n2"]
     body = []
     for _, row in frame.iterrows():
@@ -448,7 +448,7 @@ def algorithm2_table(frame: pd.DataFrame | None, sty):
             str(int(row["n2"])) if pd.notna(row.get("n2")) else "—",
         ])
     return [
-        P("Robinson–Turner Algorithm 2 permutation test on barcode-vector proxies. Small p-values mean the class contrast is unusual under a random label shuffle.", sty["note"]),
+        P("Robinson–Turner permutation test of class difference permutation test on barcode-vector proxies. Small p-values mean the class contrast is unusual under a random label shuffle.", sty["note"]),
         make_table(header, body, [40*mm, 40*mm, 45*mm, 30*mm, 25*mm, 25*mm]),
     ]
 
@@ -513,7 +513,7 @@ def build_story(payload: dict):
     story.append(P("Statlog German Credit and Default of Credit Card Client", sty["subtitle"]))
     story.append(P(
         "This report gathers live classifier scores, cross-validation where it exists, "
-        "Algorithm 2 permutation tests, sampling-ratio audits, and revised-snapshot protocol "
+        "permutation test of class difference permutation tests, sampling-ratio audits, and revised-snapshot protocol "
         "scores for the two paper datasets. It covers the tabular ML baselines and the eight "
         "named TDA processes (split × undersample × just H0 vs both H0 and H1). "
         "Public names always use “and”, never “+”. Nested extras (drop-correlated columns, "
@@ -523,7 +523,7 @@ def build_story(payload: dict):
     story.append(P(
         f"Generated {date.today().isoformat()} from artefacts under 6_Results/. "
         "H0 processes slice homology-0 barcode statistics from the matching H0-and-H1 run; "
-        "they do not rerun Ripser. Algorithm 2 on the four just-H0 folders has not been generated yet. "
+        "they do not rerun Ripser. permutation test of class difference on the four just-H0 folders has not been generated yet. "
         "Green rows mark the highest F1 in a table when that comparison is meaningful. "
         "Cross-validation is training-set resampling and is not mixed with held-out test scores.",
         sty["note"],

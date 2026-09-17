@@ -52,7 +52,7 @@ This bucket implements items **1, 2, and 4**. **Item 3 is the sample-size study 
 
 ## Dataset-aware grid
 
-Candidates: **15, 30, 45, 60, 90, 120, 180, 240, 330**. Locked in `utils.CANDIDATE_POINTS_PER_SNAPSHOT`. The extra steps after 60 move the large tables toward historical Exp 3 cloud sizes (Statlog 90/180, DCCCD L5 = 331). **330 is the DCCCD L5-scale ceiling.** DCCCD L15 (994 points) and the historical 500 snapshots stay off this study so the curves stay readable and reuse does not return to the original design.
+Candidates: **15, 30, 45, 60, 90, 120, 180, 240, 330**. Locked in `utils.CANDIDATE_POINTS_PER_SNAPSHOT`. The extra steps after 60 move toward the historical DCCCD L5 cloud (331). **330 is the DCCCD L5-scale ceiling.** DCCCD L15 (994 points) and the historical 500 snapshots stay off this study so the curves stay readable and reuse does not return to the original design.
 
 **Drop** any value that cannot be drawn without replacement from the protocol’s binding class pool after that arm’s split and optional undersample. Binding count:
 
@@ -61,9 +61,9 @@ Candidates: **15, 30, 45, 60, 90, 120, 180, 240, 330**. Locked in `utils.CANDIDA
 
 Never silent-clip. If every candidate would be dropped, a single clipped value of (class count − 1) is added and flagged in `dataset_aware_grid.csv` and on the figure note.
 
-**Item 1 default points per snapshot:** the **largest surviving candidate**. On DCCCD that is 330 (historical L5 was 331). On late-split Statlog that is 240 (330 is dropped against a class pool of 300). On early-split Statlog the test pool is the bottleneck, so 45 survives.
+**Item 1 default points per snapshot:** the **largest surviving candidate**. On DCCCD that is 330 (historical L5 was 331).
 
-**Why a universal cloud-size grid is not used as-is:** Statlog’s class pool is hundreds of people; DCCCD’s is thousands. A step that is a small cloud on DCCCD can be most of Statlog’s class. Candidates that cannot be drawn are dropped. Item 2 / 4 footnotes say this.
+**Why a universal cloud-size grid is not used as-is:** candidates that cannot be drawn from the binding class pool are dropped. Item 2 / 4 footnotes say this.
 
 Exact surviving values are written by `write_master_design_table()` to `6_Results/Snapshot_Sample_Size/shared/dataset_aware_grid.csv`.
 
@@ -71,7 +71,6 @@ Computed binding counts (`random_state=0`) and surviving points-per-snapshot val
 
 | Dataset | Late balanced / No undersampling (full class pool) | Early split (train and test pools; test is the bottleneck) |
 |---------|-----------------------------------------------------|------------------------------------------------------------|
-| Statlog | binding 300 → **15 … 240** (330 dropped; default 240) | binding 60 → **15, 30, 45** (60+ dropped; default 45) |
 | DCCCD | binding 6630 → **15 … 330** (default 330) | binding 1326 → **15 … 330** (default 330) |
 
 That table is why item 2’s figure footnote says a universal cloud-size grid is not used unchanged.
@@ -82,13 +81,13 @@ That table is why item 2’s figure footnote says a universal cloud-size grid is
 - Repeat **snapshot draws** 10 times: draw a pool of 180 training snapshots per class, shuffle, then train on nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60 ⊂ 90 ⊂ 120 ⊂ 180.
 - Hold out **15 test snapshots** drawn independently and kept fixed across the snapshot-count sweep. That hold-out is the scoring set. If test size moved with training size, F1 would mix “more training barcodes” with “a different test set,” and the curve would not isolate the x-axis factor. Reuse is still scored on the **training** pool (points × training snapshots / minority count); test size does not enter that ratio.
 - Reuse flags: `reuse_flags.csv` plus orange shading on F1/accuracy plots, companion `*_reuse_*.png` curves, and (item 4) a reuse heatmap. Reuse > 1 is marked on both axes — the snapshot counts that push reuse over 1, and the cloud sizes that do the same.
-- 95% CI = mean ± 1.96 × SE across the 10 repeats. A 2.5–97.5 percentile interval is also stored.
+- 95% CI = mean ± Student's t(0.975, 9) × SE across the 10 repeats. A 2.5–97.5 percentile interval is also stored.
 - Combined overlay plots are the **mean trend** across those 10 repeats (five models, no error bars). Companion `*_ci_panels.png` draw the same interval as a **ribbon**, one series per panel. There are no stacked translucent fill bands on a shared overlay.
 - This study does **not** also run five customer splits on the full grid (cost explosion). That limitation is intentional.
 
 ## Compute
 
-For each `(dataset, protocol, points_per_snapshot, repeat)` generate the 180 training snapshots **once**, Ripser **once** per snapshot, then reuse those barcodes for every snapshot-count value. Existing 60-snapshot caches are extended (first 60 barcodes stay; nested 15 ⊂ … ⊂ 60 stay). `skip_existing` is per-snapshot. Statlog first, DCCCD last.
+For each `(dataset, protocol, points_per_snapshot, repeat)` generate the 180 training snapshots **once**, Ripser **once** per snapshot, then reuse those barcodes for every snapshot-count value. Existing 60-snapshot caches are extended (first 60 barcodes stay; nested 15 ⊂ … ⊂ 60 stay). `skip_existing` is per-snapshot.
 
 PCA ranks: same as `DatasetConfig` / `docs/Design_Decisions.md` (historical Exp 3 ranks).
 

@@ -24,6 +24,7 @@ Do not look in `model_viz/`, `cv_viz/`, `cross_dataset_viz/`, or `plots/` on the
 | `Archives/` | Retired exploratory experiments (original numbers) and `Four_Arm_Nested_Experiments/`. |
 | `Paper_Tables/` | Aggregated LaTeX/CSV tables for the paper. |
 | `Run_Queue/` | Operational Ripser/consumer queues, logs, and run registries. |
+| `Compiled_Reports/` | Evidence-complete working results note for the defined 80-cell live contract and the additional live analyses indexed in section 15: open `Live_Experiment_Results.html`. Charts download as PNG; tables download as CSV and PNG. Rebuild with `Compiled_Reports/build_live_experiment_handoff.py`; the build validates active evidence files, row counts, formulas, confidence intervals, and repeats before writing. Archival Four-Arm nested arms, historical column-pruning, and snapshot-mean-variance diagnostics are excluded. The older PDF is a historical table-only compile. |
 | `results.py` | Documented aggregator. Run from this directory; it **writes** into `Paper_Tables/`. |
 | `_ripser_queue.py`, `_consumer_queue.py` | Compatibility shims that execute the scripts in `Run_Queue/`. |
 
@@ -64,12 +65,12 @@ Every active experiment has `5_Experiments/{Bucket}/{Experiment}/visualize_resul
 | `Late_Split_And_Undersample_H0_And_H1` | `1_PH_Default_Parameters` | `6_Results/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Visualizations/` | Test dashboards + cross-dataset metric facets (hue = landmark %); CV if present |
 | `Late_Split_And_Undersample_H0_And_H1` | `2_PH_Tuned_Parameters` | `6_Results/Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Visualizations/` | Same as default PH (tuned) |
 | `Late_Split_And_Undersample_H0_And_H1` | `6_Sampling_Ratio_Audit` | `6_Results/Late_Split_And_Undersample_H0_And_H1/6_Sampling_Ratio_Audit/Visualizations/` | `sampling_reuse_by_rule_faceted.png`, `sampling_reuse_revised_rule_faceted.png` |
-| `Late_Split_And_Undersample_H0_And_H1` | `8_Null_Hypothesis_Algorithm2` | `6_Results/Late_Split_And_Undersample_H0_And_H1/8_Null_Hypothesis_Algorithm2/Visualizations/` | `algorithm2_pvalues_faceted.png`, `algorithm2_observed_F_faceted.png` |
+| `Late_Split_And_Undersample_H0_And_H1` | `8_Permutation_Test_Of_Class_Difference` | `6_Results/Late_Split_And_Undersample_H0_And_H1/8_Permutation_Test_Of_Class_Difference/Visualizations/` | `permutation_test_pvalues_faceted.png`, `permutation_test_observed_F_faceted.png` |
 | `Late_Split_And_Undersample_H0_And_H1` | `9_Revised_Snapshot_Protocol` | `6_Results/Late_Split_And_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/Visualizations/` | `balanced_accuracy_by_model_faceted.png`, `f1_by_model_faceted.png`, concern A/B and overlap facets when those CSVs exist |
 | `Late_Split_And_Undersample_H0` | `1_PH_Default_Parameters` | `6_Results/Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Visualizations/` | Same dashboard set on H0-only tables |
 | `Late_Split_And_Undersample_H0` | `2_PH_Tuned_Parameters` | `6_Results/Late_Split_And_Undersample_H0/2_PH_Tuned_Parameters/Visualizations/` | Same as default PH (tuned H0 matrices) |
 | `Late_Split_And_Undersample_H0` | `6_Sampling_Ratio_Audit` | `6_Results/Late_Split_And_Undersample_H0/6_Sampling_Ratio_Audit/Visualizations/` | Same sampling-reuse figures as the sibling process |
-| `Late_Split_And_Undersample_H0` | `8_Null_Hypothesis_Algorithm2` | `6_Results/Late_Split_And_Undersample_H0/8_Null_Hypothesis_Algorithm2/Visualizations/` | Algorithm 2 on H0 barcode vectors |
+| `Late_Split_And_Undersample_H0` | `8_Permutation_Test_Of_Class_Difference` | `6_Results/Late_Split_And_Undersample_H0/8_Permutation_Test_Of_Class_Difference/Visualizations/` | permutation test of class difference on H0 barcode vectors |
 | `Late_Split_And_Undersample_H0` | `9_Revised_Snapshot_Protocol` | `6_Results/Late_Split_And_Undersample_H0/9_Revised_Snapshot_Protocol/Visualizations/` | Revised-protocol figures on H0-sliced sibling barcodes |
 | The other six processes | matching live experiments | `6_Results/{Process}/{Experiment}/Visualizations/` | Same figure types as the late-split-and-undersample pair, for that process's homology |
 | `Statistics` | `1_Intrinsic_Dimension_Estimation` | `6_Results/Statistics/1_Intrinsic_Dimension_Estimation/Visualizations/` | `two_nn_before_after_pca.png`, `id_estimator_suite_faceted.png`, `pca_rank_vs_90pct.png`, `pca_variance_retained.png` |

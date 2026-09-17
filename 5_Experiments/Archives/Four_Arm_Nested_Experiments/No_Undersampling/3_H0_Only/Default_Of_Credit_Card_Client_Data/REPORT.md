@@ -15,7 +15,7 @@ CONSUMER. Keeps H0 (`*_0`) columns from experiment 1 and retrains default classi
 Run:
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/No_Undersampling/3_H0_Only/Default_Of_Credit_Card_Client_Data/run.py
+.\tda_env\Scripts\python.exe 5_Experiments/Archives/Four_Arm_Nested_Experiments/No_Undersampling/3_H0_Only/Default_Of_Credit_Card_Client_Data/run.py
 ```
 
 ## Where to read the method

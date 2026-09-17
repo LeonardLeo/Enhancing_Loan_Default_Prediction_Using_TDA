@@ -37,7 +37,7 @@ Open the named dataset script in each dataset folder (for example `Default_Of_Cr
 ## How to run
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/Historical_Late_Split_Balanced_TDA/3_H0_Only/<Dataset>/<script>.py
+.\tda_env\Scripts\python.exe 5_Experiments/Archives/Four_Arm_Nested_Experiments/Historical_Late_Split_Balanced_TDA/3_H0_Only/<Dataset>/<script>.py
 ```
 
 

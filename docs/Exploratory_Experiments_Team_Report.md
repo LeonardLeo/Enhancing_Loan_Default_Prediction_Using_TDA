@@ -141,7 +141,7 @@ They form the basis for:
 | 500 snapshots and large points per snapshot look aggressive | **Arm Exp 6** sampling-ratio audit |
 | Need mean/variance of snapshots for theory | **Arm Exp 7** snapshot statistics / landscape-mean proxy |
 | PCA dims ≠ intrinsic dimension | **Statistics Exp 1** Two-NN & Levina–Bickel |
-| Need formal two-sample evidence | **Arm Exp 8** Algorithm 2 / `F_{p,q}` (Robinson & Turner) |
+| Need formal two-sample evidence | **Arm Exp 8** permutation test of class difference / `F_{p,q}` (Robinson & Turner) |
 
 ---
 
@@ -157,7 +157,7 @@ They form the basis for:
 
 ## References (for the statistical thread)
 
-- Robinson, A. & Turner, K. *Hypothesis Testing for Topological Data Analysis*. arXiv:1310.7467 (Algorithm 2, loss `F_{p,q}`).  
+- Robinson, A. & Turner, K. *Hypothesis Testing for Topological Data Analysis*. arXiv:1310.7467 (permutation test of class difference, loss `F_{p,q}`).  
 - Chazal, F. et al. *Subsampling Methods for Persistent Homology*. arXiv:1406.1901 (`\barλ`, bias/variance of subsample landscapes).  
 - Frontiers survey: *An Introduction to Topological Data Analysis* — Section 6.3.1 (snapshot mean/variance; predictive use of estimators).  
 - Facco et al. — Two-NN intrinsic dimension.  

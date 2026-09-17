@@ -34,7 +34,7 @@ from ripser import ripser
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 from kmapper import KeplerMapper
 from scipy.spatial.distance import cdist, pdist, squareform
-from scipy.stats import mannwhitneyu
+from scipy.stats import t as student_t
 from sklearn.utils import check_random_state
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 from sklearn.decomposition import PCA
@@ -242,7 +242,7 @@ ACTIVE_TDA_EXPERIMENT_NAMES = (
     "1_PH_Default_Parameters",
     "2_PH_Tuned_Parameters",
     "6_Sampling_Ratio_Audit",
-    "8_Null_Hypothesis_Algorithm2",
+    "8_Permutation_Test_Of_Class_Difference",
     "9_Revised_Snapshot_Protocol",
 )
 
@@ -386,19 +386,6 @@ def get_dataset_folder(dataset: str) -> str:
 
 
 for _dataset_config in (
-    DatasetConfig(
-        key="statlog_german",
-        display_name="Statlog German Credit",
-        folder_name="Statlog_German_Credit_Data",
-        aliases=("dataset1", "sgcd", "statlog", "german", "statloggerman"),
-        target_column="Class",
-        pca_variance=0.90,
-        landmark_percentages=(30.0, 60.0),
-        notes={
-            "pca_n_components_exp3": 15,
-            "landmark_reason": "Original paper percents. Minority class count=300, so 30%/60% are required to get 90/180 points per snapshot.",
-        },
-    ),
     DatasetConfig(
         key="credit_card_default",
         display_name="Default of Credit Card Client",
@@ -2679,15 +2666,12 @@ _METRIC_DISPLAY = {
     "average_precision": "Average precision",
 }
 _DATASET_SHORT = {
-    "Statlog_German_Credit_Data": "Statlog German",
     "Default_Of_Credit_Card_Client_Data": "Credit card default",
 }
 _DATASET_FILE_SLUG = {
-    "Statlog_German_Credit_Data": "Statlog_German",
     "Default_Of_Credit_Card_Client_Data": "Credit_Card_Default",
 }
 _DATASET_DISPLAY_SHORT = {
-    "Statlog German Credit": "Statlog German",
     "Default of Credit Card Client": "Credit card default",
 }
 _RATE_METRIC_KEYS = {
@@ -2940,8 +2924,37 @@ def _hide_unused_axes(axes, used: int) -> None:
         ax.set_visible(False)
 
 
-def protocol_context_sentence(protocol_bucket: str) -> str:
-    """One-sentence protocol reminder for figure footnotes (English names, not compact t/l symbols)."""
+def protocol_interpretation_sentence(protocol_bucket: str, experiment: str = "") -> str:
+    """How to read the scores on this process — leakage, size cues, chance, or column-drop."""
+    if not protocol_bucket or protocol_bucket in {"Default_Parameters", "Statistics"}:
+        return ""
+    key = resolve_protocol_bucket(protocol_bucket)
+    spec = TDA_PROTOCOL_SPECS.get(key) or {}
+    bits: List[str] = []
+    if spec.get("split_timing") == "late":
+        bits.append(
+            "Late-split scores are not clean generalization: PCA saw every customer before the barcode-row split."
+        )
+    if spec.get("undersample") is False:
+        bits.append(
+            "Without undersampling, percent-of-class snapshots make default clouds smaller than non-default clouds, "
+            "so F1 near 1.0 can be a size cue rather than a topological one."
+        )
+    elif spec.get("undersample") is True and spec.get("split_timing") == "early":
+        bits.append(
+            "On these balanced barcode tables, accuracy near 0.5 is chance; a moderate F1 can still be a one-class predictor."
+        )
+    exp = str(experiment or "")
+    if "Dropping_Correlated" in exp:
+        bits.append(
+            "This table retrains after dropping barcode-statistic columns with absolute correlation above 0.80; "
+            "it is not a new persistent-homology construction."
+        )
+    return " ".join(bits)
+
+
+def protocol_context_sentence(protocol_bucket: str, experiment: str = "") -> str:
+    """Protocol reminder plus interpretation for figure footnotes (English names, not compact t/l symbols)."""
     if not protocol_bucket or protocol_bucket == "Default_Parameters":
         return "These scores use the original tabular features, not barcode statistics."
     if protocol_bucket == "Statistics":
@@ -2964,6 +2977,9 @@ def protocol_context_sentence(protocol_bucket: str) -> str:
         parts.append("Barcode tables keep homology-0 statistics only.")
     elif spec.get("homology") == "H0_and_H1":
         parts.append("Barcode tables keep both homology-0 and homology-1 statistics.")
+    extra = protocol_interpretation_sentence(protocol_bucket, experiment)
+    if extra:
+        parts.append(extra)
     return " ".join(parts)
 
 
@@ -4161,7 +4177,7 @@ def joint_loss_fpq_feature_vectors(
     return _within(group1) + _within(group2)
 
 
-def permutation_test_algorithm2(
+def permutation_test_of_class_difference(
     group1: np.ndarray,
     group2: np.ndarray,
     n_permutations: int = 200,
@@ -4170,7 +4186,7 @@ def permutation_test_algorithm2(
     random_state: int = 42,
 ) -> Dict[str, Any]:
     """
-    Algorithm 2 (Robinson & Turner, arXiv:1310.7467): permutation p-value for
+    permutation test of class difference (Robinson & Turner, arXiv:1310.7467): permutation p-value for
     whether two samples of persistence summaries arise from the same process.
     Uses F_{p,q} on barcode-statistic vectors (see joint_loss_fpq_feature_vectors).
     """
@@ -4202,7 +4218,7 @@ def permutation_test_algorithm2(
         "n2": n2,
         "null_mean": float(np.mean(null_losses)) if null_losses else np.nan,
         "null_std": float(np.std(null_losses)) if null_losses else np.nan,
-        "reference": "Robinson & Turner, arXiv:1310.7467 (Algorithm 2; vector-summary proxy)",
+        "reference": "Robinson & Turner, arXiv:1310.7467 (permutation test of class difference; vector-summary proxy)",
     }
 
 
@@ -5074,19 +5090,19 @@ def run_protocol_snapshot_mean_variance(
     return all_summaries
 
 
-def run_protocol_algorithm2(
+def run_protocol_permutation_test(
     dataset_key: str,
     protocol_bucket: str,
     max_per_group: int = 100,
     n_perm: int = 200,
 ) -> pd.DataFrame:
-    """Consumer: Robinson–Turner Algorithm 2 on experiment-1 barcode matrices."""
+    """Consumer: Robinson–Turner permutation test of class difference on experiment-1 barcode matrices."""
     protocol = get_tda_protocol(protocol_bucket)
     cfg = get_dataset_config(dataset_key)
     percentages = dataset_landmark_percentages(dataset_key)
     folder = cfg.folder_name
     exp1 = "1_PH_Default_Parameters"
-    exp8 = "8_Null_Hypothesis_Algorithm2"
+    exp8 = "8_Permutation_Test_Of_Class_Difference"
     save_path = tda_results_dir(protocol_bucket, exp8, folder)
     sources: List[Path] = []
     if protocol["split_timing"] == "early":
@@ -5133,7 +5149,7 @@ def run_protocol_algorithm2(
         key = f"{folder}/{rel}"
         payload[key] = {"barcode_vector_proxy": True, "tests": {}}
         for p, q in ((2, 2), (1, 1), (2, 1)):
-            result = permutation_test_algorithm2(
+            result = permutation_test_of_class_difference(
                 g1, g2, n_permutations=n_perm, p=p, q=q, random_state=42
             )
             payload[key]["tests"][f"F_{p}_{q}"] = result
@@ -5148,6 +5164,7 @@ def run_protocol_algorithm2(
                     "n1": result["n1"],
                     "n2": result["n2"],
                     "null_mean": result["null_mean"],
+                    "null_std": result["null_std"],
                     "barcode_vector_proxy": True,
                 }
             )
@@ -5155,14 +5172,14 @@ def run_protocol_algorithm2(
 
     if not rows:
         raise FileNotFoundError(
-            f"No experiment-1 barcode files for Algorithm 2 on {protocol_bucket}/{folder}."
+            f"No experiment-1 barcode files for permutation test of class difference on {protocol_bucket}/{folder}."
         )
     save_path.mkdir(parents=True, exist_ok=True)
     frame = pd.DataFrame(rows)
-    frame.to_csv(save_path / "algorithm2_permutation_results.csv", index=False)
+    frame.to_csv(save_path / "permutation_test_results.csv", index=False)
     store_results(
         path=str(save_path),
-        save_name="algorithm2_permutation_results",
+        save_name="permutation_test_results",
         result_object=payload,
     )
     return frame
@@ -5200,8 +5217,8 @@ def run_protocol_experiment(
         return run_protocol_sampling_ratio_audit(dataset_key, protocol_bucket)
     if experiment == "7_Snapshot_Mean_Variance":
         return run_protocol_snapshot_mean_variance(dataset_key, protocol_bucket)
-    if experiment == "8_Null_Hypothesis_Algorithm2":
-        return run_protocol_algorithm2(dataset_key, protocol_bucket)
+    if experiment == "8_Permutation_Test_Of_Class_Difference":
+        return run_protocol_permutation_test(dataset_key, protocol_bucket)
     raise ValueError(f"Unknown active TDA experiment: {experiment}")
 
 
@@ -5221,7 +5238,6 @@ _MODEL_METRIC_KEYS = {
 }
 _CANONICAL_DATASET_FOLDERS = (
     "Default_Of_Credit_Card_Client_Data",
-    "Statlog_German_Credit_Data",
 )
 _METRIC_CSV_CANDIDATES = (
     "model_results.pkl",
@@ -5233,7 +5249,7 @@ _METRIC_CSV_CANDIDATES = (
 )
 _SAMPLING_ARTEFACTS = ("sampling_ratio_audit.csv", "sampling_ratio_audit.pkl")
 _SNAPSHOT_ARTEFACTS = ("snapshot_mean_variance.csv", "snapshot_mean_variance_full.pkl")
-_ALG2_ARTEFACTS = ("algorithm2_permutation_results.csv", "algorithm2_permutation_results.pkl")
+_ALG2_ARTEFACTS = ("permutation_test_results.csv", "permutation_test_results.pkl")
 _EXP9_ARTEFACTS = ("ml_results.csv", "all_ml_results.csv", "design.json")
 _ID_ARTEFACTS = ("intrinsic_dimension_estimates.csv", "intrinsic_dimension_estimates.pkl")
 
@@ -5250,6 +5266,20 @@ def _results_not_generated(expected_paths: List[Union[str, Path]]) -> None:
 
 
 def experiment_results_root(protocol_bucket: str, experiment: str) -> Path:
+    """Results folder for one process × experiment.
+
+    Live eight-process slugs live at ``6_Results/{slug}/{experiment}``.
+    Legacy four-arm names keep ``6_Results/Archives/Four_Arm_Nested_Experiments/{legacy}/{experiment}``
+    so Paper 6 / linear / mean-variance figures do not read or overwrite live process pickles.
+    """
+    if protocol_bucket in LEGACY_PROTOCOL_BUCKETS:
+        archive = (
+            REPO_ROOT / "6_Results" / "Archives" / "Four_Arm_Nested_Experiments"
+            / protocol_bucket / experiment
+        )
+        archive_long = win_long_path(archive)
+        if Path(str(archive_long)).exists():
+            return archive_long
     return win_long_path(REPO_ROOT / "6_Results" / resolve_protocol_bucket(protocol_bucket) / experiment)
 
 
@@ -5552,6 +5582,7 @@ def visualize_model_pickle_experiment(
             hide_axis_labels=hide_axis_labels,
             filename_prefix=dataset_dir.name,
             protocol_bucket=protocol_bucket,
+            figure_note=protocol_context_sentence(protocol_bucket, experiment),
         )
         if isinstance(plot_path, list):
             written.extend(Path(p) for p in plot_path)
@@ -5598,6 +5629,7 @@ def visualize_model_pickle_experiment(
             hide_axis_labels=False,
             filename_prefix="cross",
             protocol_bucket=protocol_bucket,
+            figure_note=protocol_context_sentence(protocol_bucket, experiment),
         )
         if isinstance(plot_path, list):
             written.extend(Path(p) for p in plot_path)
@@ -5647,7 +5679,7 @@ def visualize_sampling_ratio_audit_experiment(protocol_bucket: str, experiment: 
             )
         hue = "landmark_label" if "landmark_label" in plot_df.columns else None
         x_col = "l_rule_label" if "l_rule_label" in plot_df.columns else "dataset_label"
-        ctx = protocol_context_sentence(protocol_bucket)
+        ctx = protocol_context_sentence(protocol_bucket, experiment)
         written.append(plot_faceted_bars(
             plot_df,
             x=x_col,
@@ -5712,7 +5744,7 @@ def visualize_snapshot_mean_variance_experiment(protocol_bucket: str, experiment
     if "feature" in data.columns:
         data["feature_label"] = data["feature"].map(lambda f: COLUMN_DESCRIPTIONS.get(str(f), str(f)))
     headline = data[data["feature"].isin(["g2_0", "g3_1"])].copy() if "feature" in data.columns else data
-    ctx = protocol_context_sentence(protocol_bucket)
+    ctx = protocol_context_sentence(protocol_bucket, experiment)
     if not headline.empty and "mean" in headline.columns:
         written.append(plot_faceted_bars(
             headline,
@@ -5769,17 +5801,17 @@ def visualize_snapshot_mean_variance_experiment(protocol_bucket: str, experiment
     return written
 
 
-def visualize_algorithm2_experiment(protocol_bucket: str, experiment: str) -> List[Path]:
+def visualize_permutation_test(protocol_bucket: str, experiment: str) -> List[Path]:
     results_root = experiment_results_root(protocol_bucket, experiment)
     viz_dir = experiment_visualizations_dir(protocol_bucket, experiment)
     per_dataset = [
-        results_root / folder / "algorithm2_permutation_results.csv"
+        results_root / folder / "permutation_test_results.csv"
         for folder in _registered_dataset_folders()
     ]
-    expected = per_dataset + [results_root / "algorithm2_permutation_results.csv"]
+    expected = per_dataset + [results_root / "permutation_test_results.csv"]
     frames = [pd.read_csv(p) for p in per_dataset if p.is_file()]
-    if not frames and (results_root / "algorithm2_permutation_results.csv").is_file():
-        frames.append(pd.read_csv(results_root / "algorithm2_permutation_results.csv"))
+    if not frames and (results_root / "permutation_test_results.csv").is_file():
+        frames.append(pd.read_csv(results_root / "permutation_test_results.csv"))
     if not frames:
         _results_not_generated(expected)
     data = _attach_dataset_labels(pd.concat(frames, ignore_index=True), source_col="source")
@@ -5791,16 +5823,25 @@ def visualize_algorithm2_experiment(protocol_bucket: str, experiment: str) -> Li
         data["F_label"] = [f"Contrast ({int(p)}, {int(q)})" for p, q in zip(data["p"], data["q"])]
     else:
         data["F_label"] = "Contrast"
-    ctx = protocol_context_sentence(protocol_bucket)
+    ctx = protocol_context_sentence(protocol_bucket, experiment)
+    p_col = "p_value" if "p_value" in data.columns else None
+    fail_n = int((data[p_col] >= 0.05).sum()) if p_col else 0
+    fail_note = (
+        f"{fail_n} bar(s) sit at or above the dashed line and fail to reject the shuffle null; "
+        "those contrasts are not evidence that the classes have different barcode shape. "
+        if fail_n
+        else "Every bar here is below 0.05, so every plotted contrast rejects the shuffle null. "
+        "Rejection can still be driven by unequal cloud size rather than default geometry. "
+    )
     written.append(plot_faceted_bars(
         data,
         x="F_label",
         y="p_value",
         facet="dataset_label",
         hue="landmark_label" if data["landmark_label"].nunique() > 1 else None,
-        title=process_figure_title(protocol_bucket, "Algorithm 2 permutation p-values"),
+        title=process_figure_title(protocol_bucket, "permutation-test p-values"),
         ylabel="p-value",
-        save_path=viz_dir / "algorithm2_pvalues_faceted.png",
+        save_path=viz_dir / "permutation_test_pvalues_faceted.png",
         hline=0.05,
         hline_label="Significance threshold 0.05",
         ylim=(0, 1.05),
@@ -5809,7 +5850,7 @@ def visualize_algorithm2_experiment(protocol_bucket: str, experiment: str) -> Li
             "Each bar is a permutation p-value for one barcode-vector contrast. "
             "The dashed line is 0.05. Small values mean the observed contrast is unusual under a random label shuffle. "
             "Panels are datasets; colours are snapshot sizes (fraction of the class used as points per snapshot). "
-            f"{ctx}"
+            f"{fail_note}{ctx}"
         ),
     ))
     if "observed_F_pq" in data.columns:
@@ -5819,17 +5860,18 @@ def visualize_algorithm2_experiment(protocol_bucket: str, experiment: str) -> Li
             y="observed_F_pq",
             facet="dataset_label",
             hue="landmark_label" if data["landmark_label"].nunique() > 1 else None,
-            title=process_figure_title(protocol_bucket, "Algorithm 2 observed contrast statistic"),
+            title=process_figure_title(protocol_bucket, "permutation-test observed contrast statistic"),
             ylabel="Observed contrast statistic",
-            save_path=viz_dir / "algorithm2_observed_F_faceted.png",
+            save_path=viz_dir / "permutation_test_observed_F_faceted.png",
             wrap_width=14,
             note=(
                 "Each bar is the observed contrast statistic before permutation. "
                 "Read it together with the p-value figure: a large statistic with a small p-value is evidence against the shuffle null. "
+                "A large statistic with p at or above 0.05 is still consistent with a random label shuffle. "
                 f"{ctx}"
             ),
         ))
-    written.append(_write_csv(viz_dir / "algorithm2_permutation_combined.csv", data))
+    written.append(_write_csv(viz_dir / "permutation_test_combined.csv", data))
     return written
 
 
@@ -5858,7 +5900,26 @@ def visualize_revised_snapshot_protocol_experiment(protocol_bucket: str, experim
         data["snapshot_points_label"] = data["t"].map(_points_per_snapshot_label)
     models = list(dict.fromkeys(data["model"].tolist())) if "model" in data.columns else []
     model_palette = {pretty_model_label(m): _model_palette(models)[m] for m in models} if models else None
-    ctx = protocol_context_sentence(protocol_bucket)
+    ctx = protocol_context_sentence(protocol_bucket, experiment)
+    canon_note = ""
+    if {"balanced_accuracy", "t"}.issubset(data.columns):
+        run_col = next((c for c in ("run_key", "mode", "protocol_mode") if c in data.columns), None)
+        folder_col = "dataset_folder" if "dataset_folder" in data.columns else (
+            "dataset" if "dataset" in data.columns else None
+        )
+        canon = data.copy()
+        canon = canon[pd.to_numeric(canon["t"], errors="coerce") == 88]
+        if folder_col:
+            canon = canon[canon[folder_col].astype(str).str.contains("Default_Of_Credit_Card", case=False, na=False)]
+        if run_col:
+            canon = canon[canon[run_col].astype(str).str.contains("default_60_15", case=False, na=False)]
+        if not canon.empty and "balanced_accuracy" in canon.columns:
+            mean_ba = float(pd.to_numeric(canon["balanced_accuracy"], errors="coerce").mean())
+            if np.isfinite(mean_ba):
+                canon_note = (
+                    f"Canonical Default of Credit Card Client cell (default_60_15, 88 points per snapshot): "
+                    f"five-model mean balanced accuracy is {mean_ba:.3f}. "
+                )
 
     for metric in ("balanced_accuracy", "f1", "accuracy"):
         if metric not in data.columns:
@@ -5870,7 +5931,7 @@ def visualize_revised_snapshot_protocol_experiment(protocol_bucket: str, experim
             y=metric,
             facet="dataset_label",
             hue=hue if "model_label" in data.columns else None,
-            title=f"Revised snapshot protocol — {pretty_metric_label(metric)}",
+            title=process_figure_title(protocol_bucket, f"Revised snapshot protocol — {pretty_metric_label(metric)}"),
             ylabel=pretty_metric_label(metric),
             save_path=viz_dir / f"{'f1' if metric == 'f1' else metric}_by_model_faceted.png",
             ylim=(0, 1.05),
@@ -5879,7 +5940,8 @@ def visualize_revised_snapshot_protocol_experiment(protocol_bucket: str, experim
             note=(
                 f"Each bar is held-out {pretty_metric_label(metric).lower()} for one classifier under the revised snapshot protocol. "
                 "Colours are points per snapshot (the size of one point cloud). Panels are datasets so models are compared within a table. "
-                f"{ctx}"
+                "This protocol uses a fixed point count per bag, not percent-of-class clouds. "
+                f"{canon_note}{ctx}"
             ),
         ))
         break
@@ -6087,7 +6149,7 @@ def visualize_intrinsic_dimension_experiment(
                 "estimate": float(value),
             })
     melted = pd.DataFrame(long_rows)
-    ctx = protocol_context_sentence(protocol_bucket)
+    ctx = protocol_context_sentence(protocol_bucket, experiment)
     if not melted.empty:
         two_nn = melted[melted["family"].str.contains("Two-NN", na=False)]
         if not two_nn.empty:
@@ -6187,8 +6249,8 @@ def visualize_experiment_folder(protocol_bucket: str, experiment: str) -> List[P
         written = visualize_sampling_ratio_audit_experiment(protocol_bucket, experiment)
     elif experiment == "7_Snapshot_Mean_Variance":
         written = visualize_snapshot_mean_variance_experiment(protocol_bucket, experiment)
-    elif experiment == "8_Null_Hypothesis_Algorithm2":
-        written = visualize_algorithm2_experiment(protocol_bucket, experiment)
+    elif experiment == "8_Permutation_Test_Of_Class_Difference":
+        written = visualize_permutation_test(protocol_bucket, experiment)
     elif experiment == "9_Revised_Snapshot_Protocol":
         written = visualize_revised_snapshot_protocol_experiment(protocol_bucket, experiment)
     elif protocol_bucket == "Statistics" or experiment == "1_Intrinsic_Dimension_Estimation":
@@ -6236,7 +6298,7 @@ def reuse_ratio_from_counts(
 # -----------------------------------------------------------------------------
 BUCKET = "Snapshot_Sample_Size"
 SHARED_EXPERIMENT = "0_Shared_Pools"
-# Historical Exp 3 clouds were percent-of-class: Statlog 90/180, DCCCD 331/994.
+# Historical Exp 3 clouds were percent-of-class: DCCCD 331/994.
 # The old 15–60 cap stopped well short of those sizes on the large table. This
 # grid keeps the original steps, then continues toward them. 330 is the DCCCD
 # L5 scale (331). DCCCD L15 (994) and the historical 500 snapshots stay off this
@@ -6257,7 +6319,6 @@ CUSTOMER_SPLIT_SEED = 0
 PCA_RANDOM_STATE = 42  # matches Exp 3 / DatasetConfig geometry
 MODEL_RANDOM_STATE = 0
 HOMOLOGY_DIM = 2
-Z_95 = 1.96
 
 PROTOCOLS: Dict[str, Dict[str, Any]] = {
     "Historical_Late_Split_Balanced_TDA": {
@@ -6283,7 +6344,6 @@ PROTOCOLS: Dict[str, Dict[str, Any]] = {
 }
 
 DATASET_RUN_ORDER: Tuple[str, ...] = (
-    "statlog_german",
     "credit_card_default",
 )
 
@@ -7409,12 +7469,13 @@ def _ci_summary(frame: pd.DataFrame) -> pd.DataFrame:
             mean = float(np.mean(values))
             std = float(np.std(values, ddof=1)) if len(values) > 1 else 0.0
             se = std / math.sqrt(len(values)) if len(values) else float("nan")
+            critical = float(student_t.ppf(0.975, len(values) - 1)) if len(values) > 1 else 0.0
             lo, hi = np.percentile(values, [2.5, 97.5]) if len(values) else (mean, mean)
             record[f"{metric}_mean"] = mean
             record[f"{metric}_std"] = std
             record[f"{metric}_se"] = float(se)
-            record[f"{metric}_ci95_low"] = mean - Z_95 * se
-            record[f"{metric}_ci95_high"] = mean + Z_95 * se
+            record[f"{metric}_ci95_low"] = mean - critical * se
+            record[f"{metric}_ci95_high"] = mean + critical * se
             record[f"{metric}_percentile_low"] = float(lo)
             record[f"{metric}_percentile_high"] = float(hi)
         rows.append(record)
@@ -7593,8 +7654,8 @@ def item_notes() -> Dict[str, str]:
             f"Item 2 — {item2_axis_caption()}. Number of "
             "snapshots is held fixed. This is not item 1, which instead holds points per "
             "snapshot at the dataset-aware default and moves the number of snapshots. "
-            f"A universal {candidates} cloud-size grid is not used: Statlog's class pool cannot "
-            "host the larger steps that DCCCD can. Candidates with points per snapshot "
+            f"A universal {candidates} cloud-size grid is not used on this table; "
+            "candidates with points per snapshot "
             "≥ class count are dropped (no silent clipping). Item 3 is this sample-size "
             "study (items 1, 2, and 4 together), not a third independent grid.\n"
             "Headline is F1; accuracy is always shown. Nested prefixes and 10 snapshot-draw "
@@ -9170,34 +9231,34 @@ def overlap_significance_tests(
     Formal tests that observed pairwise overlap is consistent with independent
     uniform sampling without replacement (null), vs systematically too high.
 
-    1) One-sided permutation / Monte-Carlo test on mean overlap fraction.
-    2) Mann–Whitney U: observed pair overlaps vs null-simulated pair overlaps.
+    One-sided Monte Carlo test on mean overlap fraction.  The observed and
+    null statistics use the same number of sampled snapshot pairs.
+
+    Pairwise overlaps are dependent because each snapshot participates in
+    many pairs.  A Mann–Whitney test on flattened pair overlaps would treat
+    those dependent values as independent, so it is intentionally not used.
     """
     rng = check_random_state(random_state)
+    n_pair_sample = min(300, len(index_sets) * (len(index_sets) - 1) // 2)
     observed = analyze_snapshot_overlap(
-        index_sets, t=t, n_pool=n_pool, n_pair_sample=300, random_state=random_state
+        index_sets, t=t, n_pool=n_pool, n_pair_sample=n_pair_sample, random_state=random_state
     )
     obs_mean = observed["mean_overlap_frac"]
 
     null_means = []
-    null_pair_values = []
     for _ in range(n_permutations):
         sim_sets = [rng.choice(n_pool, size=t, replace=False).tolist() for _ in range(len(index_sets))]
         sim = analyze_snapshot_overlap(
-            sim_sets, t=t, n_pool=n_pool, n_pair_sample=200, random_state=rng.randint(0, 2**31 - 1)
+            sim_sets,
+            t=t,
+            n_pool=n_pool,
+            n_pair_sample=n_pair_sample,
+            random_state=rng.randint(0, 2**31 - 1),
         )
         null_means.append(sim["mean_overlap_frac"])
-        null_pair_values.extend(sim["overlap_frac_values"])
 
     # p-value: fraction of null means >= observed (more overlap than chance)
     p_mean = (1 + sum(m >= obs_mean for m in null_means)) / (n_permutations + 1)
-
-    obs_pairs = observed["overlap_frac_values"]
-    if obs_pairs and null_pair_values:
-        # alternative: observed overlaps stochastically greater than null
-        u_stat, p_mw = mannwhitneyu(obs_pairs, null_pair_values, alternative="greater")
-    else:
-        u_stat, p_mw = float("nan"), float("nan")
 
     return {
         "observed_mean_overlap_frac": obs_mean,
@@ -9205,12 +9266,13 @@ def overlap_significance_tests(
         "null_std_of_means": float(np.std(null_means)),
         "expected_overlap_frac_theory": observed["expected_overlap_frac_indep"],
         "p_value_mean_overlap_greater_than_null": float(p_mean),
-        "mannwhitney_U": float(u_stat) if np.isfinite(u_stat) else float("nan"),
-        "mannwhitney_p_greater": float(p_mw) if np.isfinite(p_mw) else float("nan"),
+        "mannwhitney_U": float("nan"),
+        "mannwhitney_p_greater": float("nan"),
         "n_permutations": n_permutations,
         "interpretation": (
-            "Large p-values support the null that snapshots behave like independent "
-            "uniform draws. Small p-values suggest excess overlap beyond chance."
+            "This Monte Carlo diagnostic compares the realized training-library mean "
+            "overlap with independently simulated libraries using the same number of "
+            "sampled snapshot pairs. It does not test the held-out snapshot library."
         ),
         "summary_without_raw": {
             k: v
@@ -9218,6 +9280,87 @@ def overlap_significance_tests(
             if k not in ("jaccard_values", "overlap_frac_values")
         },
     }
+
+
+def refresh_revised_overlap_diagnostics() -> Dict[str, int]:
+    """Recompute Experiment 9 overlap JSONs from the saved snapshot index sets.
+
+    This avoids rerunning persistent homology.  It is intended for migrations
+    of the overlap test itself: the snapshots and their original sampling
+    indices remain unchanged.
+    """
+    refreshed = 0
+    class_tests = 0
+    dataset_folders = (
+        "Default_Of_Credit_Card_Client_Data",
+    )
+    split_pattern = re.compile(r"_split_t(\d+)_train(\d+)_test(\d+)_.+\.json$")
+    full_pattern = re.compile(r"_full_t(\d+)_l(\d+)\.json$")
+    for bucket in ACTIVE_TDA_PROTOCOL_BUCKETS:
+        source_bucket = barcode_source_bucket(bucket) if bucket.endswith("_H0") else bucket
+        for folder in dataset_folders:
+            result_dir = win_long_path(
+                REPO_ROOT / "6_Results" / bucket / "9_Revised_Snapshot_Protocol" / folder
+            )
+            landmark_dir = win_long_path(
+                REPO_ROOT / "1_Data" / "Landmark_Sets" / source_bucket
+                / "9_Revised_Snapshot_Protocol" / folder
+            )
+            if not result_dir.is_dir():
+                continue
+            for result_path in result_dir.glob("overlap_*.json"):
+                split_match = split_pattern.search(result_path.name)
+                full_match = full_pattern.search(result_path.name)
+                if split_match:
+                    points, train_count, test_count = map(int, split_match.groups())
+                    run_dir = landmark_dir / f"split_t{points}_tr{train_count}_te{test_count}" / "train"
+                    tag = "train"
+                    key_prefix = "train_"
+                elif full_match:
+                    points, snapshots = map(int, full_match.groups())
+                    run_dir = landmark_dir / f"full_t{points}_l{snapshots}"
+                    tag = "full"
+                    key_prefix = ""
+                else:
+                    raise ValueError(f"Unrecognised overlap diagnostic name: {result_path}")
+                indices_path = run_dir / f"snapshot_indices_{tag}.json"
+                meta_path = run_dir / f"snapshot_meta_{tag}.json"
+                if not indices_path.is_file() or not meta_path.is_file():
+                    raise FileNotFoundError(
+                        f"Saved indices required to refresh {result_path.name}: "
+                        f"{indices_path} / {meta_path}"
+                    )
+                with open(indices_path, "r", encoding="utf-8") as handle:
+                    index_sets = json.load(handle)
+                with open(meta_path, "r", encoding="utf-8") as handle:
+                    metadata = json.load(handle)
+                payload = {}
+                for class_name in ("default", "non-default"):
+                    sets = index_sets[class_name]
+                    n_pool = int(metadata["classes"][class_name]["n_pool"])
+                    summary = analyze_snapshot_overlap(
+                        sets, t=points, n_pool=n_pool, random_state=42
+                    )
+                    summary_light = {
+                        key: value
+                        for key, value in summary.items()
+                        if key not in ("jaccard_values", "overlap_frac_values")
+                    }
+                    significance = overlap_significance_tests(
+                        sets,
+                        t=points,
+                        n_pool=n_pool,
+                        n_permutations=150,
+                        random_state=42,
+                    )
+                    payload[f"{key_prefix}{class_name}"] = {
+                        "summary": summary_light,
+                        "significance": significance,
+                    }
+                    class_tests += 1
+                save_json(result_path, payload)
+                refreshed += 1
+    return {"files_refreshed": refreshed, "class_tests": class_tests}
 
 
 # =============================================================================
@@ -9405,11 +9548,6 @@ DATASET_SPECS = {
         "path": REPO_ROOT
         / "1_Data/Processed_Datasets/Default_Of_Credit_Card_Client_Data/processed_data.xlsx",
         "run_full_nonsplit": True,
-    },
-    "statlog_german": {
-        "path": REPO_ROOT
-        / "1_Data/Processed_Datasets/Statlog_German_Credit_Data/processed_data.xlsx",
-        "run_full_nonsplit": False,
     },
 }
 
@@ -9904,7 +10042,10 @@ def run_split_setting(
                 "train_l": train_l,
                 "test_l": test_l,
                 "b_used": design["b_used"],
-                "formula_l": design.get("formula_at_chosen_t"),
+                # Concern A is a function of the points-per-snapshot value used
+                # by this row.  Do not repeat the chosen-point formula across a
+                # sensitivity sweep.
+                "formula_l": formula_l_from_t_b(t, design["b_used"]),
                 "pca_variance": var,
                 "n_train_snapshots": len(train_bar),
                 "n_test_snapshots": len(test_bar),

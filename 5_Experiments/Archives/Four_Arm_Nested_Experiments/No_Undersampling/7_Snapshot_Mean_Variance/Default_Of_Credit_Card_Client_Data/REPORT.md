@@ -15,7 +15,7 @@ CONSUMER. Mean and variance of each barcode column in this arm's `data_L*.csv`.
 Run:
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/No_Undersampling/7_Snapshot_Mean_Variance/Default_Of_Credit_Card_Client_Data/run.py
+.\tda_env\Scripts\python.exe 5_Experiments/Archives/Four_Arm_Nested_Experiments/No_Undersampling/7_Snapshot_Mean_Variance/Default_Of_Credit_Card_Client_Data/run.py
 ```
 
 ## Where to read the method

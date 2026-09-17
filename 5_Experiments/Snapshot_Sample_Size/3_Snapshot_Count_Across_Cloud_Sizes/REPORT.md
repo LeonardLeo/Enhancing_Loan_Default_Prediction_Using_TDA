@@ -16,7 +16,7 @@ This is **not** a duplicate of item 1. Item 1 holds cloud size at the dataset-aw
 - **Families:** one curve per surviving points-per-snapshot value in `{15, 30, 45, 60, 90, 120, 180, 240, 330}` (dropped when the value is at least the protocol's binding class count; no silent clipping)
 - Headline metric: **F1** (imbalanced tables, especially with no undersampling). Accuracy is always plotted as well.
 - One customer split (`random_state=0`). Ten snapshot-draw repeats. Nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60 ⊂ 90 ⊂ 120 ⊂ 180 from a shuffled pool of 180 training snapshots. Fifteen test snapshots drawn independently and held fixed across the snapshot-count sweep.
-- 95% CI = mean ± 1.96 × SE across the 10 repeats (percentile interval also stored). This is snapshot-sampling uncertainty, not customer-split uncertainty. This study does not also run five customer splits on the full grid.
+- 95% CI = mean ± Student's t(0.975, 9) × SE across the 10 repeats (percentile interval also stored). This is snapshot-sampling uncertainty, not customer-split uncertainty. This study does not also run five customer splits on the full grid.
 - Classifiers: SVM, KNN, XGBoost, Logistic Regression, Random Forest with Exp 1 TDA default hyperparameters. SVM and Logistic are thicker; KNN, XGBoost, and Random Forest use full-saturation Okabe–Ito colours (not muted). Combined overlays are mean trends only (no error bars); companion panels use one CI ribbon per (model, points-per-snapshot) cell.
 - PCA ranks: same as `DatasetConfig` / `docs/Design_Decisions.md` (historical Exp 3 ranks).
 - Early-split arms: split customers first, PCA on train only. Late-split arms: full-table PCA, then snapshot-level train/test.

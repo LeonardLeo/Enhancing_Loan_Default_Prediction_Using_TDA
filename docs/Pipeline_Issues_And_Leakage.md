@@ -59,7 +59,7 @@ PCA component counts (7 / 15 / variance-driven) are **not** estimates of intrins
 **Statistics experiment 1** (historical Exp 26) estimates it via Two-NN and Levina–Bickel. Artefacts: `6_Results/Statistics/1_Intrinsic_Dimension_Estimation/`. There is no live `6_Results/26_Intrinsic_…` folder.
 
 ### 2.4 Two-sample test on diagrams
-**Arm experiment 8** (historical Exp 27) implements Robinson & Turner Algorithm 2 with `F_{p,q}` on barcode-statistic vectors (proxy). Cite the paper; note the proxy when publishing.
+**Arm experiment 8** (historical Exp 27) implements Robinson & Turner permutation test of class difference with `F_{p,q}` on barcode-statistic vectors (proxy). Cite the paper; note the proxy when publishing.
 
 ### 2.5 Revised snapshot protocol
 **Process experiment 9** (historical Exp 28) replaces percentage landmarks + 500 snapshots with fixed points per snapshot, default 60 training / 15 test snapshots, and reuse/overlap reporting. It lives on all eight processes; the canonical write-up (early split, no undersample, using both H0 and H1) is `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/`. See `docs/Revised_Snapshot_Protocol_Deep_Report.md`. English names: `docs/Notation.md`.

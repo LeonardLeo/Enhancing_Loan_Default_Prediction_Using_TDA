@@ -28,7 +28,7 @@ Early_Split_TDA_And_No_Undersampling) are aliases only; they are not live root f
 
 Every live TDA process runs the same five experiments (utils.ACTIVE_TDA_EXPERIMENT_NAMES):
 1_PH_Default_Parameters, 2_PH_Tuned_Parameters, 6_Sampling_Ratio_Audit,
-8_Null_Hypothesis_Algorithm2, 9_Revised_Snapshot_Protocol.
+8_Permutation_Test_Of_Class_Difference, 9_Revised_Snapshot_Protocol.
 H0 processes slice H0 columns from the matching H0-and-H1 barcode tables. They do not run Ripser.
 
 Paper-table mapping (6_Results/results.py paper numbers 1-10):
@@ -48,7 +48,7 @@ Historical checklist 23-28 (not live root folders):
 - 24 sampling audit -> {process}/6_Sampling_Ratio_Audit/
 - 25 mean/variance  -> Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance/
 - 26 intrinsic dim  -> Statistics/1_Intrinsic_Dimension_Estimation/
-- 27 Algorithm 2    -> {process}/8_Null_Hypothesis_Algorithm2/
+- 27 permutation test of class difference    -> {process}/8_Permutation_Test_Of_Class_Difference/
 - 28 revised protocol -> {process}/9_Revised_Snapshot_Protocol/
 - Snapshot sample size (13/08/2026) -> 5_Experiments/Snapshot_Sample_Size/
 
@@ -162,7 +162,7 @@ Early split + undersample + H0 and H1 Exp 1 (historical Exp 23 / Protocol B) - E
 Arm Exp 6 (historical Exp 24) - Sampling ratio audit (minority class count, points per snapshot, number of snapshots, reuse ratio, suggested snapshot count). Live on all eight processes.
 Arm Exp 7 (historical Exp 25) - Snapshot mean/variance of barcode statistics; lambda_bar proxy (Chazal / survey 6.3.1). Archived under Four_Arm_Nested_Experiments/.
 Statistics Exp 1 (historical Exp 26) - Intrinsic dimension estimation (Two-NN, Levina-Bickel). Path: 5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/
-Arm Exp 8 (historical Exp 27) - Null hypothesis test Algorithm 2 / F_p,q (Robinson & Turner arXiv:1310.7467; barcode-vector proxy). Live on all eight processes. Do not quote p=0.005 as universal: early-split + undersample Statlog TEST L30 does not reject.
+Arm Exp 8 (historical Exp 27) - Null hypothesis test permutation test of class difference / F_p,q (Robinson & Turner arXiv:1310.7467; barcode-vector proxy). Live on all eight processes. Do not quote p=0.005 as universal: early-split + undersample Statlog TEST L30 does not reject.
 Arm Exp 9 (historical Exp 28) - Revised snapshot protocol on all eight processes (fixed points per snapshot, default 60 training / 15 test snapshots). Canonical write-up uses Early_Split_No_Undersample_H0_And_H1.
 Snapshot sample size (13/08/2026) - items 1, 2, and 4 under 5_Experiments/Snapshot_Sample_Size/. Item 3 is this study, not a third grid. Shared pools still use the four legacy protocol keys.
 
@@ -194,7 +194,7 @@ Protocols (factorial, eight live processes):
 
 Seeds (do not collapse these):
 - Tabular baselines (Default_Parameters Exp 1-2): random_state=0
-- Live PH / H0 / Algorithm 2 / Exp 9 dataset scripts: random_state=42
+- Live PH / H0 / permutation test of class difference / Exp 9 dataset scripts: random_state=42
 - Snapshot_Sample_Size customer split and model fit: CUSTOMER_SPLIT_SEED=0, MODEL_RANDOM_STATE=0; PCA_RANDOM_STATE=42
 
 Implemented outputs:
@@ -202,7 +202,7 @@ Implemented outputs:
 - Full H0 and H1 barcode-statistic TDA runs (process Exp 1) and tuned consumers (process Exp 2)
 - H0-only slices (process Exp 1 on *_H0 folders) and archived correlated-feature ablations (paper 6)
 - Linear-regression separability (paper 10 / archived arm Exp 5)
-- Sampling-ratio audit and Algorithm 2 (process Exp 6 and 8) on all eight processes
+- Sampling-ratio audit and permutation test of class difference (process Exp 6 and 8) on all eight processes
 - Snapshot mean/variance archived under Four_Arm_Nested_Experiments/
 - Intrinsic dimension (Statistics Exp 1)
 - Revised snapshot protocol (process Exp 9) on all eight processes

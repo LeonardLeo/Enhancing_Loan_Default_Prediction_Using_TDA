@@ -11,7 +11,7 @@ Older notes still say Experiments 23–28. Those labels are **historical checkli
 | Exp 24 | `{process}/6_Sampling_Ratio_Audit` |
 | Exp 25 | `Archives/Four_Arm_Nested_Experiments/{old arm}/7_Snapshot_Mean_Variance` |
 | Exp 26 | `Statistics/1_Intrinsic_Dimension_Estimation` |
-| Exp 27 | `{process}/8_Null_Hypothesis_Algorithm2` |
+| Exp 27 | `{process}/8_Permutation_Test_Of_Class_Difference` |
 | Exp 28 | `{process}/9_Revised_Snapshot_Protocol` |
 | Sample-size study (13/08/2026) | `Snapshot_Sample_Size/` |
 
@@ -89,7 +89,7 @@ This is the common starting file for tabular Default Parameters and for every TD
 
 ```text
 reuse ratio = (points per snapshot × number of snapshots) / minority class count
-suggested snapshot count ≈ round(minority class count / points per snapshot)    # reuse ≈ 1
+approximate one-coverage count = ceil(minority class count / points per snapshot)    # reuse at or just above 1
 ```
 
 **Finding:** the reuse ratio is 25–300 on every table. Historical 500 snapshots fail the “reuse near 1” checklist everywhere. This is why arm experiment 9 exists.
@@ -129,15 +129,15 @@ Small variance + different class means ⇒ stable fingerprint. Large variance �
 
 ---
 
-## Stage 5 — Arm experiment 8: do the two classes differ? (historical Exp 27, Algorithm 2)
+## Stage 5 — Arm experiment 8: do the two classes differ? (historical Exp 27, permutation test of class difference)
 
 **When:** **after** that arm's Exp 1 `data_L*.csv` exist. Independent of arm experiment 7 except that both read the same files.
 
 **Question:** if we shuffle labels, is the gap between default and non-default barcode rows still surprising?
 
-Robinson & Turner Algorithm 2 (arXiv:1310.7467) on **24-D barcode vectors**, not bottleneck/Wasserstein on raw diagrams. Cap 100 snapshots per class, `B = 200` permutations, `(p, q) ∈ {(2,2), (1,1), (2,1)}`.
+Robinson & Turner permutation test of class difference (arXiv:1310.7467) used here as a vector-summary proxy: **12-D barcode vectors for H0-only processes and 24-D vectors for H0+H1**, not bottleneck/Wasserstein on raw diagrams. Cap 100 snapshots per class, 199 random relabellings plus the observed allocation (200 total statistics), `(p, q) ∈ {(2,2), (1,1), (2,1)}`.
 
-Tiny p-value ⇒ the two clouds are probably not the same process. It does **not** by itself mean a classifier will generalise to new customers (see arm experiment 6 reuse).
+A tiny p-value means the observed within-class grouping is unusual under the conditional row-label shuffle null for that generated barcode-vector library. Because overlapping snapshots redraw customers, barcode rows are dependent and row exchangeability is questionable; these exploratory p-values are not calibrated customer-level tests and do not establish that the underlying class processes differ. They also do **not** imply that a classifier will generalise to new customers (see arm experiment 6 reuse).
 
 ---
 
@@ -186,6 +186,6 @@ A separate factorial on **all four protocol arms**. Items 1 and 2 are different 
 | 24 | Arm Exp 6 | No | Are we over-reusing people? |
 | 26 | Statistics Exp 1 | No | What is intrinsic dimension, before and after PCA? |
 | 25 | Arm Exp 7 | Yes (read) | Are barcode numbers stable? |
-| 27 | Arm Exp 8 | Yes (read) | Do the two classes differ under Algorithm 2? |
+| 27 | Arm Exp 8 | Yes (read) | Do the two classes differ under permutation test of class difference? |
 | 28 | Arm Exp 9 | Builds new ones | Honest points per snapshot, small snapshot counts |
 | — | Snapshot_Sample_Size | Builds shared pools | Item 1: F1 vs number of snapshots (cloud size fixed). Item 2: F1 vs points per snapshot (always 180 snapshots). Item 4: families of cloud size |
