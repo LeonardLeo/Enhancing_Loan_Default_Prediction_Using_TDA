@@ -10,6 +10,7 @@ Operational scripts and bookkeeping that do not belong inside one protocol bucke
 | `_consumer_queue.py` | Resume-safe consumer trainer (Exp 1 models + Exp 2–8 when barcodes exist). |
 | `_consumer_queue.log` | Log from the last consumer queue run. |
 | `registry_*.json` / `registry_*.csv` | Run coverage, manifests, and source verification. |
+| `_compile_two_dataset_report.py` | Builds the table-only PDF `6_Results/Compiled_Reports/Statlog_And_Default_Of_Credit_Card_Client_Results.pdf`. |
 
 ```powershell
 .\tda_env\Scripts\python.exe 6_Results\Run_Queue\_ripser_queue.py

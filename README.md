@@ -357,6 +357,7 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 | `6_Results/Paper_Tables/*.tex` | LaTeX tables for the VGTC paper template |
 | `6_Results/{Bucket}/{Experiment}/` | Per-experiment pickles, plots, Mapper HTML, GIFs |
 | `6_Results/Run_Queue/` | Ripser/consumer queue scripts, logs, and run registries |
+| `6_Results/Compiled_Reports/` | Table-only PDF from `6_Results/Run_Queue/_compile_two_dataset_report.py` |
 | `6_Results/results.py` | Documented paper-table aggregator (writes into `Paper_Tables/`) |
 | `4_Visualization/` | Curated EDA figures, TDA concept diagrams, LucidChart system designs |
 | `7_Paper/Enhancing_Loan_Default_Prediction_Using_Topological_Data_Analysis.pdf` | Final thesis/paper PDF |

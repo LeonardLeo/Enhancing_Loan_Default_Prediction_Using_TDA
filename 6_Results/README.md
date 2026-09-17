@@ -24,7 +24,7 @@ Do not look in `model_viz/`, `cv_viz/`, `cross_dataset_viz/`, or `plots/` on the
 | `Archives/` | Retired exploratory experiments (original numbers) and `Four_Arm_Nested_Experiments/`. |
 | `Paper_Tables/` | Aggregated LaTeX/CSV tables for the paper. |
 | `Run_Queue/` | Operational Ripser/consumer queues, logs, and run registries. |
-| `Compiled_Reports/` | Evidence-complete working results note for the defined 80-cell live contract and the additional live analyses indexed in section 15: open `Live_Experiment_Results.html`. Charts download as PNG; tables download as CSV and PNG. Rebuild with `Compiled_Reports/build_live_experiment_handoff.py`; the build validates active evidence files, row counts, formulas, confidence intervals, and repeats before writing. Archival Four-Arm nested arms, historical column-pruning, and snapshot-mean-variance diagnostics are excluded. The older PDF is a historical table-only compile. |
+| `Compiled_Reports/` | Table-only PDF compiled by `Run_Queue/_compile_two_dataset_report.py` (`Statlog_And_Default_Of_Credit_Card_Client_Results.pdf`). |
 | `results.py` | Documented aggregator. Run from this directory; it **writes** into `Paper_Tables/`. |
 | `_ripser_queue.py`, `_consumer_queue.py` | Compatibility shims that execute the scripts in `Run_Queue/`. |
 
