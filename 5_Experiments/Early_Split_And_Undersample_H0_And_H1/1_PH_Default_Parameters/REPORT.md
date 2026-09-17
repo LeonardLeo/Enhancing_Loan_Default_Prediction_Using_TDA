@@ -29,7 +29,6 @@ Same historical PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`
 | Dataset | Snapshot size as percent of the class | PCA rank | Number of snapshots |
 |---------|-------------------|----------|-----|
 | Default_Of_Credit_Card_Client_Data | L5 / L15 | 7 | 500 |
-| Statlog_German_Credit_Data | L30 / L60 | 15 | 500 |
 
 ## Order of operations
 

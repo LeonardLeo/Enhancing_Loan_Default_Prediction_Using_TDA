@@ -13,7 +13,7 @@ This is **not** item 2 (`2_Points_Per_Snapshot_Sweep`), which instead holds 180 
 ## Design
 
 - **Moves:** number of snapshots `{15, 30, 45, 60, 90, 120, 180}`
-- **Held fixed:** points per snapshot = largest surviving candidate in `{15, 30, 45, 60, 90, 120, 180, 240, 330}` (330 on DCCCD; 240 on late-split Statlog; 45 on early-split Statlog). In `all_summary.csv`, `is_default_points_per_snapshot` is always 1.
+- **Held fixed:** points per snapshot = largest surviving candidate in `{15, 30, 45, 60, 90, 120, 180, 240, 330}` (330 on Default of Credit Card Client). In `all_summary.csv`, `is_default_points_per_snapshot` is always 1.
 - Candidate points per snapshot are **dropped** when the value is at least the protocol's binding class count (no silent clipping)
 - Headline metric: **F1** (imbalanced tables, especially with no undersampling). Accuracy is always plotted as well.
 - One customer split (`random_state=0`). Ten snapshot-draw repeats. Nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60 ⊂ 90 ⊂ 120 ⊂ 180 from a shuffled pool of 180 training snapshots. Fifteen test snapshots drawn independently and held fixed across the snapshot-count sweep.
@@ -38,7 +38,6 @@ This folder’s `*_sample_size.py` files only keep the default-cloud rows (`is_d
 
 ```
 .\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/run.py --protocol Early_Split_TDA --datasets statlog_german
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/visualize_results.py
 ```
 

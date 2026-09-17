@@ -34,15 +34,12 @@ H0_EXPERIMENTS = (
     "9_Revised_Snapshot_Protocol",
 )
 DATASETS = (
-    "statlog_german",
     "credit_card_default",
 )
 FOLDERS = {
-    "statlog_german": "Statlog_German_Credit_Data",
     "credit_card_default": "Default_Of_Credit_Card_Client_Data",
 }
 STEMS = {
-    "statlog_german": "statlog_german_credit_data",
     "credit_card_default": "default_of_credit_cards_client",
 }
 H0H1_SUFFIX = {
@@ -59,7 +56,6 @@ H0_SUFFIX = {
     "9_Revised_Snapshot_Protocol": "_protocol.py",
 }
 PROTOCOL_SCRIPTS = {
-    "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_protocol.py"),
     "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_protocol.py"),
 }
 PICKLES = {

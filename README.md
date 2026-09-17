@@ -2,7 +2,7 @@
 
 Research codebase for investigating whether **Topological Data Analysis (TDA)**—specifically **persistent homology barcode statistics**—can improve credit default prediction compared to classical machine learning on raw tabular features.
 
-The project compares baseline classifiers trained on original credit datasets against the same classifiers trained on TDA-derived feature matrices, across two public UCI datasets and a suite of controlled experiments (paper + exploratory + new methodology/statistics). Results feed into the thesis/paper *Enhancing Loan Default Prediction Using Topological Data Analysis* (`7_Paper/`).
+The project compares baseline classifiers trained on original credit features against the same classifiers trained on TDA-derived feature matrices. **Live TDA processes, Snapshot Sample Size, and Statistics use Default of Credit Card Client only.** Statlog German Credit is retained under `Default_Parameters/` and `Archives/`. Results feed into the thesis/paper *Enhancing Loan Default Prediction Using Topological Data Analysis* (`7_Paper/`).
 
 ---
 
@@ -80,11 +80,12 @@ Exploratory experiments (Mapper, PCA/t-SNE/UMAP visualizations, KNN sweeps, cova
 
 ## Datasets
 
-The live experimental grid uses one public UCI table, mirrored across `1_Data/`, `5_Experiments/`, and `6_Results/`:
+The live TDA experimental grid uses one public UCI table, mirrored across `1_Data/`, `5_Experiments/`, and `6_Results/`. Statlog German Credit remains available for tabular baselines (`Default_Parameters/`) and for archived experiments.
 
-| Dataset | Folder | Raw source | Default target | Snapshot size as percent of the class | Why those percents |
-|---------|--------|------------|----------------|----------------------------------------|--------------------|
-| **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **5%**, **15%** | Original paper. Minority class count = 6630, so 5% is already 331 points per snapshot. |
+| Dataset | Folder | Raw source | Default target | Snapshot size as percent of the class | Why those percents | Where it is live |
+|---------|--------|------------|----------------|----------------------------------------|--------------------|------------------|
+| **Default of Credit Card Client** (DCCCD) | `Default_Of_Credit_Card_Client_Data/` | `default of credit card clients.xls` | `default payment next month` | **5%**, **15%** | Original paper. Minority class count = 6630, so 5% is already 331 points per snapshot. | Eight TDA processes, Statistics, Snapshot Sample Size, Default Parameters |
+| **Statlog German Credit** | `Statlog_German_Credit_Data/` | `german.data` / `german.data-numeric` | last column, bad credit = 1 | **30%**, **60%** (archived / default-parameter table) | Original paper. Minority class count = 300, so large percents are required for a usable cloud. | `Default_Parameters/` and `Archives/` only |
 
 Why those percents: `docs/Design_Decisions.md`. See `docs/Notation.md` for the symbol mapping used in the methods literature.
 
@@ -344,7 +345,7 @@ python results.py
 This loads all paper experiment results, builds summary DataFrames via `build_results_dataframe_v3()`, and writes into `Paper_Tables/`:
 
 - `Paper_Tables/clean_experiment_results.csv`
-- `Paper_Tables/results_table.tex`, `Paper_Tables/default_of_credit_card_client_results_table.tex`, `Paper_Tables/statlog_german_credit_results_table.tex`
+- `Paper_Tables/results_table.tex`, `Paper_Tables/default_of_credit_card_client_results_table.tex`
 - `Paper_Tables/results_experiment_1.tex` … `Paper_Tables/results_experiment_10.tex`
 
 ---
@@ -357,7 +358,7 @@ This loads all paper experiment results, builds summary DataFrames via `build_re
 | `6_Results/Paper_Tables/*.tex` | LaTeX tables for the VGTC paper template |
 | `6_Results/{Bucket}/{Experiment}/` | Per-experiment pickles, plots, Mapper HTML, GIFs |
 | `6_Results/Run_Queue/` | Ripser/consumer queue scripts, logs, and run registries |
-| `6_Results/Compiled_Reports/` | Table-only PDF from `6_Results/Run_Queue/_compile_two_dataset_report.py` |
+| `6_Results/Compiled_Reports/` | Supervisor HTML briefing `TDA_Results_Briefing.html` from `6_Results/Run_Queue/_compile_results_briefing.py`; table-only PDF from `_compile_two_dataset_report.py` |
 | `6_Results/results.py` | Documented paper-table aggregator (writes into `Paper_Tables/`) |
 | `4_Visualization/` | Curated EDA figures, TDA concept diagrams, LucidChart system designs |
 | `7_Paper/Enhancing_Loan_Default_Prediction_Using_Topological_Data_Analysis.pdf` | Final thesis/paper PDF |

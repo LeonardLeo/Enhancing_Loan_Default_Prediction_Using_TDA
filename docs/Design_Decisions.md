@@ -10,7 +10,7 @@ Canonical knobs live in `utils.DatasetConfig` (`pca_variance`, `landmark_percent
 
 Live code for the historical protocol is `5_Experiments/Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/`. Intrinsic dimension is `5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/`. The revised protocol is experiment 9 in every H0-and-H1 process folder.
 
-The live tables are **Statlog German Credit** and **Default of Credit Card Client**.
+The live TDA table is **Default of Credit Card Client**. Statlog German Credit remains under `Default_Parameters/` and `Archives/`.
 
 ---
 

@@ -31,7 +31,6 @@ EXP_DEFAULT = "1_PH_Default_Parameters"
 EXP_TUNED = "2_PH_Tuned_Parameters"
 EXP_H0 = "3_H0_Only"
 
-STATLOG = "Statlog_German_Credit_Data"
 DCCCD = "Default_Of_Credit_Card_Client_Data"
 
 
@@ -80,46 +79,6 @@ def _optional_stats(folder: str, filename: str, experiment: str) -> pd.DataFrame
     if not path.exists():
         return None
     return pd.read_csv(path)
-
-
-# =============================================================================
-# STATLOG GERMAN CREDIT DATASET
-# =============================================================================
-
-# Class barcode statistics — Historical / 1_PH_Default_Parameters
-sgcd_barcode_stats_default_L30 = _stats(STATLOG, "barcode_stats_default_L30.csv")
-sgcd_barcode_stats_default_L60 = _stats(STATLOG, "barcode_stats_default_L60.csv")
-sgcd_barcode_stats_non_default_L30 = _stats(STATLOG, "barcode_stats_non-default_L30.csv")
-sgcd_barcode_stats_non_default_L60 = _stats(STATLOG, "barcode_stats_non-default_L60.csv")
-
-# Entire barcode matrices — Historical / 1_PH_Default_Parameters
-sgcd_data_L30 = _matrix(STATLOG, "data_L30.csv")
-sgcd_data_L60 = _matrix(STATLOG, "data_L60.csv")
-
-# Tuned-model aliases: Exp 2 trains on the Exp 1 barcode matrix (no rewrite).
-sgcd_barcode_stats_default_L30_4_PH_Tuned_Parameters = sgcd_barcode_stats_default_L30
-sgcd_barcode_stats_default_L60_4_PH_Tuned_Parameters = sgcd_barcode_stats_default_L60
-sgcd_barcode_stats_non_default_L30_4_PH_Tuned_Parameters = sgcd_barcode_stats_non_default_L30
-sgcd_barcode_stats_non_default_L60_4_PH_Tuned_Parameters = sgcd_barcode_stats_non_default_L60
-sgcd_data_L30_4_PH_Tuned_Parameters = sgcd_data_L30
-sgcd_data_L60_4_PH_Tuned_Parameters = sgcd_data_L60
-
-# H0-only combined matrices — Historical / 3_H0_Only
-# Class-wise barcode CSVs are not rewritten by the H0 consumer; optional.
-sgcd_barcode_stats_default_L30_6_Experiment_Impact_of_H0_Only = _optional_stats(
-    STATLOG, "barcode_stats_default_L30.csv", EXP_H0
-)
-sgcd_barcode_stats_default_L60_6_Experiment_Impact_of_H0_Only = _optional_stats(
-    STATLOG, "barcode_stats_default_L60.csv", EXP_H0
-)
-sgcd_barcode_stats_non_default_L30_6_Experiment_Impact_of_H0_Only = _optional_stats(
-    STATLOG, "barcode_stats_non-default_L30.csv", EXP_H0
-)
-sgcd_barcode_stats_non_default_L60_6_Experiment_Impact_of_H0_Only = _optional_stats(
-    STATLOG, "barcode_stats_non-default_L60.csv", EXP_H0
-)
-sgcd_data_L30_6_Experiment_Impact_of_H0_Only = _matrix(STATLOG, "data_L30.csv", experiment=EXP_H0)
-sgcd_data_L60_6_Experiment_Impact_of_H0_Only = _matrix(STATLOG, "data_L60.csv", experiment=EXP_H0)
 
 
 # =============================================================================

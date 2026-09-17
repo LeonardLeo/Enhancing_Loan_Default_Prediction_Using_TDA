@@ -2,7 +2,7 @@
 
 ## In one sentence
 
-PCA rank (7, 10, or 15 components) is **not** intrinsic dimension `b`. We estimate `b` **before PCA** (the credit table) and **after PCA** (the space Ripser samples), with Two-NN as the headline.
+PCA rank (7 components on Default of Credit Card Client) is **not** intrinsic dimension `b`. We estimate `b` **before PCA** (the credit table) and **after PCA** (the space Ripser samples), with Two-NN as the headline.
 
 ## Who this is for
 
@@ -17,7 +17,7 @@ A photograph of a face is thousands of pixels but only a handful of “real” d
 
 Using only the after number hides whether PCA flattened a high-d table or an already-low-d one (and `b` cannot exceed the rank we kept). Using only the before number sizes snapshots for a space Ripser never sees.
 
-## Datasets (all six)
+## Dataset
 
 This experiment does **not** need barcodes.
 
@@ -42,10 +42,9 @@ Hand-coded Two-NN is the transparent Facco formula. skdim is the published packa
 | Dataset | PCA components in Exp 3 | Variance kept by that PCA | PCs needed for 90% | Two-NN **before** PCA | Two-NN **after** PCA |
 |---------|-------------------------|---------------------------|-------------------:|----------------------:|---------------------:|
 | DCCCD | 7 | 94.0% | 6 | 3.95 | **2.81** |
-| Statlog German Credit | 15 | 89.3% | 16 | 5.34 | **4.06** |
 
 
-None of the Two-NN-after-PCA values sit at 7. The “is b ≈ 7?” alarm from the snapshot-size discussion does **not** fire on these six tables.
+The Two-NN-after-PCA value does not sit at 7. The “is b ≈ 7?” alarm from the snapshot-size discussion does **not** fire on this table.
 
 Levina–Bickel with k=10 came out much smaller than Two-NN on these tables. Treat it as a secondary check, not the headline. The CSV also has `skdim_TwoNN_*`, `skdim_MLE_*`, `skdim_MiND_ML_*`, `skdim_lPCA_*`, and `n_components_for_90pct`.
 

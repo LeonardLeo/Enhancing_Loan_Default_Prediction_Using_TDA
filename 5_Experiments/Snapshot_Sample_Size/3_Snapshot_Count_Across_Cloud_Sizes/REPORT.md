@@ -37,7 +37,6 @@ This folder’s `*_sample_size.py` files keep every surviving (points per snapsh
 
 ```
 .\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/run.py --protocol Early_Split_TDA --datasets statlog_german
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/3_Snapshot_Count_Across_Cloud_Sizes/visualize_results.py
 ```
 

@@ -70,10 +70,6 @@ Experiment_2_CV_Results_DCCCD = {"Default of Credit Card Client Dataset": Experi
 # =============================================================================
 # Experiment 3 - Late_Split_And_Undersample_H0_And_H1 / 1_PH_Default_Parameters
 # =============================================================================
-# --- Statlog
-Experiment_3_Model_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_3_CV_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
-
 # --- Default of Credit Card Client
 Experiment_3_Model_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
 Experiment_3_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
@@ -83,10 +79,6 @@ Experiment_3_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/1
 # =============================================================================
 # Experiment 4 - Late_Split_And_Undersample_H0_And_H1 / 2_PH_Tuned_Parameters
 # =============================================================================
-# --- Statlog
-Experiment_4_Model_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_4_CV_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
-
 # --- Default of Credit Card Client
 Experiment_4_Model_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
 Experiment_4_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2_PH_Tuned_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
@@ -101,10 +93,6 @@ Experiment_4_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0_And_H1/2
 # =============================================================================
 # Experiment 6 - Late_Split_And_Undersample_H0 / 1_PH_Default_Parameters  (paper table #5)
 # =============================================================================
-# --- Statlog
-Experiment_6_Model_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Statlog_German_Credit_Data/model_results.pkl")
-Experiment_6_CV_Results_SGCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Statlog_German_Credit_Data/CV_results.pkl")
-
 # --- Default of Credit Card Client
 Experiment_6_Model_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/model_results.pkl")
 Experiment_6_CV_Results_DCCCD = load_pkl("Late_Split_And_Undersample_H0/1_PH_Default_Parameters/Default_Of_Credit_Card_Client_Data/CV_results.pkl")
@@ -328,21 +316,18 @@ experiment_data = {
     "Experiment 3": {
         "DESCRIPTION": "Default parameter performance using ML on generated barcode statistics",
         "RESULT": {
-            "Statlog German Credit Dataset": Experiment_3_Model_Results_SGCD,
             "Default of Credit Card Client Dataset": Experiment_3_Model_Results_DCCCD
         }
     },
     "Experiment 4": {
         "DESCRIPTION": "Tuned parameter performance using ML on generated barcode statistics for improved performance",
         "RESULT": {
-            "Statlog German Credit Dataset": Experiment_4_Model_Results_SGCD,
             "Default of Credit Card Client Dataset": Experiment_4_Model_Results_DCCCD
         }
     },
     "Experiment 5": { # Experiment 6 in Experiment Folder
         "DESCRIPTION": "Effect of H0 barcodes only from barcode statistics on model performance",
         "RESULT": {
-            "Statlog German Credit Dataset": Experiment_6_Model_Results_SGCD,
             "Default of Credit Card Client Dataset": Experiment_6_Model_Results_DCCCD
         }
     },
@@ -462,7 +447,6 @@ experiment_2 = {
 experiment_3 = {
     "DESCRIPTION": "Default parameter performance using ML on generated barcode statistics",
     "RESULT": {
-        "Statlog German Credit Dataset": Experiment_3_Model_Results_SGCD,
         "Default of Credit Card Client Dataset": Experiment_3_Model_Results_DCCCD
     }
 }
@@ -470,7 +454,6 @@ experiment_3 = {
 experiment_4 = {
     "DESCRIPTION": "Tuned parameter performance using ML on generated barcode statistics for improved performance",
     "RESULT": {
-        "Statlog German Credit Dataset": Experiment_4_Model_Results_SGCD,
         "Default of Credit Card Client Dataset": Experiment_4_Model_Results_DCCCD
     }
 }
@@ -478,7 +461,6 @@ experiment_4 = {
 experiment_5 = {  # Experiment 6 in Experiment Folder
     "DESCRIPTION": "Effect of H0 barcodes only from barcode statistics on model performance",
     "RESULT": {
-        "Statlog German Credit Dataset": Experiment_6_Model_Results_SGCD,
         "Default of Credit Card Client Dataset": Experiment_6_Model_Results_DCCCD
     }
 }

@@ -37,15 +37,12 @@ H0_OF = {
     "Early_Split_No_Undersample_H0_And_H1": "Early_Split_No_Undersample_H0",
 }
 DATASETS = [
-    "statlog_german",
     "credit_card_default",
 ]
 PROTOCOL_SCRIPTS = {
-    "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_protocol.py"),
     "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_protocol.py"),
 }
 PH_SCRIPTS = {
-    "statlog_german": ("Statlog_German_Credit_Data", "statlog_german_credit_data"),
     "credit_card_default": ("Default_Of_Credit_Card_Client_Data", "default_of_credit_cards_client"),
 }
 H0H1_CONSUMERS = {

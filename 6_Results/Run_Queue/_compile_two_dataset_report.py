@@ -1,4 +1,4 @@
-# Compile a downloadable PDF of live results for Statlog and Default of Credit Card Client.
+# Compile a downloadable PDF of live results for Default of Credit Card Client.
 from __future__ import annotations
 
 import os
@@ -31,10 +31,9 @@ sys.path.insert(0, str(ROOT))
 from utils import TDA_PROCESS_REGISTRY, process_display_name, win_long_path
 
 OUT_DIR = ROOT / "6_Results" / "Compiled_Reports"
-OUT_PDF = OUT_DIR / "Statlog_And_Default_Of_Credit_Card_Client_Results.pdf"
+OUT_PDF = OUT_DIR / "Default_Of_Credit_Card_Client_Results.pdf"
 
 DATASETS = (
-    ("Statlog_German_Credit_Data", "Statlog German Credit"),
     ("Default_Of_Credit_Card_Client_Data", "Default of Credit Card Client"),
 )
 MODELS = ("svm", "knn", "xgb", "logistic", "random_forest")
@@ -323,7 +322,7 @@ def header_footer(canvas, doc):
     canvas.setFont("Times-Bold", 9)
     canvas.drawString(14*mm, landscape(A4)[1] - 8*mm, "Enhancing Loan Default Prediction Using TDA")
     canvas.setFont("Times-Roman", 9)
-    canvas.drawRightString(landscape(A4)[0] - 14*mm, landscape(A4)[1] - 8*mm, "Statlog and Default of Credit Card Client")
+    canvas.drawRightString(landscape(A4)[0] - 14*mm, landscape(A4)[1] - 8*mm, "Default of Credit Card Client")
     canvas.setFillColor(colors.HexColor("#666666"))
     canvas.setFont("Times-Roman", 8)
     canvas.drawString(14*mm, 8*mm, "Generated from live 6_Results artefacts. Public process names from utils.TDA_PROCESS_REGISTRY.")
@@ -510,11 +509,11 @@ def build_story(payload: dict):
     story = []
     story.append(Spacer(1, 18*mm))
     story.append(P("Compiled experiment results", sty["title"]))
-    story.append(P("Statlog German Credit and Default of Credit Card Client", sty["subtitle"]))
+    story.append(P("Default of Credit Card Client", sty["subtitle"]))
     story.append(P(
         "This report gathers live classifier scores, cross-validation where it exists, "
         "permutation test of class difference permutation tests, sampling-ratio audits, and revised-snapshot protocol "
-        "scores for the two paper datasets. It covers the tabular ML baselines and the eight "
+        "scores for Default of Credit Card Client. It covers the tabular ML baselines and the eight "
         "named TDA processes (split × undersample × just H0 vs both H0 and H1). "
         "Public names always use “and”, never “+”. Nested extras (drop-correlated columns, "
         "linear regression, mean/variance) are archived and are not included.",
@@ -589,7 +588,7 @@ def main():
         rightMargin=12*mm,
         topMargin=18*mm,
         bottomMargin=14*mm,
-        title="Compiled TDA results — Statlog and Default of Credit Card Client",
+        title="Compiled TDA results — Default of Credit Card Client",
         author="Enhancing Loan Default Prediction Using TDA",
     )
     doc.build(build_story(payload), onFirstPage=header_footer, onLaterPages=header_footer)

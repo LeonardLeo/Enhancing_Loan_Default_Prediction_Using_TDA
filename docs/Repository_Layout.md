@@ -31,7 +31,7 @@ Compact snapshot symbols from the methods literature are recorded once in `docs/
 |--------------|------|
 | `Paper_Tables/` | LaTeX/CSV tables written by `6_Results/results.py` |
 | `Run_Queue/` | Ripser, consumer, and sample-size queues plus logs |
-| `Compiled_Reports/` | Table-only PDF written by `6_Results/Run_Queue/_compile_two_dataset_report.py` |
+| `Compiled_Reports/` | Supervisor HTML briefing `TDA_Results_Briefing.html` written by `6_Results/Run_Queue/_compile_results_briefing.py`; table-only PDF written by `_compile_two_dataset_report.py` |
 
 Root shims `6_Results/_ripser_queue.py` and `6_Results/_consumer_queue.py` forward to `Run_Queue/`. They are the public entry if an in-flight command still uses the old path. Prefer `6_Results/Run_Queue/`.
 

@@ -13,7 +13,6 @@ PY = ROOT / "tda_env" / "Scripts" / "python.exe"
 LOG = HERE / "_snapshot_sample_size_queue.log"
 
 DATASETS = [
-    ("Statlog_German_Credit_Data", "statlog_german_credit_sample_size.py"),
     ("Default_Of_Credit_Card_Client_Data", "default_of_credit_card_client_sample_size.py"),
 ]
 ITEMS = [

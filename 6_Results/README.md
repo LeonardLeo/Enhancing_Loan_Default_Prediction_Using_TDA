@@ -24,7 +24,7 @@ Do not look in `model_viz/`, `cv_viz/`, `cross_dataset_viz/`, or `plots/` on the
 | `Archives/` | Retired exploratory experiments (original numbers) and `Four_Arm_Nested_Experiments/`. |
 | `Paper_Tables/` | Aggregated LaTeX/CSV tables for the paper. |
 | `Run_Queue/` | Operational Ripser/consumer queues, logs, and run registries. |
-| `Compiled_Reports/` | Table-only PDF compiled by `Run_Queue/_compile_two_dataset_report.py` (`Statlog_And_Default_Of_Credit_Card_Client_Results.pdf`). |
+| `Compiled_Reports/` | Supervisor HTML briefing `TDA_Results_Briefing.html` from `Run_Queue/_compile_results_briefing.py`. Table-only PDF from `Run_Queue/_compile_two_dataset_report.py` (`Default_Of_Credit_Card_Client_Results.pdf`). |
 | `results.py` | Documented aggregator. Run from this directory; it **writes** into `Paper_Tables/`. |
 | `_ripser_queue.py`, `_consumer_queue.py` | Compatibility shims that execute the scripts in `Run_Queue/`. |
 
@@ -39,7 +39,6 @@ Outputs:
 
 - `Paper_Tables/clean_experiment_results.csv`
 - `Paper_Tables/results_table.tex`
-- `Paper_Tables/statlog_german_credit_results_table.tex`
 - `Paper_Tables/default_of_credit_card_client_results_table.tex`
 - `Paper_Tables/results_experiment_1.tex` … `results_experiment_10.tex`
 

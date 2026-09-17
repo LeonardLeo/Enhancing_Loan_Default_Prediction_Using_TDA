@@ -7,6 +7,9 @@ Visualization: each active experiment folder has visualize_results.py at the exp
 Layout map: docs/Repository_Layout.md
 English snapshot names: docs/Notation.md
 
+Live TDA processes, Statistics, and Snapshot Sample Size use Default of Credit Card Client only.
+Statlog German Credit is retained under Default_Parameters/ and Archives/.
+
 Live buckets (not 22 numbered folders at 5_Experiments root):
 - Default_Parameters/
 - Early_Split_And_Undersample_H0/

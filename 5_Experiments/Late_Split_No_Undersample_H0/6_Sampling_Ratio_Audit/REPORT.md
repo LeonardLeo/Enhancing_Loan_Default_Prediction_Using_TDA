@@ -10,14 +10,13 @@
 | Snapshot size | points per snapshot = floor(that class's count × snapshot size percent / 100) on the unbalanced pool |
 | Number of snapshots | 500 (dataset historical n_files) |
 
-No Ripser. Scores expected sampling reuse = (points per snapshot × number of snapshots) / class count from the protocol's class pools and snapshot-size percents. It records both the historical 500-snapshot rule and the approximate one-coverage comparator `ceil(class count / points per snapshot)`. Across the live audit the comparator spans 2–21 snapshots (Default of Credit Card Client: 21/7 at 5%/15%; Statlog: 4/2 at 30%/60%) and can sit just above reuse 1. It is not experiment 9's floor-based reuse-safe cap.
+No Ripser. Scores expected sampling reuse = (points per snapshot × number of snapshots) / class count from the protocol's class pools and snapshot-size percents. It records both the historical 500-snapshot rule and the approximate one-coverage comparator `ceil(class count / points per snapshot)`. Across the live audit the comparator spans 7–21 snapshots on Default of Credit Card Client (21 at 5%, 7 at 15%) and can sit just above reuse 1. It is not experiment 9's floor-based reuse-safe cap.
 
 Same Exp 3 PCA ranks and snapshot-size percents (`docs/Design_Decisions.md`, `utils.DatasetConfig`):
 
 | Dataset | Snapshot size as percent of the class | PCA rank | Number of snapshots |
 |---------|-------------------|----------|-----|
 | Default_Of_Credit_Card_Client_Data | L5 / L15 | 7 | 500 |
-| Statlog_German_Credit_Data | L30 / L60 | 15 | 500 |
 
 ## Artefacts
 

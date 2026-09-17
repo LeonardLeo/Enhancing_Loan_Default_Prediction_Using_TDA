@@ -21,7 +21,6 @@ This experiment uses a **fixed absolute points-per-snapshot value** for train an
 
 ```
 5_Experiments/Late_Split_And_Undersample_H0/9_Revised_Snapshot_Protocol/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py
-5_Experiments/Late_Split_And_Undersample_H0/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py
 …
 ```
 
@@ -44,7 +43,6 @@ Sampling-ratio audit (arm experiment 6) showed 500 snapshots over-reuse every ta
 ## How to run
 
 ```
-.\tda_env\Scripts\python.exe 5_Experiments/Late_Split_And_Undersample_H0/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py
 ```
 
 ## Where to read the method

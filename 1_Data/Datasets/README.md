@@ -1,6 +1,6 @@
 # Loan & Credit Default — Dataset Acquisition Log
 
-The live study uses one public UCI table. Retrieved 30 July 2026.
+The live study uses Default of Credit Card Client for TDA, Statistics, and Snapshot Sample Size. Statlog German Credit is retained for tabular Default Parameters and Archives. Retrieved 30 July 2026.
 
 ---
 
@@ -21,6 +21,7 @@ The live study uses one public UCI table. Retrieved 30 July 2026.
 | # | Dataset | Files | Verification |
 |---|---------|-------|--------------|
 | 01 | Default of Credit Card Clients | `UCI_Credit_Card.csv` / processed Excel | 30,000 × 25 (23 predictors + ID + target) ✓ · 6,636 defaults (22.1%) |
+| 02 | Statlog German Credit | `german.data` / `german.data-numeric` | Retained for `Default_Parameters/` and `Archives/` only |
 
 ---
 
@@ -29,6 +30,7 @@ The live study uses one public UCI table. Retrieved 30 July 2026.
 ```
 MANIFEST.csv                 sha256, size, primary source, mirror, licence
 Default_Of_Credit_Card_Client_Data/  default of credit card clients.xls
+Statlog_German_Credit_Data/          german.data, german.data-numeric, german.doc  (Default Parameters and Archives only)
 ```
 
 Verify with `sha256sum -c` against `MANIFEST.csv`.

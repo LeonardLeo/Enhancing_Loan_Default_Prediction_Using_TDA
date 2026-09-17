@@ -9,7 +9,7 @@ Scripts:
 - Arm Exp 8 — `5_Experiments/{TDA arm}/8_Permutation_Test_Of_Class_Difference/`
 - Statistics Exp 1 — `5_Experiments/Statistics/1_Intrinsic_Dimension_Estimation/`
 
-Numbers below are from the Historical Late Split Balanced TDA arm unless a caption says otherwise. Formulas are in `utils.py`.
+Numbers below for live TDA processes and Statistics are Default of Credit Card Client. Statlog German Credit remains under `Default_Parameters/` and `Archives/`; Statlog rows in historical tables below are from those trees or from paper tables, not from the eight live TDA process folders.
 
 ---
 

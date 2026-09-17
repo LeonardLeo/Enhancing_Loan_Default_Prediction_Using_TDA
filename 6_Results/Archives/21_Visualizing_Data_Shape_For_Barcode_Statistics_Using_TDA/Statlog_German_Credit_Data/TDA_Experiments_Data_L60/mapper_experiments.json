@@ -1,0 +1,299 @@
+[
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 20,
+        "overlap": 0.3,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res20_Ovl0.3_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res20_Ovl0.3_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 20,
+        "overlap": 0.3,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res20_Ovl0.3_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res20_Ovl0.3_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 20,
+        "overlap": 0.4,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res20_Ovl0.4_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res20_Ovl0.4_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 20,
+        "overlap": 0.4,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res20_Ovl0.4_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res20_Ovl0.4_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 20,
+        "overlap": 0.5,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res20_Ovl0.5_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res20_Ovl0.5_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 20,
+        "overlap": 0.5,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res20_Ovl0.5_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res20_Ovl0.5_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 30,
+        "overlap": 0.3,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res30_Ovl0.3_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res30_Ovl0.3_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 30,
+        "overlap": 0.3,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res30_Ovl0.3_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res30_Ovl0.3_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 30,
+        "overlap": 0.4,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res30_Ovl0.4_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res30_Ovl0.4_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 30,
+        "overlap": 0.4,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res30_Ovl0.4_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res30_Ovl0.4_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 30,
+        "overlap": 0.5,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res30_Ovl0.5_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res30_Ovl0.5_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 30,
+        "overlap": 0.5,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res30_Ovl0.5_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res30_Ovl0.5_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 40,
+        "overlap": 0.3,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res40_Ovl0.3_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res40_Ovl0.3_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 40,
+        "overlap": 0.3,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res40_Ovl0.3_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res40_Ovl0.3_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 40,
+        "overlap": 0.4,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res40_Ovl0.4_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res40_Ovl0.4_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 40,
+        "overlap": 0.4,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res40_Ovl0.4_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res40_Ovl0.4_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "pca",
+        "lens_params": {
+            "n_components": 2
+        },
+        "resolution": 40,
+        "overlap": 0.5,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res40_Ovl0.5_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\PCA_Res40_Ovl0.5_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    },
+    {
+        "lens": "umap",
+        "lens_params": {
+            "n_components": 2,
+            "random_state": 42
+        },
+        "resolution": 40,
+        "overlap": 0.5,
+        "cluster_type": "kmeans",
+        "cluster_params": {
+            "n_clusters": 2
+        },
+        "output_dir": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res40_Ovl0.5_Clustkmeans_n_clusters_2",
+        "output_files": {
+            "labels": "c:\\users\\leona\\desktop\\github projects\\tda_research_thesis\\6_Results\\21_Visualizing_Data_Shape_For_Barcode_Statistics_Using_TDA\\Statlog_German_Credit_Data\\TDA_Experiments_Data_L60\\UMAP_Res40_Ovl0.5_Clustkmeans_n_clusters_2\\mapper_output_labels.html"
+        }
+    }
+]

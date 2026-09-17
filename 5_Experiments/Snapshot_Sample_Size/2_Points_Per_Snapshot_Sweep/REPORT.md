@@ -14,7 +14,7 @@ This is **not** item 1 (`1_Snapshot_Count_Sweep`), which instead holds points pe
 
 - **Moves:** points per snapshot `{15, 30, 45, 60, 90, 120, 180, 240, 330}` where they fit the protocol's binding class pool
 - **Held fixed:** number of snapshots = **180**. In `all_summary.csv`, `n_snapshots` is always 180.
-- Candidate points per snapshot are **dropped** when the value is at least the protocol's binding class count (no silent clipping). Early-split Statlog keeps 15, 30, 45; DCCCD keeps the full 15–330 grid.
+- Candidate points per snapshot are **dropped** when the value is at least the protocol's binding class count (no silent clipping). Default of Credit Card Client keeps the full 15–330 grid.
 - Headline metric: **F1** (imbalanced tables, especially with no undersampling). Accuracy is always plotted as well.
 - One customer split (`random_state=0`). Ten snapshot-draw repeats. Nested prefixes 15 ⊂ 30 ⊂ 45 ⊂ 60 ⊂ 90 ⊂ 120 ⊂ 180 from a shuffled pool of 180 training snapshots. Fifteen test snapshots drawn independently and held fixed across the snapshot-count sweep.
 - 95% CI = mean ± Student's t(0.975, 9) × SE across the 10 repeats (percentile interval also stored). This is snapshot-sampling uncertainty, not customer-split uncertainty. This study does not also run five customer splits on the full grid.
@@ -38,7 +38,6 @@ This folder’s `*_sample_size.py` files only keep rows with 180 training snapsh
 
 ```
 .\tda_env\Scripts\python.exe the dataset script in 5_Experiments/Snapshot_Sample_Size/1_Snapshot_Count_Sweep/<Dataset>/
-.\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/2_Points_Per_Snapshot_Sweep/run.py --protocol Early_Split_TDA --datasets statlog_german
 .\tda_env\Scripts\python.exe 5_Experiments/Snapshot_Sample_Size/2_Points_Per_Snapshot_Sweep/visualize_results.py
 ```
 

@@ -4,7 +4,7 @@ Methodological risks in the codebase, what mitigates them, and what remains out 
 
 **Current layout:** every dataset uses mirrored folders  
 `5_Experiments/{Bucket}/{Experiment}/{Folder}/` ↔ `6_Results/{Bucket}/{Experiment}/{Folder}/` ↔ `1_Data/.../{ProtocolBucket}/{Experiment}/{Folder}/`  
-for both live datasets (`Default_Of_Credit_Card_Client_Data`, `Statlog_German_Credit_Data`). Paper LaTeX tables live in `6_Results/Paper_Tables/`.
+for Default of Credit Card Client (`Default_Of_Credit_Card_Client_Data`). Statlog German Credit is retained under `Default_Parameters/` and `Archives/`. Paper LaTeX tables live in `6_Results/Paper_Tables/`.
 
 Shared helpers live in **`utils.py`**.
 

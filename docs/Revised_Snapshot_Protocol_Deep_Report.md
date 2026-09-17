@@ -397,7 +397,6 @@ We sit exactly on the minority bound for 60 training snapshots. That is intentio
 |------|------|
 | `utils.py` | Formulas, overlap tests, fixed-points-per-snapshot sampling, design, and orchestration |
 | `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/Default_Of_Credit_Card_Client_Data/default_of_credit_card_client_protocol.py` | Default of Credit Card Client launcher |
-| `5_Experiments/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/Statlog_German_Credit_Data/statlog_german_credit_protocol.py` | Statlog launcher |
 | `6_Results/Early_Split_No_Undersample_H0_And_H1/9_Revised_Snapshot_Protocol/all_designs.json` | All design decisions |
 | `.../<dataset>/worked_calculations.csv` | Step-by-step numeric audit |
 | `.../<dataset>/concern_A_formula_rows.csv` | Formula table |

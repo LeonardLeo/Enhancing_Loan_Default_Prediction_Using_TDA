@@ -19,7 +19,6 @@ ARMS = [
 
 DATASETS = {
     "Default_Of_Credit_Card_Client_Data": [5, 15],
-    "Statlog_German_Credit_Data": [30, 60],
 }
 
 HEADLINE = ["g2_0", "g3_0", "g2_1", "g3_1"]  # mean death / mean persistence, H0 and H1
